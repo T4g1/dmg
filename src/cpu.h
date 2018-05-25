@@ -1,7 +1,13 @@
-#include <inttypes.h>
+#ifndef CPU_H
+#define CPU_H
+
+#include "dmg.h"
 
 #define MAX_OPCODES         255
 
-void nop(uint16_t *PC, int *clock, uint8_t *reg, uint16_t **r16, uint8_t *ram);
+void nop(struct dmg_state *ds, uint8_t opcode);
+void ld(struct dmg_state *ds, uint8_t opcode);
 
-typedef void (*cpu_callback)(uint16_t*, int*, uint8_t*, uint16_t**, uint8_t*);
+typedef void (*cpu_callback)(struct dmg_state *ds, uint8_t opcode);
+
+#endif /* CPU_H */

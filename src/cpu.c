@@ -1,7 +1,23 @@
+#include <stdio.h>
+#include <string.h>
+
 #include "cpu.h"
 
-void nop(uint16_t *PC, int *clock, uint8_t *reg, uint16_t **r16, uint8_t *ram)
+void nop(struct dmg_state *s, uint8_t opcode)
 {
-    *PC += 1;
-    *clock += 4;
+    s->PC += 1;
+    s->clock += 4;
+}
+
+void ld(struct dmg_state *s, uint8_t opcode)
+{
+    switch (opcode) {
+    case 31:    // Loads 16-bit immediate to SP
+    default:
+        memcpy(&s->SP, s->ram + s->PC + 1, sizeof(uint16_t));
+        s->PC += 3;
+        s->clock += 12;
+
+        fprintf(stdout, "LD immediate to SP\n");
+    }
 }

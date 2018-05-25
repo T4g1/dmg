@@ -11,6 +11,7 @@ Personal attempt at creating a simple DMG GameBoy emulator from scratch.
 * [Pan Docs](http://bgb.bircd.org/pandocs.htm)
 * [Game Boy DMG original Boot ROM](http://gbdev.gg8.se/wiki/articles/Gameboy_Bootstrap_ROM)
 * [Game Boy Opcodes](http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
+* [Game Boy Opcodes (other version)](https://gamehacking.org/faqs/GameBoy_Z80_Opcode_Map.html)
 
 # TODO
 

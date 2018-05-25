@@ -1,42 +1,19 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <inttypes.h>
+#include <unistd.h>     // DEBUG
 
 #include "cpu.h"
 
-#define RAM_SIZE        0xFFFF
-#define REGISTER_COUNT  8
-#define R16_COUNT       3
-
-#define A               0   //<! Accumulator
-#define F               1   //<! Flags (Z N H C - - - -)
-#define B               2
-#define C               3
-#define D               4
-#define E               5
-#define H               6
-#define L               7
-
-#define BC              0
-#define DE              1
-#define HL              1
-
-int clock;
-
-uint8_t ram[RAM_SIZE];
-uint8_t reg[REGISTER_COUNT];
-uint16_t *r16[R16_COUNT];       //<! Shortcut for 16bits registers
-uint16_t SP;                    //<! Stack Pointer
-uint16_t PC;                    //<! Program Counter
+#include "dmg.h"
 
 cpu_callback l_callback[MAX_OPCODES];
 
-void init()
+void init(struct dmg_state *s)
 {
-    r16[BC] = (uint16_t*) &reg[B];
-    r16[DE] = (uint16_t*) &reg[D];
-    r16[HL] = (uint16_t*) &reg[H];
+    s->r16[BC] = (uint16_t*) &s->reg[B];
+    s->r16[DE] = (uint16_t*) &s->reg[D];
+    s->r16[HL] = (uint16_t*) &s->reg[H];
 
     // CPU opcode assingation
     l_callback[0x00] = &nop;
@@ -91,7 +68,7 @@ void init()
     l_callback[0x2F] = &nop;
 
     l_callback[0x30] = &nop;
-    l_callback[0x31] = &nop;
+    l_callback[0x31] = &ld;
     l_callback[0x32] = &nop;
     l_callback[0x33] = &nop;
     l_callback[0x34] = &nop;
@@ -312,53 +289,53 @@ void init()
     l_callback[0xFF] = &nop;
 }
 
-void reset()
+void reset(struct dmg_state *s)
 {
-    reg[A] = 0x01;
-    reg[F] = 0xB0;
-    reg[B] = 0x00;
-    reg[C] = 0x13;
-    reg[D] = 0x00;
-    reg[E] = 0xD8;
-    reg[H] = 0x01;
-    reg[L] = 0x4D;
+    s->reg[A] = 0x01;
+    s->reg[F] = 0xB0;
+    s->reg[B] = 0x00;
+    s->reg[C] = 0x13;
+    s->reg[D] = 0x00;
+    s->reg[E] = 0xD8;
+    s->reg[H] = 0x01;
+    s->reg[L] = 0x4D;
 
-    SP = 0xFFFE;
+    s->SP = 0xFFFE;
 
-    ram[0xFF05] = 0x00;     //<! TIMA
-    ram[0xFF06] = 0x00;     //<! TMA
-    ram[0xFF07] = 0x00;     //<! TAC
-    ram[0xFF10] = 0x80;     //<! NR10
-    ram[0xFF11] = 0xBF;     //<! NR11
-    ram[0xFF12] = 0xF3;     //<! NR12
-    ram[0xFF14] = 0xBF;     //<! NR14
-    ram[0xFF16] = 0x3F;     //<! NR21
-    ram[0xFF17] = 0x00;     //<! NR22
-    ram[0xFF19] = 0xBF;     //<! NR24
-    ram[0xFF1A] = 0x7F;     //<! NR30
-    ram[0xFF1B] = 0xFF;     //<! NR31
-    ram[0xFF1C] = 0x9F;     //<! NR32
-    ram[0xFF1E] = 0xBF;     //<! NR33
-    ram[0xFF20] = 0xFF;     //<! NR41
-    ram[0xFF21] = 0x00;     //<! NR42
-    ram[0xFF22] = 0x00;     //<! NR43
-    ram[0xFF23] = 0xBF;     //<! NR44
-    ram[0xFF23] = 0x77;     //<! NR50
-    ram[0xFF23] = 0xF3;     //<! NR51
-    ram[0xFF23] = 0xF1;     //<! NR52
-    ram[0xFF23] = 0x91;     //<! LCDC
-    ram[0xFF23] = 0x00;     //<! SCY
-    ram[0xFF23] = 0x00;     //<! SCX
-    ram[0xFF23] = 0x00;     //<! LYC
-    ram[0xFF23] = 0xFC;     //<! BGP
-    ram[0xFF23] = 0xFF;     //<! OBP0
-    ram[0xFF23] = 0xFF;     //<! OBP1
-    ram[0xFF23] = 0x00;     //<! WY
-    ram[0xFF23] = 0x00;     //<! WX
-    ram[0xFF23] = 0x00;     //<! IE
+    s->ram[0xFF05] = 0x00;     //<! TIMA
+    s->ram[0xFF06] = 0x00;     //<! TMA
+    s->ram[0xFF07] = 0x00;     //<! TAC
+    s->ram[0xFF10] = 0x80;     //<! NR10
+    s->ram[0xFF11] = 0xBF;     //<! NR11
+    s->ram[0xFF12] = 0xF3;     //<! NR12
+    s->ram[0xFF14] = 0xBF;     //<! NR14
+    s->ram[0xFF16] = 0x3F;     //<! NR21
+    s->ram[0xFF17] = 0x00;     //<! NR22
+    s->ram[0xFF19] = 0xBF;     //<! NR24
+    s->ram[0xFF1A] = 0x7F;     //<! NR30
+    s->ram[0xFF1B] = 0xFF;     //<! NR31
+    s->ram[0xFF1C] = 0x9F;     //<! NR32
+    s->ram[0xFF1E] = 0xBF;     //<! NR33
+    s->ram[0xFF20] = 0xFF;     //<! NR41
+    s->ram[0xFF21] = 0x00;     //<! NR42
+    s->ram[0xFF22] = 0x00;     //<! NR43
+    s->ram[0xFF23] = 0xBF;     //<! NR44
+    s->ram[0xFF23] = 0x77;     //<! NR50
+    s->ram[0xFF23] = 0xF3;     //<! NR51
+    s->ram[0xFF23] = 0xF1;     //<! NR52
+    s->ram[0xFF23] = 0x91;     //<! LCDC
+    s->ram[0xFF23] = 0x00;     //<! SCY
+    s->ram[0xFF23] = 0x00;     //<! SCX
+    s->ram[0xFF23] = 0x00;     //<! LYC
+    s->ram[0xFF23] = 0xFC;     //<! BGP
+    s->ram[0xFF23] = 0xFF;     //<! OBP0
+    s->ram[0xFF23] = 0xFF;     //<! OBP1
+    s->ram[0xFF23] = 0x00;     //<! WY
+    s->ram[0xFF23] = 0x00;     //<! WX
+    s->ram[0xFF23] = 0x00;     //<! IE
 }
 
-bool load(const char *filepath, uint16_t dst)
+bool load(const char *filepath, struct dmg_state *s, uint16_t dst)
 {
     FILE *f = fopen(filepath, "rb");
     if (f == NULL) {
@@ -368,7 +345,7 @@ bool load(const char *filepath, uint16_t dst)
 
     uint8_t byte;
     while (fread(&byte, sizeof(uint8_t), 1, f) == 1) {
-        ram[dst++] = byte;
+        s->ram[dst++] = byte;
     }
 
     // Failure of reading not EOF related
@@ -378,11 +355,6 @@ bool load(const char *filepath, uint16_t dst)
     }
 
     return true;
-}
-
-void handle_opcode(uint8_t opcode)
-{
-    (*l_callback[opcode])(&PC, &clock, reg, r16, ram);
 }
 
 int main(int argc, char *argv[])
@@ -395,23 +367,28 @@ int main(int argc, char *argv[])
     char *boot_rom = argv[1];
     //char *game_rom = argv[2];
 
-    init();
-    reset();
+    struct dmg_state s;
+    s.clock = 0;
+    s.PC = 0x0000;
+
+    init(&s);
+    reset(&s);
 
     bool running = true;
 
     fprintf(stdout, "Loading boot ROM from %s\n", boot_rom);
-    running &= load(boot_rom, 0x0000);
+    running &= load(boot_rom, &s, 0x0000);
 
     //fprintf("Loading game ROM from %s\n", game_rom);
 
-    clock = 0;
-    PC = 0x0000;
-
     while (running) {
-        handle_opcode(ram[PC]);
+        fprintf(stdout, "PC: %d\n", s.PC);
 
-        fprintf(stdout, "PC: %d\n", PC);
+        uint8_t opcode = s.ram[s.PC];
+        (*l_callback[opcode])(&s, opcode);
+
+        // DEBUG
+        sleep(1);
     }
 
     return EXIT_SUCCESS;
