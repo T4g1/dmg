@@ -9,6 +9,7 @@ Personal attempt at creating a simple DMG GameBoy emulator from scratch.
 * [Z80 Family CPU User Manual](http://www.myquest.nl/z80undocumented/z80cpu_um.pdf)
 * [Dooskington wiki about emulators](https://github.com/Dooskington/GameLad/wiki)
 * [Pan Docs](http://bgb.bircd.org/pandocs.htm)
+* [Game Boy DMG original Boot ROM](http://gbdev.gg8.se/wiki/articles/Gameboy_Bootstrap_ROM)
 
 # TODO
 
