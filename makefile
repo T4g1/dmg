@@ -1,7 +1,7 @@
 CC=cc
 LIBS=
 CFLAGS=
-BIN=./bin
+BIN=.
 SRC=./src
 PROG=dmg
 LIST=$(addprefix $(BIN)/, $(PROG))
