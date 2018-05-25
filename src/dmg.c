@@ -17,8 +17,8 @@ void init(struct dmg_state *s)
 
     // CPU opcode assingation
     l_callback[0x00] = &nop;
-    l_callback[0x01] = &nop;
-    l_callback[0x02] = &nop;
+    l_callback[0x01] = &ld;
+    l_callback[0x02] = &ld;
     l_callback[0x03] = &nop;
     l_callback[0x04] = &nop;
     l_callback[0x05] = &nop;
@@ -34,8 +34,8 @@ void init(struct dmg_state *s)
     l_callback[0x0F] = &nop;
 
     l_callback[0x10] = &nop;
-    l_callback[0x11] = &nop;
-    l_callback[0x12] = &nop;
+    l_callback[0x11] = &ld;
+    l_callback[0x12] = &ld;
     l_callback[0x13] = &nop;
     l_callback[0x14] = &nop;
     l_callback[0x15] = &nop;
@@ -51,8 +51,8 @@ void init(struct dmg_state *s)
     l_callback[0x1F] = &nop;
 
     l_callback[0x20] = &nop;
-    l_callback[0x21] = &nop;
-    l_callback[0x22] = &nop;
+    l_callback[0x21] = &ld;
+    l_callback[0x22] = &ld;
     l_callback[0x23] = &nop;
     l_callback[0x24] = &nop;
     l_callback[0x25] = &nop;
@@ -69,7 +69,7 @@ void init(struct dmg_state *s)
 
     l_callback[0x30] = &nop;
     l_callback[0x31] = &ld;
-    l_callback[0x32] = &nop;
+    l_callback[0x32] = &ld;
     l_callback[0x33] = &nop;
     l_callback[0x34] = &nop;
     l_callback[0x35] = &nop;
@@ -201,7 +201,7 @@ void init(struct dmg_state *s)
     l_callback[0xAC] = &nop;
     l_callback[0xAD] = &nop;
     l_callback[0xAE] = &nop;
-    l_callback[0xAF] = &nop;
+    l_callback[0xAF] = &xor;
 
     l_callback[0xB0] = &nop;
     l_callback[0xB1] = &nop;
@@ -382,9 +382,10 @@ int main(int argc, char *argv[])
     //fprintf("Loading game ROM from %s\n", game_rom);
 
     while (running) {
-        fprintf(stdout, "PC: %d\n", s.PC);
-
         uint8_t opcode = s.ram[s.PC];
+
+        fprintf(stdout, "PC: %08d\tClock: %08d\tOpcode: %02X\n", s.PC, s.clock, opcode);
+
         (*l_callback[opcode])(&s, opcode);
 
         // DEBUG

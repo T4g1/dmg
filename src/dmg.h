@@ -7,6 +7,7 @@
 #define REGISTER_COUNT  8
 #define R16_COUNT       3
 
+// 8-Bits registers
 #define A               0   //<! Accumulator
 #define F               1   //<! Flags (Z N H C - - - -)
 #define B               2
@@ -16,9 +17,16 @@
 #define H               6
 #define L               7
 
+// 16-Bits registers
 #define BC              0
 #define DE              1
-#define HL              1
+#define HL              2
+
+// Flags
+#define FZ               7  //<! Zero Flag
+#define FN               6  //<! Add/Sub Flag
+#define FH               5  //<! Half Carry Flag
+#define FC               4  //<! Carry Flag
 
 struct dmg_state {
     int clock;
