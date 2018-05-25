@@ -3,6 +3,8 @@
 #include <stdbool.h>
 #include <inttypes.h>
 
+#include "cpu.h"
+
 #define RAM_SIZE        0xFFFF
 #define REGISTER_COUNT  8
 #define R16_COUNT       3
@@ -20,17 +22,294 @@
 #define DE              1
 #define HL              1
 
+int clock;
+
 uint8_t ram[RAM_SIZE];
 uint8_t reg[REGISTER_COUNT];
 uint16_t *r16[R16_COUNT];       //<! Shortcut for 16bits registers
 uint16_t SP;                    //<! Stack Pointer
 uint16_t PC;                    //<! Program Counter
 
+cpu_callback l_callback[MAX_OPCODES];
+
 void init()
 {
     r16[BC] = (uint16_t*) &reg[B];
     r16[DE] = (uint16_t*) &reg[D];
     r16[HL] = (uint16_t*) &reg[H];
+
+    // CPU opcode assingation
+    l_callback[0x00] = &nop;
+    l_callback[0x01] = &nop;
+    l_callback[0x02] = &nop;
+    l_callback[0x03] = &nop;
+    l_callback[0x04] = &nop;
+    l_callback[0x05] = &nop;
+    l_callback[0x06] = &nop;
+    l_callback[0x07] = &nop;
+    l_callback[0x08] = &nop;
+    l_callback[0x09] = &nop;
+    l_callback[0x0A] = &nop;
+    l_callback[0x0B] = &nop;
+    l_callback[0x0C] = &nop;
+    l_callback[0x0D] = &nop;
+    l_callback[0x0E] = &nop;
+    l_callback[0x0F] = &nop;
+
+    l_callback[0x10] = &nop;
+    l_callback[0x11] = &nop;
+    l_callback[0x12] = &nop;
+    l_callback[0x13] = &nop;
+    l_callback[0x14] = &nop;
+    l_callback[0x15] = &nop;
+    l_callback[0x16] = &nop;
+    l_callback[0x17] = &nop;
+    l_callback[0x18] = &nop;
+    l_callback[0x19] = &nop;
+    l_callback[0x1A] = &nop;
+    l_callback[0x1B] = &nop;
+    l_callback[0x1C] = &nop;
+    l_callback[0x1D] = &nop;
+    l_callback[0x1E] = &nop;
+    l_callback[0x1F] = &nop;
+
+    l_callback[0x20] = &nop;
+    l_callback[0x21] = &nop;
+    l_callback[0x22] = &nop;
+    l_callback[0x23] = &nop;
+    l_callback[0x24] = &nop;
+    l_callback[0x25] = &nop;
+    l_callback[0x26] = &nop;
+    l_callback[0x27] = &nop;
+    l_callback[0x28] = &nop;
+    l_callback[0x29] = &nop;
+    l_callback[0x2A] = &nop;
+    l_callback[0x2B] = &nop;
+    l_callback[0x2C] = &nop;
+    l_callback[0x2D] = &nop;
+    l_callback[0x2E] = &nop;
+    l_callback[0x2F] = &nop;
+
+    l_callback[0x30] = &nop;
+    l_callback[0x31] = &nop;
+    l_callback[0x32] = &nop;
+    l_callback[0x33] = &nop;
+    l_callback[0x34] = &nop;
+    l_callback[0x35] = &nop;
+    l_callback[0x36] = &nop;
+    l_callback[0x37] = &nop;
+    l_callback[0x38] = &nop;
+    l_callback[0x39] = &nop;
+    l_callback[0x3A] = &nop;
+    l_callback[0x3B] = &nop;
+    l_callback[0x3C] = &nop;
+    l_callback[0x3D] = &nop;
+    l_callback[0x3E] = &nop;
+    l_callback[0x3F] = &nop;
+
+    l_callback[0x40] = &nop;
+    l_callback[0x41] = &nop;
+    l_callback[0x42] = &nop;
+    l_callback[0x43] = &nop;
+    l_callback[0x44] = &nop;
+    l_callback[0x45] = &nop;
+    l_callback[0x46] = &nop;
+    l_callback[0x47] = &nop;
+    l_callback[0x48] = &nop;
+    l_callback[0x49] = &nop;
+    l_callback[0x4A] = &nop;
+    l_callback[0x4B] = &nop;
+    l_callback[0x4C] = &nop;
+    l_callback[0x4D] = &nop;
+    l_callback[0x4E] = &nop;
+    l_callback[0x4F] = &nop;
+
+    l_callback[0x50] = &nop;
+    l_callback[0x51] = &nop;
+    l_callback[0x52] = &nop;
+    l_callback[0x53] = &nop;
+    l_callback[0x54] = &nop;
+    l_callback[0x55] = &nop;
+    l_callback[0x56] = &nop;
+    l_callback[0x57] = &nop;
+    l_callback[0x58] = &nop;
+    l_callback[0x59] = &nop;
+    l_callback[0x5A] = &nop;
+    l_callback[0x5B] = &nop;
+    l_callback[0x5C] = &nop;
+    l_callback[0x5D] = &nop;
+    l_callback[0x5E] = &nop;
+    l_callback[0x5F] = &nop;
+
+    l_callback[0x60] = &nop;
+    l_callback[0x61] = &nop;
+    l_callback[0x62] = &nop;
+    l_callback[0x63] = &nop;
+    l_callback[0x64] = &nop;
+    l_callback[0x65] = &nop;
+    l_callback[0x66] = &nop;
+    l_callback[0x67] = &nop;
+    l_callback[0x68] = &nop;
+    l_callback[0x69] = &nop;
+    l_callback[0x6A] = &nop;
+    l_callback[0x6B] = &nop;
+    l_callback[0x6C] = &nop;
+    l_callback[0x6D] = &nop;
+    l_callback[0x6E] = &nop;
+    l_callback[0x6F] = &nop;
+
+    l_callback[0x70] = &nop;
+    l_callback[0x71] = &nop;
+    l_callback[0x72] = &nop;
+    l_callback[0x73] = &nop;
+    l_callback[0x74] = &nop;
+    l_callback[0x75] = &nop;
+    l_callback[0x76] = &nop;
+    l_callback[0x77] = &nop;
+    l_callback[0x78] = &nop;
+    l_callback[0x79] = &nop;
+    l_callback[0x7A] = &nop;
+    l_callback[0x7B] = &nop;
+    l_callback[0x7C] = &nop;
+    l_callback[0x7D] = &nop;
+    l_callback[0x7E] = &nop;
+    l_callback[0x7F] = &nop;
+
+    l_callback[0x80] = &nop;
+    l_callback[0x81] = &nop;
+    l_callback[0x82] = &nop;
+    l_callback[0x83] = &nop;
+    l_callback[0x84] = &nop;
+    l_callback[0x85] = &nop;
+    l_callback[0x86] = &nop;
+    l_callback[0x87] = &nop;
+    l_callback[0x88] = &nop;
+    l_callback[0x89] = &nop;
+    l_callback[0x8A] = &nop;
+    l_callback[0x8B] = &nop;
+    l_callback[0x8C] = &nop;
+    l_callback[0x8D] = &nop;
+    l_callback[0x8E] = &nop;
+    l_callback[0x8F] = &nop;
+
+    l_callback[0x90] = &nop;
+    l_callback[0x91] = &nop;
+    l_callback[0x92] = &nop;
+    l_callback[0x93] = &nop;
+    l_callback[0x94] = &nop;
+    l_callback[0x95] = &nop;
+    l_callback[0x96] = &nop;
+    l_callback[0x97] = &nop;
+    l_callback[0x98] = &nop;
+    l_callback[0x99] = &nop;
+    l_callback[0x9A] = &nop;
+    l_callback[0x9B] = &nop;
+    l_callback[0x9C] = &nop;
+    l_callback[0x9D] = &nop;
+    l_callback[0x9E] = &nop;
+    l_callback[0x9F] = &nop;
+
+    l_callback[0xA0] = &nop;
+    l_callback[0xA1] = &nop;
+    l_callback[0xA2] = &nop;
+    l_callback[0xA3] = &nop;
+    l_callback[0xA4] = &nop;
+    l_callback[0xA5] = &nop;
+    l_callback[0xA6] = &nop;
+    l_callback[0xA7] = &nop;
+    l_callback[0xA8] = &nop;
+    l_callback[0xA9] = &nop;
+    l_callback[0xAA] = &nop;
+    l_callback[0xAB] = &nop;
+    l_callback[0xAC] = &nop;
+    l_callback[0xAD] = &nop;
+    l_callback[0xAE] = &nop;
+    l_callback[0xAF] = &nop;
+
+    l_callback[0xB0] = &nop;
+    l_callback[0xB1] = &nop;
+    l_callback[0xB2] = &nop;
+    l_callback[0xB3] = &nop;
+    l_callback[0xB4] = &nop;
+    l_callback[0xB5] = &nop;
+    l_callback[0xB6] = &nop;
+    l_callback[0xB7] = &nop;
+    l_callback[0xB8] = &nop;
+    l_callback[0xB9] = &nop;
+    l_callback[0xBA] = &nop;
+    l_callback[0xBB] = &nop;
+    l_callback[0xBC] = &nop;
+    l_callback[0xBD] = &nop;
+    l_callback[0xBE] = &nop;
+    l_callback[0xBF] = &nop;
+
+    l_callback[0xC0] = &nop;
+    l_callback[0xC1] = &nop;
+    l_callback[0xC2] = &nop;
+    l_callback[0xC3] = &nop;
+    l_callback[0xC4] = &nop;
+    l_callback[0xC5] = &nop;
+    l_callback[0xC6] = &nop;
+    l_callback[0xC7] = &nop;
+    l_callback[0xC8] = &nop;
+    l_callback[0xC9] = &nop;
+    l_callback[0xCA] = &nop;
+    l_callback[0xCB] = &nop;
+    l_callback[0xCC] = &nop;
+    l_callback[0xCD] = &nop;
+    l_callback[0xCE] = &nop;
+    l_callback[0xCF] = &nop;
+
+    l_callback[0xD0] = &nop;
+    l_callback[0xD1] = &nop;
+    l_callback[0xD2] = &nop;
+    l_callback[0xD3] = &nop;
+    l_callback[0xD4] = &nop;
+    l_callback[0xD5] = &nop;
+    l_callback[0xD6] = &nop;
+    l_callback[0xD7] = &nop;
+    l_callback[0xD8] = &nop;
+    l_callback[0xD9] = &nop;
+    l_callback[0xDA] = &nop;
+    l_callback[0xDB] = &nop;
+    l_callback[0xDC] = &nop;
+    l_callback[0xDD] = &nop;
+    l_callback[0xDE] = &nop;
+    l_callback[0xDF] = &nop;
+
+    l_callback[0xE0] = &nop;
+    l_callback[0xE1] = &nop;
+    l_callback[0xE2] = &nop;
+    l_callback[0xE3] = &nop;
+    l_callback[0xE4] = &nop;
+    l_callback[0xE5] = &nop;
+    l_callback[0xE6] = &nop;
+    l_callback[0xE7] = &nop;
+    l_callback[0xE8] = &nop;
+    l_callback[0xE9] = &nop;
+    l_callback[0xEA] = &nop;
+    l_callback[0xEB] = &nop;
+    l_callback[0xEC] = &nop;
+    l_callback[0xED] = &nop;
+    l_callback[0xEE] = &nop;
+    l_callback[0xEF] = &nop;
+
+    l_callback[0xF0] = &nop;
+    l_callback[0xF1] = &nop;
+    l_callback[0xF2] = &nop;
+    l_callback[0xF3] = &nop;
+    l_callback[0xF4] = &nop;
+    l_callback[0xF5] = &nop;
+    l_callback[0xF6] = &nop;
+    l_callback[0xF7] = &nop;
+    l_callback[0xF8] = &nop;
+    l_callback[0xF9] = &nop;
+    l_callback[0xFA] = &nop;
+    l_callback[0xFB] = &nop;
+    l_callback[0xFC] = &nop;
+    l_callback[0xFD] = &nop;
+    l_callback[0xFE] = &nop;
+    l_callback[0xFF] = &nop;
 }
 
 void reset()
@@ -101,6 +380,11 @@ bool load(const char *filepath, uint16_t dst)
     return true;
 }
 
+void handle_opcode(uint8_t opcode)
+{
+    (*l_callback[opcode])(&PC, &clock, reg, r16, ram);
+}
+
 int main(int argc, char *argv[])
 {
     if (argc != 3) {
@@ -109,7 +393,7 @@ int main(int argc, char *argv[])
     }
 
     char *boot_rom = argv[1];
-    char *game_rom = argv[2];
+    //char *game_rom = argv[2];
 
     init();
     reset();
@@ -121,12 +405,13 @@ int main(int argc, char *argv[])
 
     //fprintf("Loading game ROM from %s\n", game_rom);
 
-    while (running) {
-        fprintf(stdout, "Nintendo(r) but no cartridge so big black rectangle(r) instead\n");
-        fprintf(stdout, "*jingles*\n");
-        fprintf(stdout, "Thanks for playing\n");
+    clock = 0;
+    PC = 0x0000;
 
-        running = false;
+    while (running) {
+        handle_opcode(ram[PC]);
+
+        fprintf(stdout, "PC: %d\n", PC);
     }
 
     return EXIT_SUCCESS;
