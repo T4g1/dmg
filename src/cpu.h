@@ -51,12 +51,15 @@ private:
     uint16_t SP;                    //<! Stack Pointer
     uint16_t PC;                    //<! Program Counter
 
+    uint8_t *get_address(uint8_t opcode);
+
     void ld8(void *dst, void* src, size_t size, size_t clock);
     void ld16(void *dst, void* src, size_t size, size_t clock);
 
     void prefix_CB();
     void CB_set();
 
+    void jr();
     void ld();
     void nop();
     void _xor();

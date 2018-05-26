@@ -1,6 +1,8 @@
 #include <stdio.h>
 #include <string.h>
 
+#include "utils.h"
+
 #include "mmu.h"
 
 void MMU::set(uint16_t address, uint8_t value)
@@ -16,6 +18,11 @@ void *MMU::at(uint16_t address)
 uint8_t MMU::get(uint16_t address)
 {
     return *(uint8_t*) at(address);
+}
+
+int8_t MMU::get_signed(uint16_t address)
+{
+    return get(address);
 }
 
 bool MMU::load(const char *filepath, uint16_t dst)
