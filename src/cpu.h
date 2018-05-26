@@ -1,14 +1,62 @@
 #ifndef CPU_H
 #define CPU_H
 
-#include "dmg.h"
+#include <inttypes.h>
+#include <stdbool.h>
+
+#include "mmu.h"
 
 #define MAX_OPCODES         255
+#define REGISTER_COUNT  8
 
-void ld(struct dmg_state *ds, uint8_t opcode);
-void nop(struct dmg_state *ds, uint8_t opcode);
-void xor(struct dmg_state *ds, uint8_t opcode);
+// 8-Bits registers
+#define A               0   //<! Accumulator
+#define F               1   //<! Flags (Z N H C - - - -)
+#define B               2
+#define C               3
+#define D               4
+#define E               5
+#define H               6
+#define L               7
 
-typedef void (*cpu_callback)(struct dmg_state *ds, uint8_t opcode);
+// 16-Bits registers
+#define BC              B
+#define DE              D
+#define HL              H
+
+// Flags
+#define FZ               7  //<! Zero Flag
+#define FN               6  //<! Add/Sub Flag
+#define FH               5  //<! Half Carry Flag
+#define FC               4  //<! Carry Flag
+
+class CPU;
+typedef void (CPU::*cpu_callback)(void);
+
+class CPU {
+public:
+    CPU(MMU *mmu);
+
+    void reset();
+    void step();
+
+private:
+    MMU *mmu;
+
+    cpu_callback l_callback[MAX_OPCODES];
+
+    size_t clock;
+
+    uint8_t reg[REGISTER_COUNT];
+    uint16_t SP;                    //<! Stack Pointer
+    uint16_t PC;                    //<! Program Counter
+
+    void ld8(void *dst, void* src, size_t size, size_t clock);
+    void ld16(void *dst, void* src, size_t size, size_t clock);
+
+    void ld();
+    void nop();
+    void _xor();
+};
 
 #endif /* CPU_H */

@@ -1,30 +1,30 @@
 TARGET   = dmg
 
-CC       = gcc
-CFLAGS   = -std=c99 -Wall -I.
+CC       = g++
+CXXFLAGS = -std=c++11 -Wall -Wextra -I.
 
-LINKER   = gcc
+LINKER   = g++
 LFLAGS   = -Wall -I. -lm
 
 SRCDIR   = src
 OBJDIR   = src
 BINDIR   = .
 
-SOURCES  := $(wildcard $(SRCDIR)/*.c)
+SOURCES  := $(wildcard $(SRCDIR)/*.cpp)
 INCLUDES := $(wildcard $(SRCDIR)/*.h)
-OBJECTS  := $(SOURCES:$(SRCDIR)/%.c=$(OBJDIR)/%.o)
+OBJECTS  := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
 
 $(BINDIR)/$(TARGET): $(OBJECTS)
 	@$(LINKER) $(OBJECTS) $(LFLAGS) -o $@
 	@echo "Linking complete!"
 
-$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.c
+$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 	@$(CC) $(CFLAGS) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
 
 .PHONY: clean
 clean:
-	@$(rm) $(OBJECTS)
+	@$(rm) $(OBJDIR)/*.o
 	@echo "Cleanup complete!"
 
 .PHONY: remove
