@@ -5,6 +5,9 @@
 
 #include "cpu.h"
 
+/* There is at most 8 possible destination for prefix CB commands */
+#define CB_ADDR_CNT   8
+
 CPU::CPU(MMU *mmu) : mmu(mmu)
 {
     PC = 0;
@@ -226,7 +229,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xC8] = NULL;
     l_callback[0xC9] = NULL;
     l_callback[0xCA] = NULL;
-    l_callback[0xCB] = NULL;
+    l_callback[0xCB] = &prefix_CB;
     l_callback[0xCC] = NULL;
     l_callback[0xCD] = NULL;
     l_callback[0xCE] = NULL;
@@ -405,6 +408,117 @@ void CPU::nop()
 {
     PC += 1;
     clock += 4;
+
+    fprintf(stdout, "NOP\n");
+}
+
+void CPU::prefix_CB()
+{
+    PC += 1;
+    clock += 4;
+
+    CB_set();
+
+    fprintf(stdout, "Prefix CB\n");
+}
+
+void CPU::CB_set()
+{
+    uint8_t opcode = mmu->get(PC);
+
+    uint8_t *l_address[] = {
+        &reg[B],
+        &reg[C],
+        &reg[D],
+        &reg[E],
+        &reg[H],
+        &reg[L],
+        (uint8_t*) mmu->at(reg[HL]),
+        &reg[A]
+    };
+
+    uint8_t *address = l_address[opcode % CB_ADDR_CNT];
+    size_t offset = ((opcode - 0x80) / CB_ADDR_CNT) % 8;
+    bool left = (opcode % 16) < 8;
+    bool carry, old_carry = get_bit(reg[F], FC);
+
+    /* Rotate */
+    if (opcode < 0x20) {
+        *address = rotate(*address, left, &carry);
+
+        /* Through carry flag */
+        if (opcode >= 0x10) {
+            if (left) {
+                *address = set_bit(*address, 0, old_carry);
+            } else {
+                *address = set_bit(*address, 7, old_carry);
+            }
+        }
+
+        reg[F] = set_bit(reg[F], FZ, *address == 0);
+        reg[F] = set_bit(reg[F], FN, 0);
+        reg[F] = set_bit(reg[F], FH, 0);
+        reg[F] = set_bit(reg[F], FC, carry);
+    }
+    /* Shitf Left (SLA) */
+    else if (opcode < 0x28) {
+        shift(*address, true, &carry);
+
+        reg[F] = set_bit(reg[F], FZ, *address == 0);
+        reg[F] = set_bit(reg[F], FN, 0);
+        reg[F] = set_bit(reg[F], FH, 0);
+        reg[F] = set_bit(reg[F], FC, carry);
+    }
+    /* Shitf Right, keep b7 (SRA) */
+    else if (opcode < 0x30) {
+        bool b7 = get_bit(*address, 7);
+
+        shift(*address, false, &carry);
+
+        *address = set_bit(*address, 7, b7);
+
+        reg[F] = set_bit(reg[F], FZ, *address == 0);
+        reg[F] = set_bit(reg[F], FN, 0);
+        reg[F] = set_bit(reg[F], FH, 0);
+        reg[F] = set_bit(reg[F], FC, carry);
+    }
+    /* Swap */
+    else if (opcode < 0x38) {
+        *address = swap(*address);
+
+        reg[F] = set_bit(reg[F], FZ, *address == 0);
+        reg[F] = set_bit(reg[F], FN, 0);
+        reg[F] = set_bit(reg[F], FH, 0);
+        reg[F] = set_bit(reg[F], FC, 0);
+    }
+    /* Shitf Right (SLA) */
+    else if (opcode < 0x40) {
+        shift(*address, false, &carry);
+
+        reg[F] = set_bit(reg[F], FZ, *address == 0);
+        reg[F] = set_bit(reg[F], FN, 0);
+        reg[F] = set_bit(reg[F], FH, 0);
+        reg[F] = set_bit(reg[F], FC, carry);
+    }
+    /* Get Bit */
+    else if (opcode < 0x80) {
+        reg[F] = set_bit(reg[F], FZ, get_bit(*address, offset));
+        reg[F] = set_bit(reg[F], FN, 0);
+        reg[F] = set_bit(reg[F], FH, 1);
+    }
+    /* Set and Reset */
+    else {
+        *address = set_bit(*address, offset, opcode >= 0xC0);
+    }
+
+    size_t ticks = 8;
+    /* Addressing (HL) takes 8 additional cycles */
+    if (opcode % CB_ADDR_CNT == 6) {
+        ticks += 8;
+    }
+
+    PC += 2;
+    clock += ticks;
 }
 
 void CPU::_xor()
@@ -416,8 +530,8 @@ void CPU::_xor()
         reg[A] ^= reg[A];
 
         reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
-        reg[F] = set_bit(reg[F], FH, 0);
         reg[F] = set_bit(reg[F], FN, 0);
+        reg[F] = set_bit(reg[F], FH, 0);
         reg[F] = set_bit(reg[F], FC, 0);
 
         PC += 1;

@@ -54,6 +54,9 @@ private:
     void ld8(void *dst, void* src, size_t size, size_t clock);
     void ld16(void *dst, void* src, size_t size, size_t clock);
 
+    void prefix_CB();
+    void CB_set();
+
     void ld();
     void nop();
     void _xor();
