@@ -1,3 +1,5 @@
+#include <stdio.h>
+
 #include "utils.h"
 
 
@@ -45,4 +47,24 @@ uint8_t swap(uint8_t byte)
     tmp = tmp << 4;
 
     return byte | tmp;
+}
+
+void dec16(uint8_t *address)
+{
+    uint8_t *high = address;
+    uint8_t *low = address + 1;
+    *low -= 1;
+    if (*low == 0xFF) {
+        *high -= 1;
+    }
+}
+
+void inc16(uint8_t *address)
+{
+    uint8_t *high = address;
+    uint8_t *low = address + 1;
+    *low += 1;
+    if (*low == 0x00) {
+        *high += 1;
+    }
 }

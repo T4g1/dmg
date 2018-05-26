@@ -1,7 +1,6 @@
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdbool.h>
-#include <unistd.h>     // DEBUG
 
 #include "cpu.h"
 #include "mmu.h"
@@ -24,9 +23,6 @@ int main(int argc, char *argv[])
     bool running = true;
     while (running) {
         cpu.step();
-
-        // DEBUG
-        sleep(1);
     }
 
     return EXIT_SUCCESS;

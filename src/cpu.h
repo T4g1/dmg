@@ -53,8 +53,8 @@ private:
 
     uint8_t *get_address(uint8_t opcode);
 
-    void ld8(void *dst, void* src, size_t size, size_t clock);
-    void ld16(void *dst, void* src, size_t size, size_t clock);
+    void ld8(void *dst, void *src, size_t size, size_t clock);
+    void ld16(uint8_t *dst, uint8_t *src, size_t size, size_t clock);
 
     void prefix_CB();
     void CB_set();

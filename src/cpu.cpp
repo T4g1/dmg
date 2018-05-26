@@ -1,5 +1,6 @@
 #include <stdio.h>
 #include <string.h>
+#include <unistd.h>     // DEBUG
 
 #include "utils.h"
 
@@ -36,7 +37,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0x15] = NULL;
     l_callback[0x16] = &ld;
     l_callback[0x17] = NULL;
-    l_callback[0x18] = NULL;
+    l_callback[0x18] = &jr;
     l_callback[0x19] = NULL;
     l_callback[0x1A] = &ld;
     l_callback[0x1B] = NULL;
@@ -45,7 +46,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0x1E] = &ld;
     l_callback[0x1F] = NULL;
 
-    l_callback[0x20] = NULL;
+    l_callback[0x20] = &jr;
     l_callback[0x21] = &ld;
     l_callback[0x22] = &ld;
     l_callback[0x23] = NULL;
@@ -53,7 +54,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0x25] = NULL;
     l_callback[0x26] = &ld;
     l_callback[0x27] = NULL;
-    l_callback[0x28] = NULL;
+    l_callback[0x28] = &jr;
     l_callback[0x29] = NULL;
     l_callback[0x2A] = &ld;
     l_callback[0x2B] = NULL;
@@ -62,7 +63,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0x2E] = &ld;
     l_callback[0x2F] = NULL;
 
-    l_callback[0x30] = NULL;
+    l_callback[0x30] = &jr;
     l_callback[0x31] = &ld;
     l_callback[0x32] = &ld;
     l_callback[0x33] = NULL;
@@ -70,7 +71,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0x35] = NULL;
     l_callback[0x36] = &ld;
     l_callback[0x37] = NULL;
-    l_callback[0x38] = NULL;
+    l_callback[0x38] = &jr;
     l_callback[0x39] = NULL;
     l_callback[0x3A] = &ld;
     l_callback[0x3B] = NULL;
@@ -343,6 +344,11 @@ void CPU::step()
     }
 
     (*this.*l_callback[opcode])();
+
+    // DEBUG
+    if (PC >= 0x000C) {
+        sleep(1);
+    }
 }
 
 void CPU::ld8(void *dst, void* src, size_t size, size_t ticks)
@@ -354,9 +360,11 @@ void CPU::ld8(void *dst, void* src, size_t size, size_t ticks)
     fprintf(stdout, "LD reg\n");
 }
 
-void CPU::ld16(void *dst, void* src, size_t size, size_t ticks)
+void CPU::ld16(uint8_t *dst, uint8_t* src, size_t size, size_t ticks)
 {
-    memcpy(dst, src, sizeof(uint16_t));
+    // Invert LOW and HIGH bytes
+    memcpy(dst + 1, src, sizeof(uint8_t));
+    memcpy(dst, src + 1, sizeof(uint8_t));
     PC += size;
     clock += ticks;
 
@@ -365,7 +373,7 @@ void CPU::ld16(void *dst, void* src, size_t size, size_t ticks)
 
 void CPU::jr()
 {
-    int increment = 2;
+    int increment = 0;
     size_t ticks = 8;
 
     uint8_t opcode = mmu->get(PC);
@@ -403,7 +411,8 @@ void CPU::jr()
         break;
     }
 
-    PC += increment;
+    PC += 2;            // Instruction we just read
+    PC += increment;    // Jump
     clock += ticks;
 
     fprintf(stdout, "JR %d\n", increment);
@@ -441,19 +450,19 @@ void CPU::ld()
     switch (opcode) {
     /* Load 16-bit immediate to r16 */
     case 0x01:    // Loads 16-bit immediate to BC
-        ld16(&reg[BC], mmu->at(PC + 1), 3, 12);
+        ld16(&reg[BC], (uint8_t*)mmu->at(PC + 1), 3, 12);
         break;
 
     case 0x11:    // Loads 16-bit immediate to DE
-        ld16(&reg[DE], mmu->at(PC + 1), 3, 12);
+        ld16(&reg[DE], (uint8_t*)mmu->at(PC + 1), 3, 12);
         break;
 
     case 0x21:    // Loads 16-bit immediate to HL
-        ld16(&reg[HL], mmu->at(PC + 1), 3, 12);
+        ld16(&reg[HL], (uint8_t*)mmu->at(PC + 1), 3, 12);
         break;
 
     case 0x31:    // Loads 16-bit immediate to SP
-        ld16(&SP, mmu->at(PC + 1), 3, 12);
+        ld16((uint8_t*)&SP, (uint8_t*)mmu->at(PC + 1), 3, 12);
         break;
 
     /* Load reg A into pointed address */
@@ -466,28 +475,30 @@ void CPU::ld()
         break;
 
     case 0x22:    // Loads reg A to (HL), inc HL
-        ld8(mmu->at(reg[HL]++), &reg[A], 1, 8);
+        ld8(mmu->at(reg[HL]), &reg[A], 1, 8);
+        inc16(&reg[HL]);
         break;
 
     case 0x32:    // Loads reg A to (HL), dec HL
-        ld8(mmu->at(reg[HL]--), &reg[A], 1, 8);
+        ld8(mmu->at(reg[HL]), &reg[A], 1, 8);
+        dec16(&reg[HL]);
         break;
 
     /* Load 8-bit immediate to reg */
     case 0x06:    // Loads 8-bit immediate to B
-        ld16(&reg[B], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[B], mmu->at(PC + 1), 2, 8);
         break;
 
     case 0x16:    // Loads 8-bit immediate to D
-        ld16(&reg[D], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[D], mmu->at(PC + 1), 2, 8);
         break;
 
     case 0x26:    // Loads 8-bit immediate to H
-        ld16(&reg[H], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[H], mmu->at(PC + 1), 2, 8);
         break;
 
     case 0x36:    // Loads 8-bit immediate to (HL)
-        ld16(mmu->at(reg[HL]), mmu->at(PC + 1), 2, 12);
+        ld8(mmu->at(reg[HL]), mmu->at(PC + 1), 2, 12);
         break;
 
     /* Load pointed address into A */
@@ -500,28 +511,30 @@ void CPU::ld()
         break;
 
     case 0x2A:    // Loads (HL) to reg A, inc HL
-        ld8(&reg[A], mmu->at(reg[HL]++), 1, 8);
+        ld8(&reg[A], mmu->at(reg[HL]), 1, 8);
+        inc16(&reg[HL]);
         break;
 
     case 0x3A:    // Loads (HL) to reg A, dec HL
-        ld8(&reg[A], mmu->at(reg[HL]--), 1, 8);
+        ld8(&reg[A], mmu->at(reg[HL]), 1, 8);
+        dec16(&reg[HL]);
         break;
 
     /* Load 8-bit immediate to reg */
     case 0x0E:    // Loads 8-bit immediate to C
-        ld16(&reg[C], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[C], mmu->at(PC + 1), 2, 8);
         break;
 
     case 0x1E:    // Loads 8-bit immediate to E
-        ld16(&reg[E], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[E], mmu->at(PC + 1), 2, 8);
         break;
 
     case 0x2E:    // Loads 8-bit immediate to L
-        ld16(&reg[L], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[L], mmu->at(PC + 1), 2, 8);
         break;
 
     case 0x3E:    // Loads 8-bit immediate to A
-        ld16(&reg[A], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[A], mmu->at(PC + 1), 2, 8);
         break;
     }
 }
@@ -550,7 +563,7 @@ void CPU::prefix_CB()
     uint8_t opcode = mmu->get(PC + 1);
     uint8_t *address = l_address[opcode % 8];
 
-    size_t offset = (opcode - 0x80) / 8;
+    size_t offset = (opcode / 8) % 8;
     bool left = (opcode % 16) < 8;
     bool carry, old_carry = get_bit(reg[F], FC);
 
@@ -614,7 +627,13 @@ void CPU::prefix_CB()
     }
     /* Get Bit */
     else if (opcode < 0x80) {
-        reg[F] = set_bit(reg[F], FZ, get_bit(*address, offset));
+        fprintf(stdout, "value=%02X%02X offset:%d bit:%d\n",
+            *address,
+            *(address + 1),
+            offset,
+            get_bit(*address, offset)
+        );
+        reg[F] = set_bit(reg[F], FZ, get_bit(*address, offset) == 0);
         reg[F] = set_bit(reg[F], FN, 0);
         reg[F] = set_bit(reg[F], FH, 1);
     }
