@@ -15,70 +15,70 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0x00] = &nop;
     l_callback[0x01] = &ld;
     l_callback[0x02] = &ld;
-    l_callback[0x03] = NULL;
-    l_callback[0x04] = NULL;
-    l_callback[0x05] = NULL;
+    l_callback[0x03] = &inc;
+    l_callback[0x04] = &inc;
+    l_callback[0x05] = &dec;
     l_callback[0x06] = &ld;
-    l_callback[0x07] = NULL;
-    l_callback[0x08] = NULL;
-    l_callback[0x09] = NULL;
+    l_callback[0x07] = &rxa;
+    l_callback[0x08] = &ld;
+    l_callback[0x09] = &add;
     l_callback[0x0A] = &ld;
-    l_callback[0x0B] = NULL;
-    l_callback[0x0C] = NULL;
-    l_callback[0x0D] = NULL;
+    l_callback[0x0B] = &dec;
+    l_callback[0x0C] = &inc;
+    l_callback[0x0D] = &dec;
     l_callback[0x0E] = &ld;
-    l_callback[0x0F] = NULL;
+    l_callback[0x0F] = &rxa;
 
-    l_callback[0x10] = NULL;
+    l_callback[0x10] = &stop;
     l_callback[0x11] = &ld;
     l_callback[0x12] = &ld;
-    l_callback[0x13] = NULL;
-    l_callback[0x14] = NULL;
-    l_callback[0x15] = NULL;
+    l_callback[0x13] = &inc;
+    l_callback[0x14] = &inc;
+    l_callback[0x15] = &dec;
     l_callback[0x16] = &ld;
-    l_callback[0x17] = NULL;
+    l_callback[0x17] = &rxa;
     l_callback[0x18] = &jr;
-    l_callback[0x19] = NULL;
+    l_callback[0x19] = &add;
     l_callback[0x1A] = &ld;
-    l_callback[0x1B] = NULL;
-    l_callback[0x1C] = NULL;
-    l_callback[0x1D] = NULL;
+    l_callback[0x1B] = &dec;
+    l_callback[0x1C] = &inc;
+    l_callback[0x1D] = &dec;
     l_callback[0x1E] = &ld;
-    l_callback[0x1F] = NULL;
+    l_callback[0x1F] = &rxa;
 
     l_callback[0x20] = &jr;
     l_callback[0x21] = &ld;
     l_callback[0x22] = &ld;
-    l_callback[0x23] = NULL;
-    l_callback[0x24] = NULL;
-    l_callback[0x25] = NULL;
+    l_callback[0x23] = &inc;
+    l_callback[0x24] = &inc;
+    l_callback[0x25] = &dec;
     l_callback[0x26] = &ld;
-    l_callback[0x27] = NULL;
+    l_callback[0x27] = &daa;
     l_callback[0x28] = &jr;
-    l_callback[0x29] = NULL;
+    l_callback[0x29] = &add;
     l_callback[0x2A] = &ld;
-    l_callback[0x2B] = NULL;
-    l_callback[0x2C] = NULL;
-    l_callback[0x2D] = NULL;
+    l_callback[0x2B] = &dec;
+    l_callback[0x2C] = &inc;
+    l_callback[0x2D] = &dec;
     l_callback[0x2E] = &ld;
-    l_callback[0x2F] = NULL;
+    l_callback[0x2F] = &cpl;
 
     l_callback[0x30] = &jr;
     l_callback[0x31] = &ld;
     l_callback[0x32] = &ld;
-    l_callback[0x33] = NULL;
-    l_callback[0x34] = NULL;
-    l_callback[0x35] = NULL;
+    l_callback[0x33] = &inc;
+    l_callback[0x34] = &inc;
+    l_callback[0x35] = &dec;
     l_callback[0x36] = &ld;
-    l_callback[0x37] = NULL;
+    l_callback[0x37] = &scf;
     l_callback[0x38] = &jr;
-    l_callback[0x39] = NULL;
+    l_callback[0x39] = &add;
     l_callback[0x3A] = &ld;
-    l_callback[0x3B] = NULL;
-    l_callback[0x3C] = NULL;
-    l_callback[0x3D] = NULL;
+    l_callback[0x3B] = &dec;
+    l_callback[0x3C] = &inc;
+    l_callback[0x3D] = &dec;
     l_callback[0x3E] = &ld;
-    l_callback[0x3F] = NULL;
+    l_callback[0x3F] = &ccf;
 
     l_callback[0x40] = &ld;
     l_callback[0x41] = &ld;
@@ -137,7 +137,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0x73] = &ld;
     l_callback[0x74] = &ld;
     l_callback[0x75] = &ld;
-    l_callback[0x76] = NULL;
+    l_callback[0x76] = &halt;
     l_callback[0x77] = &ld;
     l_callback[0x78] = &ld;
     l_callback[0x79] = &ld;
@@ -371,6 +371,277 @@ void CPU::ld16(uint8_t *dst, uint8_t* src, size_t size, size_t ticks)
     fprintf(stdout, "LD r16\n");
 }
 
+void CPU::inc8(uint8_t *address)
+{
+    *address = *address + 1;
+
+    reg[F] = set_bit(reg[F], FZ, *address == 0);
+    reg[F] = set_bit(reg[F], FN, 0);
+    reg[F] = set_bit(reg[F], FH, *address & 0x0F == 0x00); // Went from 0xFF to 0x00
+}
+
+void CPU::dec8(uint8_t *address)
+{
+    *address = *address - 1;
+
+    reg[F] = set_bit(reg[F], FZ, *address == 0);
+    reg[F] = set_bit(reg[F], FN, 1);
+    reg[F] = set_bit(reg[F], FH, *address & 0x0F == 0x0F); // Went from 0x00 to 0xFF
+}
+
+void CPU::add16(uint8_t *dst, uint8_t *src)
+{
+    bool half_carry = false, carry = false;
+
+    uint8_t *dh = dst;
+    uint8_t *sh = src;
+    uint8_t *dl = dst + 1;
+    uint8_t *sl = src + 1;
+
+    int idl = (int)*dl;
+    int isl = (int)*sl;
+    int tmp = idl + isl;
+    if (tmp > 255) {
+        half_carry = true;
+        *dl = (uint8_t)(tmp & 0xFF);
+    }
+
+    int idh = (int)*dh;
+    int ish = (int)*sh;
+    tmp = idh + ish + half_carry;
+    if (tmp > 255) {
+        carry = true;
+        *dh = (uint8_t)(tmp & 0xFF);
+    }
+
+    reg[F] = set_bit(reg[F], FN, 0);
+    reg[F] = set_bit(reg[F], FH, half_carry == 1);
+    reg[F] = set_bit(reg[F], FC, carry = 1);
+
+    fprintf(stdout, "ADD r16\n");
+}
+
+// Invert reg A
+void CPU::cpl()
+{
+    reg[A] = ~reg[A];
+
+    reg[F] = set_bit(reg[F], FN, 1);
+    reg[F] = set_bit(reg[F], FH, 1);
+
+    PC += 1;
+    clock += 4;
+
+    fprintf(stdout, "CPL\n");
+}
+
+// Switch carry flag
+void CPU::ccf()
+{
+    bool carry;
+
+    reg[F] = set_bit(reg[F], FN, 0);
+    reg[F] = set_bit(reg[F], FH, 0);
+    reg[F] = set_bit(reg[F], FC, get_bit(reg[F], FC) == 0);
+
+    PC += 1;
+    clock += 4;
+
+    fprintf(stdout, "CCF\n");
+}
+
+void CPU::daa()
+{
+    //bool carry;
+
+    // TODO
+
+    /*reg[F] = set_bit(reg[F], FZ, == 0);
+    reg[F] = set_bit(reg[F], FH, 0);
+    reg[F] = set_bit(reg[F], FC, carry);*/
+
+    PC += 1;
+    clock += 4;
+
+    fprintf(stdout, "DAA\n");
+}
+
+// Set carry flag
+void CPU::scf()
+{
+    reg[F] = set_bit(reg[F], FN, 0);
+    reg[F] = set_bit(reg[F], FH, 0);
+    reg[F] = set_bit(reg[F], FC, 1);
+
+    PC += 1;
+    clock += 4;
+
+    fprintf(stdout, "SCF\n");
+}
+
+void CPU::stop()
+{
+    // TODO
+
+    PC += 2;
+    clock += 4;
+
+    fprintf(stdout, "STOP\n");
+}
+
+void CPU::halt()
+{
+    // TODO
+
+    PC += 1;
+    clock += 4;
+
+    fprintf(stdout, "HALT\n");
+}
+
+void CPU::add()
+{
+    size_t ticks = 4;
+
+    uint8_t opcode = mmu->get(PC);
+    switch(opcode) {
+    /* Add 16-bit registers to HL */
+    case 0x09:
+        add16(&reg[HL], &reg[BC]);
+        ticks = 8;
+        break;
+    case 0x19:
+        add16(&reg[HL], &reg[DE]);
+        ticks = 8;
+        break;
+    case 0x29:
+        add16(&reg[HL], &reg[HL]);
+        ticks = 8;
+        break;
+    case 0x39:
+        add16(&reg[HL], &reg[SP]);
+        ticks = 8;
+        break;
+    }
+
+    PC += 1;
+    clock += ticks;
+}
+
+void CPU::inc()
+{
+    size_t ticks = 4;
+
+    uint8_t opcode = mmu->get(PC);
+    switch(opcode) {
+    /* Inc 16-bit registers */
+    case 0x03:
+        inc16(&reg[BC]);
+        ticks = 8;
+        break;
+    case 0x13:
+        inc16(&reg[DE]);
+        ticks = 8;
+        break;
+    case 0x23:
+        inc16(&reg[HL]);
+        ticks = 8;
+        break;
+    case 0x33:
+        inc16((uint8_t*)&SP);
+        ticks = 8;
+        break;
+
+    /* Inc 8-bit registers */
+    case 0x04:
+        inc8(&reg[B]);
+        break;
+    case 0x14:
+        inc8(&reg[D]);
+        break;
+    case 0x24:
+        inc8(&reg[H]);
+        break;
+    case 0x34:
+        inc8((uint8_t*)mmu->at(reg[HL]));
+        break;
+    case 0x0C:
+        inc8(&reg[C]);
+        break;
+    case 0x1C:
+        inc8(&reg[E]);
+        break;
+    case 0x2C:
+        inc8(&reg[L]);
+        break;
+    case 0x3C:
+        inc8(&reg[A]);
+        break;
+    }
+
+    PC += 1;
+    clock += ticks;
+
+    fprintf(stdout, "INC\n");
+}
+
+void CPU::dec()
+{
+    size_t ticks = 4;
+
+    uint8_t opcode = mmu->get(PC);
+    switch(opcode) {
+    /* Dec 16-bit registers */
+    case 0x0B:
+        dec16(&reg[BC]);
+        ticks = 8;
+        break;
+    case 0x1B:
+        dec16(&reg[DE]);
+        ticks = 8;
+        break;
+    case 0x2B:
+        dec16(&reg[HL]);
+        ticks = 8;
+        break;
+    case 0x3B:
+        dec16((uint8_t*)&SP);
+        ticks = 8;
+        break;
+
+    /* Dec 8-bit registers */
+    case 0x05:
+        dec8(&reg[B]);
+        break;
+    case 0x15:
+        dec8(&reg[D]);
+        break;
+    case 0x25:
+        dec8(&reg[H]);
+        break;
+    case 0x35:
+        dec8((uint8_t*)mmu->at(reg[HL]));
+        break;
+    case 0x0D:
+        dec8(&reg[C]);
+        break;
+    case 0x1D:
+        dec8(&reg[E]);
+        break;
+    case 0x2D:
+        dec8(&reg[L]);
+        break;
+    case 0x3D:
+        dec8(&reg[A]);
+        break;
+    }
+
+    PC += 1;
+    clock += ticks;
+
+    fprintf(stdout, "DEC\n");
+}
+
 void CPU::jr()
 {
     int increment = 0;
@@ -446,6 +717,8 @@ void CPU::ld()
         return ld8(dst, src, 1, ticks);
     }
 
+    uint16_t high, low, address;
+
     /* Less generic cases */
     switch (opcode) {
     /* Load 16-bit immediate to r16 */
@@ -482,6 +755,14 @@ void CPU::ld()
     case 0x32:    // Loads reg A to (HL), dec HL
         ld8(mmu->at(reg[HL]), &reg[A], 1, 8);
         dec16(&reg[HL]);
+        break;
+
+    /* Load 16-bit Sp to (immediate 16-bit) */
+    case 0x08:
+        high = mmu->get(PC + 1);
+        low = mmu->get(PC + 2);
+        address = (high << 4) + low;
+        ld16((uint8_t*)mmu->at(address), (uint8_t*)&SP, 3, 20);
         break;
 
     /* Load 8-bit immediate to reg */
@@ -537,6 +818,37 @@ void CPU::ld()
         ld8(&reg[A], mmu->at(PC + 1), 2, 8);
         break;
     }
+}
+
+void CPU::rxa()
+{
+    uint8_t opcode = mmu->get(PC + 1);
+    bool is_left = true;
+    if (opcode == 0x0F || opcode == 0x1F) {
+        is_left = false;
+    }
+
+    bool carry, old_carry = get_bit(reg[F], FC);
+    reg[A] = rotate(reg[A], is_left, &carry);
+
+    /* Through carry flag */
+    if (opcode == 0x17 || opcode == 0x01F) {
+        if (is_left) {
+            reg[A] = set_bit(reg[A], 0, old_carry);
+        } else {
+            reg[A] = set_bit(reg[A], 7, old_carry);
+        }
+    }
+
+    reg[F] = set_bit(reg[F], FZ, 0);
+    reg[F] = set_bit(reg[F], FN, 0);
+    reg[F] = set_bit(reg[F], FH, 0);
+    reg[F] = set_bit(reg[F], FC, carry);
+
+    PC += 1;
+    clock += 4;
+
+    fprintf(stdout, "RLCA\n");
 }
 
 void CPU::nop()

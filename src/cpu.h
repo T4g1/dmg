@@ -56,11 +56,26 @@ private:
     void ld8(void *dst, void *src, size_t size, size_t clock);
     void ld16(uint8_t *dst, uint8_t *src, size_t size, size_t clock);
 
+    void inc8(uint8_t *address);
+    void dec8(uint8_t *address);
+
+    void add16(uint8_t *dst, uint8_t *src);
+
     void prefix_CB();
     void CB_set();
 
+    void cpl();
+    void ccf();
+    void daa();
+    void scf();
+    void stop();
+    void halt();
+    void add();
+    void inc();
+    void dec();
     void jr();
     void ld();
+    void rxa();
     void nop();
     void _xor();
 };
