@@ -53,6 +53,8 @@ private:
 
     uint8_t *get_address(uint8_t opcode);
 
+    uint16_t reg16(size_t i);
+
     void ld8(void *dst, void *src, size_t size, size_t clock);
     void ld16(uint8_t *dst, uint8_t *src, size_t size, size_t clock);
 
@@ -64,6 +66,8 @@ private:
     void prefix_CB();
     void CB_set();
 
+    void call();
+    void ret();
     void cpl();
     void ccf();
     void daa();

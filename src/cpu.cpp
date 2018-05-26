@@ -148,141 +148,141 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0x7E] = &ld;
     l_callback[0x7F] = &ld;
 
-    l_callback[0x80] = NULL;
-    l_callback[0x81] = NULL;
-    l_callback[0x82] = NULL;
-    l_callback[0x83] = NULL;
-    l_callback[0x84] = NULL;
-    l_callback[0x85] = NULL;
-    l_callback[0x86] = NULL;
-    l_callback[0x87] = NULL;
-    l_callback[0x88] = NULL;
-    l_callback[0x89] = NULL;
-    l_callback[0x8A] = NULL;
-    l_callback[0x8B] = NULL;
-    l_callback[0x8C] = NULL;
-    l_callback[0x8D] = NULL;
-    l_callback[0x8E] = NULL;
-    l_callback[0x8F] = NULL;
+    l_callback[0x80] = 0;
+    l_callback[0x81] = 0;
+    l_callback[0x82] = 0;
+    l_callback[0x83] = 0;
+    l_callback[0x84] = 0;
+    l_callback[0x85] = 0;
+    l_callback[0x86] = 0;
+    l_callback[0x87] = 0;
+    l_callback[0x88] = 0;
+    l_callback[0x89] = 0;
+    l_callback[0x8A] = 0;
+    l_callback[0x8B] = 0;
+    l_callback[0x8C] = 0;
+    l_callback[0x8D] = 0;
+    l_callback[0x8E] = 0;
+    l_callback[0x8F] = 0;
 
-    l_callback[0x90] = NULL;
-    l_callback[0x91] = NULL;
-    l_callback[0x92] = NULL;
-    l_callback[0x93] = NULL;
-    l_callback[0x94] = NULL;
-    l_callback[0x95] = NULL;
-    l_callback[0x96] = NULL;
-    l_callback[0x97] = NULL;
-    l_callback[0x98] = NULL;
-    l_callback[0x99] = NULL;
-    l_callback[0x9A] = NULL;
-    l_callback[0x9B] = NULL;
-    l_callback[0x9C] = NULL;
-    l_callback[0x9D] = NULL;
-    l_callback[0x9E] = NULL;
-    l_callback[0x9F] = NULL;
+    l_callback[0x90] = 0;
+    l_callback[0x91] = 0;
+    l_callback[0x92] = 0;
+    l_callback[0x93] = 0;
+    l_callback[0x94] = 0;
+    l_callback[0x95] = 0;
+    l_callback[0x96] = 0;
+    l_callback[0x97] = 0;
+    l_callback[0x98] = 0;
+    l_callback[0x99] = 0;
+    l_callback[0x9A] = 0;
+    l_callback[0x9B] = 0;
+    l_callback[0x9C] = 0;
+    l_callback[0x9D] = 0;
+    l_callback[0x9E] = 0;
+    l_callback[0x9F] = 0;
 
-    l_callback[0xA0] = NULL;
-    l_callback[0xA1] = NULL;
-    l_callback[0xA2] = NULL;
-    l_callback[0xA3] = NULL;
-    l_callback[0xA4] = NULL;
-    l_callback[0xA5] = NULL;
-    l_callback[0xA6] = NULL;
-    l_callback[0xA7] = NULL;
-    l_callback[0xA8] = NULL;
-    l_callback[0xA9] = NULL;
-    l_callback[0xAA] = NULL;
-    l_callback[0xAB] = NULL;
-    l_callback[0xAC] = NULL;
-    l_callback[0xAD] = NULL;
-    l_callback[0xAE] = NULL;
+    l_callback[0xA0] = 0;
+    l_callback[0xA1] = 0;
+    l_callback[0xA2] = 0;
+    l_callback[0xA3] = 0;
+    l_callback[0xA4] = 0;
+    l_callback[0xA5] = 0;
+    l_callback[0xA6] = 0;
+    l_callback[0xA7] = 0;
+    l_callback[0xA8] = 0;
+    l_callback[0xA9] = 0;
+    l_callback[0xAA] = 0;
+    l_callback[0xAB] = 0;
+    l_callback[0xAC] = 0;
+    l_callback[0xAD] = 0;
+    l_callback[0xAE] = 0;
     l_callback[0xAF] = &_xor;
 
-    l_callback[0xB0] = NULL;
-    l_callback[0xB1] = NULL;
-    l_callback[0xB2] = NULL;
-    l_callback[0xB3] = NULL;
-    l_callback[0xB4] = NULL;
-    l_callback[0xB5] = NULL;
-    l_callback[0xB6] = NULL;
-    l_callback[0xB7] = NULL;
-    l_callback[0xB8] = NULL;
-    l_callback[0xB9] = NULL;
-    l_callback[0xBA] = NULL;
-    l_callback[0xBB] = NULL;
-    l_callback[0xBC] = NULL;
-    l_callback[0xBD] = NULL;
-    l_callback[0xBE] = NULL;
-    l_callback[0xBF] = NULL;
+    l_callback[0xB0] = 0;
+    l_callback[0xB1] = 0;
+    l_callback[0xB2] = 0;
+    l_callback[0xB3] = 0;
+    l_callback[0xB4] = 0;
+    l_callback[0xB5] = 0;
+    l_callback[0xB6] = 0;
+    l_callback[0xB7] = 0;
+    l_callback[0xB8] = 0;
+    l_callback[0xB9] = 0;
+    l_callback[0xBA] = 0;
+    l_callback[0xBB] = 0;
+    l_callback[0xBC] = 0;
+    l_callback[0xBD] = 0;
+    l_callback[0xBE] = 0;
+    l_callback[0xBF] = 0;
 
-    l_callback[0xC0] = NULL;
-    l_callback[0xC1] = NULL;
-    l_callback[0xC2] = NULL;
-    l_callback[0xC3] = NULL;
-    l_callback[0xC4] = NULL;
-    l_callback[0xC5] = NULL;
-    l_callback[0xC6] = NULL;
-    l_callback[0xC7] = NULL;
-    l_callback[0xC8] = NULL;
-    l_callback[0xC9] = NULL;
-    l_callback[0xCA] = NULL;
+    l_callback[0xC0] = &ret;
+    l_callback[0xC1] = 0;
+    l_callback[0xC2] = 0;
+    l_callback[0xC3] = 0;
+    l_callback[0xC4] = &call;
+    l_callback[0xC5] = 0;
+    l_callback[0xC6] = 0;
+    l_callback[0xC7] = 0;
+    l_callback[0xC8] = &ret;
+    l_callback[0xC9] = &ret;
+    l_callback[0xCA] = 0;
     l_callback[0xCB] = &prefix_CB;
-    l_callback[0xCC] = NULL;
-    l_callback[0xCD] = NULL;
-    l_callback[0xCE] = NULL;
-    l_callback[0xCF] = NULL;
+    l_callback[0xCC] = &call;
+    l_callback[0xCD] = &call;
+    l_callback[0xCE] = 0;
+    l_callback[0xCF] = 0;
 
-    l_callback[0xD0] = NULL;
-    l_callback[0xD1] = NULL;
-    l_callback[0xD2] = NULL;
+    l_callback[0xD0] = &ret;
+    l_callback[0xD1] = 0;
+    l_callback[0xD2] = 0;
     l_callback[0xD3] = NULL;
-    l_callback[0xD4] = NULL;
-    l_callback[0xD5] = NULL;
-    l_callback[0xD6] = NULL;
-    l_callback[0xD7] = NULL;
-    l_callback[0xD8] = NULL;
-    l_callback[0xD9] = NULL;
-    l_callback[0xDA] = NULL;
+    l_callback[0xD4] = &call;
+    l_callback[0xD5] = 0;
+    l_callback[0xD6] = 0;
+    l_callback[0xD7] = 0;
+    l_callback[0xD8] = &ret;
+    l_callback[0xD9] = &ret;
+    l_callback[0xDA] = 0;
     l_callback[0xDB] = NULL;
-    l_callback[0xDC] = NULL;
+    l_callback[0xDC] = &call;
     l_callback[0xDD] = NULL;
-    l_callback[0xDE] = NULL;
-    l_callback[0xDF] = NULL;
+    l_callback[0xDE] = 0;
+    l_callback[0xDF] = 0;
 
-    l_callback[0xE0] = NULL;
-    l_callback[0xE1] = NULL;
-    l_callback[0xE2] = NULL;
+    l_callback[0xE0] = &ld;
+    l_callback[0xE1] = 0;
+    l_callback[0xE2] = &ld;
     l_callback[0xE3] = NULL;
     l_callback[0xE4] = NULL;
-    l_callback[0xE5] = NULL;
-    l_callback[0xE6] = NULL;
-    l_callback[0xE7] = NULL;
-    l_callback[0xE8] = NULL;
-    l_callback[0xE9] = NULL;
-    l_callback[0xEA] = NULL;
+    l_callback[0xE5] = 0;
+    l_callback[0xE6] = 0;
+    l_callback[0xE7] = 0;
+    l_callback[0xE8] = 0;
+    l_callback[0xE9] = 0;
+    l_callback[0xEA] = &ld;
     l_callback[0xEB] = NULL;
     l_callback[0xEC] = NULL;
     l_callback[0xED] = NULL;
-    l_callback[0xEE] = NULL;
-    l_callback[0xEF] = NULL;
+    l_callback[0xEE] = 0;
+    l_callback[0xEF] = 0;
 
-    l_callback[0xF0] = NULL;
-    l_callback[0xF1] = NULL;
-    l_callback[0xF2] = NULL;
-    l_callback[0xF3] = NULL;
+    l_callback[0xF0] = &ld;
+    l_callback[0xF1] = 0;
+    l_callback[0xF2] = &ld;
+    l_callback[0xF3] = 0;
     l_callback[0xF4] = NULL;
-    l_callback[0xF5] = NULL;
-    l_callback[0xF6] = NULL;
-    l_callback[0xF7] = NULL;
-    l_callback[0xF8] = NULL;
-    l_callback[0xF9] = NULL;
-    l_callback[0xFA] = NULL;
-    l_callback[0xFB] = NULL;
+    l_callback[0xF5] = 0;
+    l_callback[0xF6] = 0;
+    l_callback[0xF7] = 0;
+    l_callback[0xF8] = 0;
+    l_callback[0xF9] = 0;
+    l_callback[0xFA] = &ld;
+    l_callback[0xFB] = 0;
     l_callback[0xFC] = NULL;
     l_callback[0xFD] = NULL;
-    l_callback[0xFE] = NULL;
-    l_callback[0xFF] = NULL;
+    l_callback[0xFE] = 0;
+    l_callback[0xFF] = 0;
 }
 
 void CPU::reset()
@@ -339,6 +339,7 @@ void CPU::step()
 
     // DEBUG: Should crash if NULL
     if (l_callback[opcode] == NULL) {
+        fprintf(stderr, "Not Implemented!\n");
         PC += 1; // Just in case
         return;
     }
@@ -346,9 +347,25 @@ void CPU::step()
     (*this.*l_callback[opcode])();
 
     // DEBUG
-    if (PC >= 0x000C) {
+    if (PC == 0x0027) {
+        mmu->dump(0x0000, 0x0100);
         sleep(1);
     }
+    if (PC >= 0x0027) {
+        sleep(1);
+    }
+}
+
+/**
+ * @brief Gives the 16-bit register wanted
+ * @details Ensure H-L byte order
+ */
+uint16_t CPU::reg16(size_t i)
+{
+    uint16_t high = (uint16_t)reg[i];
+    uint16_t low = (uint16_t)reg[i + 1];
+
+    return (high << 8) + low;
 }
 
 void CPU::ld8(void *dst, void* src, size_t size, size_t ticks)
@@ -419,6 +436,82 @@ void CPU::add16(uint8_t *dst, uint8_t *src)
     reg[F] = set_bit(reg[F], FC, carry = 1);
 
     fprintf(stdout, "ADD r16\n");
+}
+
+void CPU::call()
+{
+    uint8_t ticks = 24;
+
+    uint8_t opcode = mmu->get(PC);
+    uint16_t address = mmu->get16(PC + 1);
+
+    PC += 3;
+
+    uint8_t high = (uint8_t)((PC & 0xFF00) >> 4);
+    uint8_t low = (uint8_t)(PC & 0x00FF);
+
+    bool do_call = true;
+    /* Call if not Z */
+    if ((opcode == 0xC4 && get_bit(reg[F], FZ) == 1) ||
+    /* Call if not C */
+        (opcode == 0xD4 && get_bit(reg[F], FC) == 1) ||
+    /* Call if Z */
+        (opcode == 0xCC && get_bit(reg[F], FZ) == 0) ||
+    /* Call if C */
+        (opcode == 0xDC && get_bit(reg[F], FC) == 0)) {
+        ticks = 12;
+        do_call = false;
+    }
+
+    if (do_call) {
+        mmu->set(SP, high);
+        mmu->set(SP - 1, low);
+        SP -= 2;
+
+        PC = address;
+    }
+
+    clock += ticks;
+
+    fprintf(stdout, "CALL %04X\n", address);
+}
+
+void CPU::ret()
+{
+    uint8_t ticks = 16;
+
+    uint8_t opcode = mmu->get(PC);
+
+    PC += 1;
+
+    bool do_ret = true;
+    /* Ret if not Z */
+    if ((opcode == 0xC0 && get_bit(reg[F], FZ) == 1) ||
+    /* Ret if not C */
+        (opcode == 0xD0 && get_bit(reg[F], FC) == 1) ||
+    /* Ret if Z */
+        (opcode == 0xC8 && get_bit(reg[F], FZ) == 0) ||
+    /* Ret if C */
+        (opcode == 0xD8 && get_bit(reg[F], FC) == 0)) {
+        ticks = 8;
+        do_ret = false;
+    } else {
+        ticks = 20;
+    }
+
+    /* RETI */
+    if (opcode == 0xD9) {
+        // TODO enable interuptions
+    }
+
+    if (do_ret) {
+        PC = mmu->get16(SP);
+        SP += 2;
+    }
+
+    clock += ticks;
+
+    fprintf(stdout, "RET\n");
 }
 
 // Invert reg A
@@ -563,7 +656,7 @@ void CPU::inc()
         inc8(&reg[H]);
         break;
     case 0x34:
-        inc8((uint8_t*)mmu->at(reg[HL]));
+        inc8((uint8_t*)mmu->at(reg16(HL)));
         break;
     case 0x0C:
         inc8(&reg[C]);
@@ -620,7 +713,7 @@ void CPU::dec()
         dec8(&reg[H]);
         break;
     case 0x35:
-        dec8((uint8_t*)mmu->at(reg[HL]));
+        dec8((uint8_t*)mmu->at(reg16(HL)));
         break;
     case 0x0D:
         dec8(&reg[C]);
@@ -702,7 +795,7 @@ void CPU::ld()
             &reg[E],
             &reg[H],
             &reg[L],
-            (uint8_t*) mmu->at(reg[HL]),
+            (uint8_t*) mmu->at(reg16(HL)),
             &reg[A]
         };
 
@@ -717,7 +810,7 @@ void CPU::ld()
         return ld8(dst, src, 1, ticks);
     }
 
-    uint16_t high, low, address;
+    uint16_t address;
 
     /* Less generic cases */
     switch (opcode) {
@@ -740,28 +833,26 @@ void CPU::ld()
 
     /* Load reg A into pointed address */
     case 0x02:    // Loads reg A to (BC)
-        ld8(mmu->at(reg[BC]), &reg[A], 1, 8);
+        ld8(mmu->at(reg16(BC)), &reg[A], 1, 8);
         break;
 
     case 0x12:    // Loads reg A to (DE)
-        ld8(mmu->at(reg[DE]), &reg[A], 1, 8);
+        ld8(mmu->at(reg16(DE)), &reg[A], 1, 8);
         break;
 
     case 0x22:    // Loads reg A to (HL), inc HL
-        ld8(mmu->at(reg[HL]), &reg[A], 1, 8);
+        ld8(mmu->at(reg16(HL)), &reg[A], 1, 8);
         inc16(&reg[HL]);
         break;
 
     case 0x32:    // Loads reg A to (HL), dec HL
-        ld8(mmu->at(reg[HL]), &reg[A], 1, 8);
+        ld8(mmu->at(reg16(HL)), &reg[A], 1, 8);
         dec16(&reg[HL]);
         break;
 
     /* Load 16-bit Sp to (immediate 16-bit) */
     case 0x08:
-        high = mmu->get(PC + 1);
-        low = mmu->get(PC + 2);
-        address = (high << 4) + low;
+        address = mmu->get16(PC + 1);
         ld16((uint8_t*)mmu->at(address), (uint8_t*)&SP, 3, 20);
         break;
 
@@ -779,25 +870,25 @@ void CPU::ld()
         break;
 
     case 0x36:    // Loads 8-bit immediate to (HL)
-        ld8(mmu->at(reg[HL]), mmu->at(PC + 1), 2, 12);
+        ld8(mmu->at(reg16(HL)), mmu->at(PC + 1), 2, 12);
         break;
 
     /* Load pointed address into A */
     case 0x0A:    // Loads (BC) to reg A
-        ld8(&reg[A], mmu->at(reg[BC]), 1, 8);
+        ld8(&reg[A], mmu->at(reg16(BC)), 1, 8);
         break;
 
     case 0x1A:    // Loads (DE) to reg A
-        ld8(&reg[A], mmu->at(reg[DE]), 1, 8);
+        ld8(&reg[A], mmu->at(reg16(DE)), 1, 8);
         break;
 
     case 0x2A:    // Loads (HL) to reg A, inc HL
-        ld8(&reg[A], mmu->at(reg[HL]), 1, 8);
+        ld8(&reg[A], mmu->at(reg16(HL)), 1, 8);
         inc16(&reg[HL]);
         break;
 
     case 0x3A:    // Loads (HL) to reg A, dec HL
-        ld8(&reg[A], mmu->at(reg[HL]), 1, 8);
+        ld8(&reg[A], mmu->at(reg16(HL)), 1, 8);
         dec16(&reg[HL]);
         break;
 
@@ -816,6 +907,36 @@ void CPU::ld()
 
     case 0x3E:    // Loads 8-bit immediate to A
         ld8(&reg[A], mmu->at(PC + 1), 2, 8);
+        break;
+
+    /* Loads from/to 8-bit address */
+    case 0xE0:      // Loads reg A to address immediate
+        address = 0xFF00 + mmu->get(PC + 1);
+        ld8(mmu->at(address), &reg[A], 2, 12);
+        break;
+
+    case 0xF0:      // Loads from address immediate to reg A
+        address = 0xFF00 + mmu->get(PC + 1);
+        ld8(&reg[A], mmu->at(address), 2, 12);
+        break;
+
+    case 0xE2:      // Loads from addres reg C to reg A
+        ld8(mmu->at(0xFF00 + reg[C]), &reg[A], 2, 8);
+        break;
+
+    case 0xF2:      // Loads from reg A to addres reg C
+        ld8(&reg[A], mmu->at(0xFF00 + reg[C]), 2, 8);
+        break;
+
+    /* Loads from/to 16-bit address */
+    case 0xEA:      // Loads reg A to address immediate
+        address = mmu->get16(PC + 1);
+        ld8(mmu->at(address), &reg[A], 3, 16);
+        break;
+
+    case 0xFA:      // Loafs from address immediate to reg A
+        address = mmu->get16(PC + 1);
+        ld8(&reg[A], mmu->at(address), 3, 16);
         break;
     }
 }
@@ -868,7 +989,7 @@ void CPU::prefix_CB()
         &reg[E],
         &reg[H],
         &reg[L],
-        (uint8_t*) mmu->at(reg[HL]),
+        (uint8_t*) mmu->at(reg16(HL)),
         &reg[A]
     };
 

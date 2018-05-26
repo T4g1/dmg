@@ -20,6 +20,14 @@ uint8_t MMU::get(uint16_t address)
     return *(uint8_t*) at(address);
 }
 
+uint16_t MMU::get16(uint16_t address)
+{
+    uint16_t low = (uint16_t)get(address);
+    uint16_t high = (uint16_t)get(address + 1);
+
+    return (high << 8) + low;
+}
+
 int8_t MMU::get_signed(uint16_t address)
 {
     return get(address);
@@ -47,4 +55,21 @@ bool MMU::load(const char *filepath, uint16_t dst)
     }
 
     return true;
+}
+
+void MMU::dump(uint16_t start, uint16_t end)
+{
+    size_t width = 16;
+
+    for (size_t i=start; i<end; i++) {
+        if (i % width == 0) {
+            fprintf(stdout, "0x%04X-0x%04X ", i, i + width - 1);
+        }
+        fprintf(stdout, "%02X ", get(i));
+
+        if (i % width == width - 1) {
+            fprintf(stdout, "\n");
+        }
+    }
+    fprintf(stdout, "\n");
 }

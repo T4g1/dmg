@@ -15,7 +15,8 @@ Personal attempt at creating a simple DMG GameBoy emulator from scratch.
 
 # TODO
 
-* [ ] Implement Z80 instruction set
-* [ ] Implement MMU
+* [ ] Implement Z80 instruction set (80%)
+* [ ] Implement interupts
+* [X] Implement MMU
 * [ ] Implement PPU
 * [ ] Sound!
