@@ -13,6 +13,12 @@ Personal attempt at creating a simple DMG GameBoy emulator from scratch.
 * [Game Boy Opcodes](http://www.pastraiser.com/cpu/gameboy/gameboy_opcodes.html)
 * [Game Boy Opcodes (other version)](https://gamehacking.org/faqs/GameBoy_Z80_Opcode_Map.html)
 
+# Compilation
+
+```
+rm ./src/*.o; make dmg; rm ./src/*.o; make test
+```
+
 # TODO
 
 * [ ] Implement Z80 instruction set (80%)

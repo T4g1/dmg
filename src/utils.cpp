@@ -17,7 +17,7 @@ uint8_t set_bit(uint8_t byte, size_t offset, bool value)
     }
 }
 
-bool rotate(uint8_t byte, bool left, bool *carry)
+uint8_t rotate(uint8_t byte, bool left, bool *carry)
 {
     if (left) {
         *carry = get_bit(byte, 7);
@@ -28,7 +28,7 @@ bool rotate(uint8_t byte, bool left, bool *carry)
     }
 }
 
-bool shift(uint8_t byte, bool left, bool *carry)
+uint8_t shift(uint8_t byte, bool left, bool *carry)
 {
     if (left) {
         *carry = get_bit(byte, 7);

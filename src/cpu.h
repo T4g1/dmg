@@ -20,6 +20,7 @@
 #define L               7
 
 // 16-Bits registers
+#define AF              A
 #define BC              B
 #define DE              D
 #define HL              H
@@ -40,18 +41,16 @@ public:
     void reset();
     void step();
 
-private:
-    MMU *mmu;
-
-    cpu_callback l_callback[MAX_OPCODES];
-
     size_t clock;
 
     uint8_t reg[REGISTER_COUNT];
     uint16_t SP;                    //<! Stack Pointer
     uint16_t PC;                    //<! Program Counter
 
-    uint8_t *get_address(uint8_t opcode);
+private:
+    MMU *mmu;
+
+    cpu_callback l_callback[MAX_OPCODES];
 
     uint16_t reg16(size_t i);
 
@@ -66,6 +65,8 @@ private:
     void prefix_CB();
     void CB_set();
 
+    void push();
+    void pop();
     void call();
     void ret();
     void cpl();

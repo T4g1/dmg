@@ -12,14 +12,24 @@ BINDIR   = .
 
 SOURCES  := $(wildcard $(SRCDIR)/*.cpp)
 INCLUDES := $(wildcard $(SRCDIR)/*.h)
-OBJECTS  := $(SOURCES:$(SRCDIR)/%.cpp=$(OBJDIR)/%.o)
+OBJECTS  := $(OBJDIR)/utils.o $(OBJDIR)/mmu.o $(OBJDIR)/cpu.o
+DMG_OBJECTS  := $(OBJECTS) $(OBJDIR)/dmg.o
+TEST_OBJECTS  := $(OBJECTS) $(OBJDIR)/test.o
 
-$(BINDIR)/$(TARGET): $(OBJECTS)
-	@$(LINKER) $(OBJECTS) $(LFLAGS) -o $@
-	@echo "Linking complete!"
+all: $(BINDIR)/dmg $(BINDIR)/test
+
+$(BINDIR)/dmg: CXXFLAGS += -DDEBUG
+$(BINDIR)/dmg: $(DMG_OBJECTS)
+	@$(LINKER) $(DMG_OBJECTS) $(LFLAGS) -o $@
+	@echo "Linking dmg complete!"
+
+$(BINDIR)/test: CXXFLAGS += -DTEST
+$(BINDIR)/test: $(TEST_OBJECTS)
+	@$(LINKER) $(TEST_OBJECTS) $(LFLAGS) -o $@
+	@echo "Linking test complete!"
 
 $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
-	@$(CC) $(CFLAGS) -c $< -o $@
+	@$(CC) $(CXXFLAGS) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
 
 .PHONY: clean
@@ -29,5 +39,5 @@ clean:
 
 .PHONY: remove
 remove: clean
-	@$(rm) $(BINDIR)/$(TARGET)
+	@$(rm) $(BINDIR)/dmg
 	@echo "Executable removed!"

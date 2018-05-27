@@ -2,6 +2,7 @@
 #include <string.h>
 
 #include "utils.h"
+#include "log.h"
 
 #include "mmu.h"
 
@@ -35,11 +36,11 @@ int8_t MMU::get_signed(uint16_t address)
 
 bool MMU::load(const char *filepath, uint16_t dst)
 {
-    fprintf(stdout, "Loading: %s\n", filepath);
+    info("Loading: %s\n", filepath);
 
     FILE *f = fopen(filepath, "rb");
     if (f == NULL) {
-        fprintf(stderr, "Unable to read provided boot ROM file\n");
+        error("Unable to read provided boot ROM file\n");
         return false;
     }
 
@@ -50,7 +51,7 @@ bool MMU::load(const char *filepath, uint16_t dst)
 
     // Failure of reading not EOF related
     if (!feof(f)) {
-        fprintf(stderr, "Error while reading provided boot ROM file\n");
+        error("Error while reading provided boot ROM file\n");
         return false;
     }
 
@@ -63,13 +64,13 @@ void MMU::dump(uint16_t start, uint16_t end)
 
     for (size_t i=start; i<end; i++) {
         if (i % width == 0) {
-            fprintf(stdout, "0x%04X-0x%04X ", i, i + width - 1);
+            info("0x%04X-0x%04X ", (int)i, (int)(i + width - 1));
         }
-        fprintf(stdout, "%02X ", get(i));
+        info("%02X ", get(i));
 
         if (i % width == width - 1) {
-            fprintf(stdout, "\n");
+            info("\n");
         }
     }
-    fprintf(stdout, "\n");
+    info("\n");
 }

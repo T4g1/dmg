@@ -2,6 +2,7 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include "log.h"
 #include "cpu.h"
 #include "mmu.h"
 
@@ -9,7 +10,7 @@
 int main(int argc, char *argv[])
 {
     if (argc != 3) {
-        fprintf(stderr, "Usage: dmg <BOOT ROM> <GAME ROM>\n");
+        error("Usage: dmg <BOOT ROM> <GAME ROM>\n");
         return EXIT_FAILURE;
     }
 
