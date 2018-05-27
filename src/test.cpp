@@ -67,7 +67,7 @@ bool test_CPU_LD_16bit()
     ASSERT(cpu->reg16(BC) == 0x1100);
     ASSERT(cpu->reg16(DE) == 0x3322);
     ASSERT(cpu->reg16(HL) == 0x5544);
-    ASSERTV(cpu->SP == 0x7766, "SP=0x%04X", cpu->SP);
+    ASSERTV(cpu->reg16(SP) == 0x7766, "SP=0x%04X", cpu->reg16(SP));
 
     return true;
 }

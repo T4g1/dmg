@@ -297,7 +297,8 @@ void CPU::reset()
     reg[H] = 0x01;
     reg[L] = 0x4D;
 
-    SP = 0xFFFE;
+    reg[SP] = 0xFF;
+    reg[SP+1] = 0xFE;
 
     mmu->set(0xFF05, 0x00);     //<! TIMA
     mmu->set(0xFF06, 0x00);     //<! TMA
@@ -383,6 +384,7 @@ void CPU::ld16(uint8_t *dst, uint8_t* src, size_t size, size_t ticks)
     // Invert LOW and HIGH bytes
     memcpy(dst + 1, src, sizeof(uint8_t));
     memcpy(dst, src + 1, sizeof(uint8_t));
+
     PC += size;
     clock += ticks;
 
@@ -459,9 +461,10 @@ void CPU::push()
     uint8_t high = (uint8_t)((value & 0xFF00) >> 4);
     uint8_t low = (uint8_t)(value & 0x00FF);
 
-    mmu->set(SP, high);
-    mmu->set(SP - 1, low);
-    SP -= 2;
+    mmu->set(reg16(SP), high);
+    dec16(&reg[SP]);
+    mmu->set(reg16(SP), low);
+    dec16(&reg[SP]);
 
     PC += 1;
     clock += 16;
@@ -488,9 +491,10 @@ void CPU::pop()
 
     uint8_t *low = high + 1;
 
-    *low = mmu->get(SP);
-    *high = mmu->get(SP + 1);
-    SP += 2;
+    *low = mmu->get(reg16(SP));
+    inc16(&reg[SP]);
+    *high = mmu->get(reg16(SP));
+    inc16(&reg[SP]);
 
     PC += 1;
     clock += 12;
@@ -524,9 +528,10 @@ void CPU::call()
     }
 
     if (do_call) {
-        mmu->set(SP, high);
-        mmu->set(SP - 1, low);
-        SP -= 2;
+        mmu->set(reg16(SP), high);
+        dec16(&reg[SP]);
+        mmu->set(reg16(SP), low);
+        dec16(&reg[SP]);
 
         PC = address;
     }
@@ -565,8 +570,9 @@ void CPU::ret()
     }
 
     if (do_ret) {
-        PC = mmu->get16(SP);
-        SP += 2;
+        PC = mmu->get16(reg16(SP));
+        inc16(&reg[SP]);
+        inc16(&reg[SP]);
     }
 
     clock += ticks;
@@ -699,7 +705,7 @@ void CPU::inc()
         ticks = 8;
         break;
     case 0x33:
-        inc16((uint8_t*)&SP);
+        inc16(&reg[SP]);
         ticks = 8;
         break;
 
@@ -756,7 +762,7 @@ void CPU::dec()
         ticks = 8;
         break;
     case 0x3B:
-        dec16((uint8_t*)&SP);
+        dec16(&reg[SP]);
         ticks = 8;
         break;
 
@@ -887,7 +893,7 @@ void CPU::ld()
         break;
 
     case 0x31:    // Loads 16-bit immediate to SP
-        ld16((uint8_t*)&SP, (uint8_t*)mmu->at(PC + 1), 3, 12);
+        ld16(&reg[SP], (uint8_t*)mmu->at(PC + 1), 3, 12);
         break;
 
     /* Load reg A into pointed address */
@@ -912,7 +918,7 @@ void CPU::ld()
     /* Load 16-bit Sp to (immediate 16-bit) */
     case 0x08:
         address = mmu->get16(PC + 1);
-        ld16((uint8_t*)mmu->at(address), (uint8_t*)&SP, 3, 20);
+        ld16((uint8_t*)mmu->at(address), &reg[SP], 3, 20);
         break;
 
     /* Load 8-bit immediate to reg */

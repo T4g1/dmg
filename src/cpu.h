@@ -7,7 +7,7 @@
 #include "mmu.h"
 
 #define MAX_OPCODES         255
-#define REGISTER_COUNT  8
+#define REGISTER_COUNT  10  //<! 8x8-bit for standard registers + 2x8-bit for SP (16-bit)
 
 // 8-Bits registers
 #define A               0   //<! Accumulator
@@ -24,6 +24,7 @@
 #define BC              B
 #define DE              D
 #define HL              H
+#define SP              8
 
 // Flags
 #define FZ               7  //<! Zero Flag
@@ -44,7 +45,6 @@ public:
     size_t clock;
 
     uint8_t reg[REGISTER_COUNT];
-    uint16_t SP;                    //<! Stack Pointer
     uint16_t PC;                    //<! Program Counter
 
     uint16_t reg16(size_t i);
