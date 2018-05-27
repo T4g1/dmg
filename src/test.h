@@ -5,10 +5,14 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#define ASSERT(cond) \
+
+#define ASSERT(cond) ASSERTV(cond, "None")
+
+#define ASSERTV(cond, fmt, ...) \
     if(!(cond)) { \
-        fprintf(stdout, "F"); \
+        fprintf(stdout, "F\n"); \
         report_failure(#cond, __FILE__, __LINE__); \
+        fprintf(stdout, "Context: " fmt "\n", ##__VA_ARGS__); \
         return false; \
     } else { \
         fprintf(stdout, "."); \
@@ -27,7 +31,7 @@ void test(const char *description, test_func func)
 
 void report_failure(const char *condition, const char *file, int line)
 {
-    fprintf(stderr, "\nFailure in %s:%d: %s", file, line, condition);
+    fprintf(stderr, "Failure in %s:%d: %s\n", file, line, condition);
 }
 
 #endif /* TEST_H */

@@ -16,6 +16,8 @@ public:
     uint16_t get16(uint16_t address);
     int8_t get_signed(uint16_t address);
     bool load(const char *filepath, uint16_t dst);
+    bool load(uint8_t *program, size_t size, uint16_t dst);
+    bool load(uint8_t *program, size_t size);
     void dump(uint16_t start, uint16_t end);
 };
 

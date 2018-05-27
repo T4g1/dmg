@@ -58,6 +58,20 @@ bool MMU::load(const char *filepath, uint16_t dst)
     return true;
 }
 
+bool MMU::load(uint8_t *program, size_t size, uint16_t dst)
+{
+    for (size_t i=0; i<size; i++) {
+        ram[dst + i] = program[i];
+    }
+
+    return true;
+}
+
+bool MMU::load(uint8_t *program, size_t size)
+{
+    return load(program, size, 0x0000);
+}
+
 void MMU::dump(uint16_t start, uint16_t end)
 {
     size_t width = 16;
