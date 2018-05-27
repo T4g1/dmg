@@ -51,9 +51,11 @@ bool test_CPU_LD_16bit()
         0x11, 0x22, 0x33,   // LD DE, d16
         0x21, 0x44, 0x55,   // LD HL, d16
         0x31, 0x66, 0x77,   // LD SP, d16
-        0x08, 0x66, 0x77    // LD (a16), SP
+        0x08, 0x66, 0x77,   // LD (a16), SP
+        0xF9,               // LD SP, HL
+        0xF8, 0x14          // LD HL, SP+r8
     };
-    mmu->load(program, 15);
+    mmu->load(program, 18);
 
     ASSERT(cpu->PC == 0);
     cpu->step();
@@ -72,6 +74,14 @@ bool test_CPU_LD_16bit()
     ASSERT(cpu->reg16(HL) == 0x5544);
     ASSERTV(cpu->reg16(SP) == 0x7766, "SP=0x%04X", cpu->reg16(SP));
     ASSERT(mmu->get16(0x7766) == 0x7766);
+
+    cpu->step();
+    ASSERTV(cpu->PC == 16, "PC=0x%04X", cpu->PC);
+    cpu->step();
+    ASSERTV(cpu->PC == 18, "PC=0x%04X", cpu->PC);
+
+    ASSERTV(cpu->reg16(SP) == 0x5544, "SP=0x%04X", cpu->reg16(SP));
+    ASSERTV(cpu->reg16(HL) == 0x5544 + 0x14, "HL=0x%04X", cpu->reg16(HL));
 
     return true;
 }

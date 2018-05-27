@@ -276,8 +276,8 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xF5] = &push;
     l_callback[0xF6] = 0;
     l_callback[0xF7] = 0;
-    l_callback[0xF8] = 0;
-    l_callback[0xF9] = 0;
+    l_callback[0xF8] = &ld;
+    l_callback[0xF9] = &ld;
     l_callback[0xFA] = &ld;
     l_callback[0xFB] = 0;
     l_callback[0xFC] = NULL;
@@ -379,6 +379,9 @@ void CPU::ld8(void *dst, void* src, size_t size, size_t ticks)
     debug("LD reg\n");
 }
 
+/**
+ * @brief Loads 16-bit value and invert order
+ */
 void CPU::ld16(uint8_t *dst, uint8_t* src, size_t size, size_t ticks)
 {
     // Invert LOW and HIGH bytes
@@ -423,16 +426,16 @@ void CPU::add16(uint8_t *dst, uint8_t *src)
     int tmp = idl + isl;
     if (tmp > 255) {
         half_carry = true;
-        *dl = (uint8_t)(tmp & 0xFF);
     }
+    *dl = (uint8_t)(tmp & 0xFF);
 
     int idh = (int)*dh;
     int ish = (int)*sh;
     tmp = idh + ish + half_carry;
     if (tmp > 255) {
         carry = true;
-        *dh = (uint8_t)(tmp & 0xFF);
     }
+    *dh = (uint8_t)(tmp & 0xFF);
 
     reg[F] = set_bit(reg[F], FN, 0);
     reg[F] = set_bit(reg[F], FH, half_carry == 1);
@@ -876,6 +879,7 @@ void CPU::ld()
     }
 
     uint16_t address;
+    uint8_t value[2] = {0};
 
     /* Less generic cases */
     switch (opcode) {
@@ -999,9 +1003,28 @@ void CPU::ld()
         ld8(mmu->at(address), &reg[A], 3, 16);
         break;
 
-    case 0xFA:      // Loafs from address immediate to reg A
+    case 0xFA:      // Loads from address immediate to reg A
         address = mmu->get16(PC + 1);
         ld8(&reg[A], mmu->at(address), 3, 16);
+        break;
+
+    case 0xF8:      // Loads SP+r8 to HL
+        memcpy(&reg[HL], &reg[SP], sizeof(uint16_t));
+        value[0] = 0x00;
+        value[1] = mmu->get(PC+1);
+        add16(&reg[HL], value);
+
+        PC += 2;
+        clock += 12;
+
+        reg[F] = set_bit(reg[F], FZ, 0);
+        break;
+
+    case 0xF9:      // Loads HL content to SP
+        memcpy(&reg[SP], &reg[HL], sizeof(uint16_t));
+
+        PC += 1;
+        clock += 8;
         break;
     }
 }
