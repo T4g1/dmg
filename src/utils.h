@@ -3,6 +3,7 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <cstddef>
 
 bool get_bit(uint8_t byte, size_t offset);
 uint8_t set_bit(uint8_t byte, size_t offset, bool value);

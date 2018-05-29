@@ -3,10 +3,11 @@
 
 #include <inttypes.h>
 #include <stdbool.h>
+#include <cstddef>
 
 #include "mmu.h"
 
-#define MAX_OPCODES         255
+#define MAX_OPCODES         256
 #define REGISTER_COUNT  10  //<! 8x8-bit for standard registers + 2x8-bit for SP (16-bit)
 
 // 8-Bits registers

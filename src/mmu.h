@@ -2,6 +2,7 @@
 #define MMU_H
 
 #include <inttypes.h>
+#include <cstddef>
 
 #define RAM_SIZE        0xFFFF
 
