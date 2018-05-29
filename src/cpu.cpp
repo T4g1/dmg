@@ -1092,13 +1092,18 @@ void CPU::prefix_CB()
     if (opcode < 0x20) {
         *address = rotate(*address, left, &carry);
 
+        /* Opcode to 0x10 set new byte to the shifted one */
+        bool new_value = carry;
+
         /* Through carry flag */
         if (opcode >= 0x10) {
-            if (left) {
-                *address = set_bit(*address, 0, old_carry);
-            } else {
-                *address = set_bit(*address, 7, old_carry);
-            }
+            new_value = old_carry;
+        }
+
+        if (left) {
+            *address = set_bit(*address, 0, new_value);
+        } else {
+            *address = set_bit(*address, 7, new_value);
         }
 
         reg[F] = set_bit(reg[F], FZ, *address == 0);

@@ -86,6 +86,54 @@ bool test_CPU_LD_16bit()
     return true;
 }
 
+bool test_BIN_RLC()
+{
+    cpu->PC = 0;
+    cpu->reg[F] = 0x00;
+    cpu->reg[B] = 0xF0;
+    cpu->reg[C] = 0xF0;
+    cpu->reg[D] = 0xF0;
+    cpu->reg[E] = 0xF0;
+    cpu->reg[H] = 0xF0;
+    cpu->reg[L] = 0xF0;
+    cpu->reg[A] = 0xF0;
+
+    uint8_t program[] = {
+        0xCB, 0x00,         // RLC B
+        0xCB, 0x00,         // RLC B
+        0xCB, 0x01,         // RLC C
+        0xCB, 0x02,         // RLC D
+        0xCB, 0x03,         // RLC E
+        0xCB, 0x04,         // RLC H
+        0xCB, 0x05,         // RLC L
+        0xCB, 0x06,         // RLC (HL)
+        0xCB, 0x07          // RLC A
+    };
+    mmu->load(program, 18);
+
+    cpu->step();
+    ASSERTV(cpu->reg[B] == 0b11100001, "F=%02X B=%02X\n", cpu->reg[F], cpu->reg[B]);
+    ASSERTV(cpu->reg[F] == 0x10, "F=%02X B=%02X\n", cpu->reg[F], cpu->reg[B]);
+    cpu->step();
+    ASSERTV(cpu->reg[B] == 0b11000011, "F=%02X B=%02X\n", cpu->reg[F], cpu->reg[B]);
+    cpu->step();
+    ASSERT(cpu->reg[C] == 0b11100001);
+    cpu->step();
+    ASSERT(cpu->reg[D] == 0b11100001);
+    cpu->step();
+    ASSERT(cpu->reg[E] == 0b11100001);
+    cpu->step();
+    ASSERT(cpu->reg[H] == 0b11100001);
+    cpu->step();
+    ASSERT(cpu->reg[L] == 0b11100001);
+    mmu->set(cpu->reg16(HL), 0xF0);
+    cpu->step();
+    ASSERT(mmu->get(cpu->reg16(HL)) == 0b11100001);
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0b11100001);
+
+    return true;
+}
 
 int main(void)
 {
@@ -93,6 +141,7 @@ int main(void)
     cpu = new CPU(mmu);
 
     test("MMU: RAM check", &test_MMU_ram);
+    test("Binary Operations: RLC", &test_BIN_RLC);
     test("CPU: NOP", &test_CPU_NOP);
     test("CPU: LD 16-Bit", &test_CPU_LD_16bit);
 
