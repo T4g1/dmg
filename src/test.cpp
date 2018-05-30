@@ -1,10 +1,43 @@
 #include "test.h"
 
+#include <initializer_list>
+
 #include "cpu.h"
 #include "mmu.h"
 
 MMU *mmu;
 CPU *cpu;
+
+/**
+ * @brief      Init CPU to PC 0 and same value for all register except F
+ * @param[in]  value  The value for all registers
+ */
+void init(uint8_t value)
+{
+    cpu->PC = 0x00;
+
+    cpu->reg[F] = 0x00;
+
+    cpu->reg[B] = value;
+    cpu->reg[C] = value;
+    cpu->reg[D] = value;
+    cpu->reg[E] = value;
+    cpu->reg[H] = value;
+    cpu->reg[L] = value;
+    cpu->reg[A] = value;
+}
+
+/**
+ * @brief      Store the given program at current PC position and execute the first
+ *             command from it.
+ * @param      program  The program to use
+ */
+void execute(std::initializer_list<uint8_t> program)
+{
+    mmu->load((uint8_t*)program.begin(), program.size(), cpu->PC);
+
+    cpu->step();
+}
 
 bool test_MMU_ram()
 {
@@ -88,49 +121,58 @@ bool test_CPU_LD_16bit()
 
 bool test_BIN_RLC()
 {
-    cpu->PC = 0;
-    cpu->reg[F] = 0x00;
-    cpu->reg[B] = 0xF0;
-    cpu->reg[C] = 0xF0;
-    cpu->reg[D] = 0xF0;
-    cpu->reg[E] = 0xF0;
-    cpu->reg[H] = 0xF0;
-    cpu->reg[L] = 0xF0;
-    cpu->reg[A] = 0xF0;
+    init(0xF0);
 
-    uint8_t program[] = {
-        0xCB, 0x00,         // RLC B
-        0xCB, 0x00,         // RLC B
-        0xCB, 0x01,         // RLC C
-        0xCB, 0x02,         // RLC D
-        0xCB, 0x03,         // RLC E
-        0xCB, 0x04,         // RLC H
-        0xCB, 0x05,         // RLC L
-        0xCB, 0x06,         // RLC (HL)
-        0xCB, 0x07          // RLC A
-    };
-    mmu->load(program, 18);
-
-    cpu->step();
-    ASSERTV(cpu->reg[B] == 0b11100001, "F=%02X B=%02X\n", cpu->reg[F], cpu->reg[B]);
-    ASSERTV(cpu->reg[F] == 0x10, "F=%02X B=%02X\n", cpu->reg[F], cpu->reg[B]);
-    cpu->step();
-    ASSERTV(cpu->reg[B] == 0b11000011, "F=%02X B=%02X\n", cpu->reg[F], cpu->reg[B]);
-    cpu->step();
+    execute({ 0xCB, 0x00 });    // RLC B
+    ASSERT(cpu->reg[B] == 0b11100001);
+    ASSERT(cpu->reg[F] == 0x10);
+    execute({ 0xCB, 0x00 });    // RLC B
+    ASSERT(cpu->reg[B] == 0b11000011);
+    execute({ 0xCB, 0x01 });    // RLC C
     ASSERT(cpu->reg[C] == 0b11100001);
-    cpu->step();
+    execute({ 0xCB, 0x02 });    // RLC D
     ASSERT(cpu->reg[D] == 0b11100001);
-    cpu->step();
+    execute({ 0xCB, 0x03 });    // RLC E
     ASSERT(cpu->reg[E] == 0b11100001);
-    cpu->step();
+    execute({ 0xCB, 0x04 });    // RLC H
     ASSERT(cpu->reg[H] == 0b11100001);
-    cpu->step();
+    execute({ 0xCB, 0x05 });    // RLC L
     ASSERT(cpu->reg[L] == 0b11100001);
-    mmu->set(cpu->reg16(HL), 0xF0);
-    cpu->step();
-    ASSERT(mmu->get(cpu->reg16(HL)) == 0b11100001);
-    cpu->step();
+    execute({ 0xCB, 0x07 });    // RLC A
     ASSERT(cpu->reg[A] == 0b11100001);
+
+    mmu->set(cpu->reg16(HL), 0xF0);
+    execute({ 0xCB, 0x06 });    // RLC (HL)
+    ASSERT(mmu->get(cpu->reg16(HL)) == 0b11100001);
+
+    return true;
+}
+
+bool test_BIN_RRC()
+{
+    init(0x0F);
+
+    execute({ 0xCB, 0x08 });
+    ASSERT(cpu->reg[B] == 0b10000111);
+    execute({ 0xCB, 0x08 });
+    ASSERT(cpu->reg[B] == 0b11000011);
+    execute({ 0xCB, 0x09 });
+    ASSERT(cpu->reg[C] == 0b10000111);
+    execute({ 0xCB, 0x0A });
+    ASSERT(cpu->reg[D] == 0b10000111);
+    execute({ 0xCB, 0x0B });
+    ASSERT(cpu->reg[E] == 0b10000111);
+    execute({ 0xCB, 0x0C });
+    ASSERT(cpu->reg[H] == 0b10000111);
+    execute({ 0xCB, 0x0D });
+    ASSERT(cpu->reg[L] == 0b10000111);
+    execute({ 0xCB, 0x0F });
+    ASSERT(cpu->reg[A] == 0b10000111);
+    ASSERT(cpu->reg[F] == 0x10);
+
+    mmu->set(cpu->reg16(HL), 0x0F);
+    execute({ 0xCB, 0x0E });
+    ASSERT(mmu->get(cpu->reg16(HL)) == 0b10000111);
 
     return true;
 }
@@ -142,6 +184,7 @@ int main(void)
 
     test("MMU: RAM check", &test_MMU_ram);
     test("Binary Operations: RLC", &test_BIN_RLC);
+    test("Binary Operations: RRC", &test_BIN_RRC);
     test("CPU: NOP", &test_CPU_NOP);
     test("CPU: LD 16-Bit", &test_CPU_LD_16bit);
 
