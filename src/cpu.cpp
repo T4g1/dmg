@@ -1113,7 +1113,7 @@ void CPU::prefix_CB()
     }
     /* Shitf Left (SLA) */
     else if (opcode < 0x28) {
-        shift(*address, true, &carry);
+        *address = shift(*address, true, &carry);
 
         reg[F] = set_bit(reg[F], FZ, *address == 0);
         reg[F] = set_bit(reg[F], FN, 0);
@@ -1124,14 +1124,14 @@ void CPU::prefix_CB()
     else if (opcode < 0x30) {
         bool b7 = get_bit(*address, 7);
 
-        shift(*address, false, &carry);
+        *address = shift(*address, false, &carry);
 
         *address = set_bit(*address, 7, b7);
 
         reg[F] = set_bit(reg[F], FZ, *address == 0);
         reg[F] = set_bit(reg[F], FN, 0);
         reg[F] = set_bit(reg[F], FH, 0);
-        reg[F] = set_bit(reg[F], FC, carry);
+        reg[F] = set_bit(reg[F], FC, 0);
     }
     /* Swap */
     else if (opcode < 0x38) {
@@ -1142,9 +1142,9 @@ void CPU::prefix_CB()
         reg[F] = set_bit(reg[F], FH, 0);
         reg[F] = set_bit(reg[F], FC, 0);
     }
-    /* Shitf Right (SLA) */
+    /* Shitf Right Logical (SRL) */
     else if (opcode < 0x40) {
-        shift(*address, false, &carry);
+        *address = shift(*address, false, &carry);
 
         reg[F] = set_bit(reg[F], FZ, *address == 0);
         reg[F] = set_bit(reg[F], FN, 0);
