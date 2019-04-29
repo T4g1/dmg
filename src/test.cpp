@@ -470,6 +470,19 @@ bool test_BIN_SET()
     return true;
 }
 
+bool test_boot_bios()
+{
+    init(0x00);
+    execute({ 0x31, 0xFE, 0xFF });
+    execute({ 0xAF });
+    execute({ 0x21, 0xFF, 0x9F });
+
+    cpu->display_registers();
+    mmu->dump(0x0000, 0x00FF);
+
+    return true;
+}
+
 int main(void)
 {
     mmu = new MMU();
@@ -489,6 +502,8 @@ int main(void)
     test("Binary Operations: SET", &test_BIN_SET);
     test("CPU: NOP", &test_CPU_NOP);
     test("CPU: LD 16-Bit", &test_CPU_LD_16bit);
+
+    test("Boot BIOS", &test_boot_bios);
 
     return EXIT_SUCCESS;
 }

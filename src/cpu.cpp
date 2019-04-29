@@ -359,6 +359,26 @@ void CPU::step()
 }
 
 /**
+ * @brief      Displays register values
+ */
+void CPU::display_registers()
+{
+    info("---------------------------[ CPU ]---------------------------\n");
+    info("PC: %d\n", PC);
+    info("-------------------------------------------------------------\n");
+    info("A: 0x%02X F: 0x%02X\n", reg[A], reg[F]);
+    info("B: 0x%02X C: 0x%02X\n", reg[B], reg[C]);
+    info("D: 0x%02X E: 0x%02X\n", reg[D], reg[E]);
+    info("H: 0x%02X L: 0x%02X\n", reg[H], reg[L]);
+    info("-------------------------------------------------------------\n");
+    info("AF: 0x%04X\n", reg16(AF));
+    info("BC: 0x%04X\n", reg16(BC));
+    info("DE: 0x%04X\n", reg16(DE));
+    info("HL: 0x%04X\n", reg16(HL));
+    info("SP: 0x%04X\n", reg16(SP));
+}
+
+/**
  * @brief Gives the 16-bit register wanted
  * @details Ensure H-L byte order
  */

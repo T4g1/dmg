@@ -74,9 +74,10 @@ bool MMU::load(uint8_t *program, size_t size)
 
 void MMU::dump(uint16_t start, uint16_t end)
 {
+    info("---------------------------[ MMU ]---------------------------\n");
     size_t width = 16;
 
-    for (size_t i=start; i<end; i++) {
+    for (size_t i=start; i<=end; i++) {
         if (i % width == 0) {
             info("0x%04X-0x%04X ", (int)i, (int)(i + width - 1));
         }

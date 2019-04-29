@@ -36,6 +36,9 @@
 class CPU;
 typedef void (CPU::*cpu_callback)(void);
 
+/**
+ * @brief      Central Processing Unit
+ */
 class CPU {
 public:
     CPU(MMU *mmu);
@@ -49,6 +52,8 @@ public:
     uint16_t PC;                    //<! Program Counter
 
     uint16_t reg16(size_t i);
+
+    void display_registers();
 
 private:
     MMU *mmu;
