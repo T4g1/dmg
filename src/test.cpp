@@ -470,15 +470,47 @@ bool test_BIN_SET()
     return true;
 }
 
-bool test_boot_bios()
+/**
+ * @brief      Zero the memory from $8000-$9FFF (VRAM)
+ */
+bool test_zero_memory()
 {
     init(0x00);
-    execute({ 0x31, 0xFE, 0xFF });
-    execute({ 0xAF });
-    execute({ 0x21, 0xFF, 0x9F });
 
-    cpu->display_registers();
-    mmu->dump(0x0000, 0x00FF);
+    // Load fake data that should be erased
+    uint16_t start = 0x8000;
+    uint16_t end = 0x9FFF;
+    for (size_t i=start; i<=end; i++) {
+        mmu->set(i, 0xFF);
+    }
+
+    //cpu->display_registers();
+    //mmu->dump(start, end);
+
+    // Program to zero the memory
+    size_t size = 12;
+    uint8_t program[] = {
+        0x31, 0xFE, 0xFF,
+        0xAF,
+        0x21, 0xFF, 0x9F,
+        0x32,
+        0xCB, 0x7C,
+        0x20, 0xFB,
+    };
+    mmu->load(program, size);
+
+    while (cpu->PC < size) {
+        cpu->step();
+    }
+
+    //cpu->display_registers();
+    //mmu->dump(start, end);
+
+    bool success = true;
+    for (size_t i=start; i<=end; i++) {
+        success &= mmu->get(i) == 0x00;
+    }
+    ASSERT(success);
 
     return true;
 }
@@ -503,7 +535,7 @@ int main(void)
     test("CPU: NOP", &test_CPU_NOP);
     test("CPU: LD 16-Bit", &test_CPU_LD_16bit);
 
-    test("Boot BIOS", &test_boot_bios);
+    test("PROGRAM: Zero memory fro $8000 to $9FFF", &test_zero_memory);
 
     return EXIT_SUCCESS;
 }
