@@ -119,6 +119,63 @@ bool test_CPU_LD_16bit()
     return true;
 }
 
+bool test_CPU_INC()
+{
+    init(0x0F);
+
+    uint8_t program[] = {
+        0x03,       // INC BC
+        0x13,       // INC DE
+        0x23,       // INC HL
+        0x33,       // INC SP
+        0x04,       // INC B
+        0x14,       // INC D
+        0x24,       // INC H
+        0x34,       // INC (HL)
+        0x0C,       // INC C
+        0x1C,       // INC E
+        0x2C,       // INC L
+        0x3C,       // INC A
+    };
+    mmu->load(program, 12);
+
+    cpu->step();
+    ASSERT(cpu->reg16(BC) == 0x0F10);
+    cpu->step();
+    ASSERT(cpu->reg16(DE) == 0x0F10);
+    cpu->step();
+    ASSERT(cpu->reg16(HL) == 0x0F10);
+
+    uint16_t old_SP = cpu->reg16(SP);
+    cpu->step();
+    ASSERTV(cpu->reg16(SP) == old_SP + 1, "SP: 0x%04X\n", cpu->reg16(SP));
+
+    cpu->step();
+    ASSERTV(cpu->reg[B] == 0x10, "B: 0x%02X\n", cpu->reg[B]);
+    cpu->step();
+    ASSERT(cpu->reg[D] == 0x10);
+    cpu->step();
+    ASSERT(cpu->reg[H] == 0x10);
+
+    cpu->reg[H] = 0x00;
+    cpu->reg[L] = 0x00;
+    mmu->set(cpu->reg16(HL), 0x00);
+
+    cpu->step();
+    ASSERT(mmu->get(cpu->reg16(HL)) == 0x01);
+
+    cpu->step();
+    ASSERT(cpu->reg[C] == 0x11);
+    cpu->step();
+    ASSERT(cpu->reg[E] == 0x11);
+    cpu->step();
+    ASSERTV(cpu->reg[L] == 0x01, "L: 0x%02X\n", cpu->reg[L]);
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x10);
+
+    return true;
+}
+
 bool test_BIN_RLC()
 {
     init(0xF0);
@@ -515,10 +572,68 @@ bool test_zero_memory()
     return true;
 }
 
+/**
+ * @brief      Test audio init
+ */
+bool test_audio_init()
+{
+    init(0x00);
+
+    size_t size = 17;
+    uint8_t program[] = {
+        0x21, 0x26, 0xFF,   // LD HL,$ff26
+        0x0E, 0x11,         // LD C,$11
+        0x3E, 0x80,         // LD A,$80
+        0x32,               // LD (HL-),A
+        0xE2,               // LD ($FF00+C),A
+        0x0C,               // INC C
+        0x3E, 0xF3,         // LD A,$f3
+        0xE2,               // LD ($FF00+C),A
+        0x32,               // LD (HL-),A
+        0x3E, 0x77,         // LD A,$77
+        0x77,               // LD (HL),A
+
+    };
+    mmu->load(program, size);
+
+    cpu->step();
+    ASSERT(cpu->PC == 3);
+    cpu->step();
+    ASSERT(cpu->PC == 5);
+    cpu->step();
+    ASSERT(cpu->PC == 7);
+    cpu->step();
+    ASSERT(cpu->PC == 8);
+    cpu->step();
+    ASSERT(cpu->PC == 9);
+    cpu->step();
+    ASSERT(cpu->PC == 10);
+    cpu->step();
+    ASSERT(cpu->PC == 12);
+    cpu->step();
+    ASSERT(cpu->PC == 13);
+    cpu->step();
+    ASSERT(cpu->PC == 14);
+    cpu->step();
+    ASSERT(cpu->PC == 16);
+    cpu->step();
+    ASSERT(cpu->PC == 17);
+
+    cpu->display_registers();
+    mmu->dump(0xFF00, 0xFFFF);
+
+    ASSERTV(cpu->reg16(HL) == 0xFF24, "HL should be 0xFF24: 0x%04X\n", cpu->reg16(HL));
+    ASSERT(cpu->reg[C] == 0x12);
+
+    return true;
+}
+
 int main(void)
 {
     mmu = new MMU();
     cpu = new CPU(mmu);
+
+    fprintf(stdout, "DMG auto testing\n");
 
     test("MMU: RAM check", &test_MMU_ram);
     test("Binary Operations: RLC", &test_BIN_RLC);
@@ -534,8 +649,10 @@ int main(void)
     test("Binary Operations: SET", &test_BIN_SET);
     test("CPU: NOP", &test_CPU_NOP);
     test("CPU: LD 16-Bit", &test_CPU_LD_16bit);
+    test("CPU: INC", &test_CPU_INC);
 
     test("PROGRAM: Zero memory fro $8000 to $9FFF", &test_zero_memory);
+    test("PROGRAM: Init sound control registers", &test_audio_init);
 
     return EXIT_SUCCESS;
 }

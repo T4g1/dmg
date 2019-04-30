@@ -6,20 +6,24 @@
 
 #include "mmu.h"
 
+
 void MMU::set(uint16_t address, uint8_t value)
 {
     ram[address] = value;
 }
+
 
 void *MMU::at(uint16_t address)
 {
     return ram + address;
 }
 
+
 uint8_t MMU::get(uint16_t address)
 {
     return *(uint8_t*) at(address);
 }
+
 
 uint16_t MMU::get16(uint16_t address)
 {
@@ -29,14 +33,16 @@ uint16_t MMU::get16(uint16_t address)
     return (high << 8) + low;
 }
 
+
 int8_t MMU::get_signed(uint16_t address)
 {
     return get(address);
 }
 
+
 bool MMU::load(const char *filepath, uint16_t dst)
 {
-    info("Loading: %s\n", filepath);
+    debug("Loading: %s\n", filepath);
 
     FILE *f = fopen(filepath, "rb");
     if (f == NULL) {
@@ -58,6 +64,7 @@ bool MMU::load(const char *filepath, uint16_t dst)
     return true;
 }
 
+
 bool MMU::load(uint8_t *program, size_t size, uint16_t dst)
 {
     for (size_t i=0; i<size; i++) {
@@ -67,11 +74,18 @@ bool MMU::load(uint8_t *program, size_t size, uint16_t dst)
     return true;
 }
 
+
 bool MMU::load(uint8_t *program, size_t size)
 {
     return load(program, size, 0x0000);
 }
 
+
+/**
+ * @brief      Display memory status from given address ranges
+ * @param[in]  start  Starting point of the dump
+ * @param[in]  end    End point of the dump
+ */
 void MMU::dump(uint16_t start, uint16_t end)
 {
     info("---------------------------[ MMU ]---------------------------\n");

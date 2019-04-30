@@ -8,7 +8,7 @@
 
 
 /**
- * @brief      Memory Management Unit
+ * @brief      Memory Map Unit
  */
 class MMU {
     uint8_t ram[RAM_SIZE];
@@ -22,12 +22,6 @@ public:
     bool load(const char *filepath, uint16_t dst);
     bool load(uint8_t *program, size_t size, uint16_t dst);
     bool load(uint8_t *program, size_t size);
-
-    /**
-     * @brief      Display memory status from given address ranges
-     * @param[in]  start  Starting point of the dump
-     * @param[in]  end    End point of the dump
-     */
     void dump(uint16_t start, uint16_t end);
 };
 

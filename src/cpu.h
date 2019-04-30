@@ -25,7 +25,7 @@
 #define BC              B
 #define DE              D
 #define HL              H
-#define SP              8
+#define SP              8   //<! Stack Pointer
 
 // Flags
 #define FZ               7  //<! Zero Flag

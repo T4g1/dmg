@@ -14,8 +14,8 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
 
     // CPU opcode assingation
     l_callback[0x00] = &CPU::nop;
-    l_callback[0x02] = &CPU::ld;
     l_callback[0x01] = &CPU::ld;
+    l_callback[0x02] = &CPU::ld;
     l_callback[0x03] = &CPU::inc;
     l_callback[0x04] = &CPU::inc;
     l_callback[0x05] = &CPU::dec;
@@ -420,7 +420,7 @@ void CPU::inc8(uint8_t *address)
 
     reg[F] = set_bit(reg[F], FZ, *address == 0);
     reg[F] = set_bit(reg[F], FN, 0);
-    reg[F] = set_bit(reg[F], FH, (*address & 0x0F) == 0x00); // Went from 0xFF to 0x00
+    reg[F] = set_bit(reg[F], FH, (*address & 0x0F) == 0x00); // Went from 0xXF to 0xX0
 }
 
 void CPU::dec8(uint8_t *address)
@@ -429,7 +429,7 @@ void CPU::dec8(uint8_t *address)
 
     reg[F] = set_bit(reg[F], FZ, *address == 0);
     reg[F] = set_bit(reg[F], FN, 1);
-    reg[F] = set_bit(reg[F], FH, (*address & 0x0F) == 0x0F); // Went from 0x00 to 0xFF
+    reg[F] = set_bit(reg[F], FH, (*address & 0x0F) == 0x0F); // Went from 0xX0 to 0xXF
 }
 
 void CPU::add16(uint8_t *dst, uint8_t *src)
@@ -1010,11 +1010,11 @@ void CPU::ld()
         break;
 
     case 0xE2:      // Loads from addres reg C to reg A
-        ld8(mmu->at(0xFF00 + reg[C]), &reg[A], 2, 8);
+        ld8(mmu->at(0xFF00 + reg[C]), &reg[A], 1, 8);
         break;
 
     case 0xF2:      // Loads from reg A to addres reg C
-        ld8(&reg[A], mmu->at(0xFF00 + reg[C]), 2, 8);
+        ld8(&reg[A], mmu->at(0xFF00 + reg[C]), 1, 8);
         break;
 
     /* Loads from/to 16-bit address */

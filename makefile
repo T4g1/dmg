@@ -9,24 +9,31 @@ OBJDIR   = src
 
 SOURCES  := $(wildcard $(SRCDIR)/*.cpp)
 INCLUDES := $(wildcard $(SRCDIR)/*.h)
-OBJECTS  := $(OBJDIR)/utils.o $(OBJDIR)/mmu.o $(OBJDIR)/cpu.o
-DMG_OBJECTS  := $(OBJECTS) $(OBJDIR)/dmg.o
+OBJECTS  := $(OBJDIR)/utils.o $(OBJDIR)/mmu.o $(OBJDIR)/cpu.o $(OBJDIR)/dmg.o
+DMG_OBJECTS  := $(OBJECTS) $(OBJDIR)/main.o
 TEST_OBJECTS  := $(OBJECTS) $(OBJDIR)/test.o
+
+BUILD := rel
+ifeq ($(BUILD),devel)
+CXXFLAGS += -DDEBUG
+else
+CXXFLAGS += -DTEST
+endif
 
 all: dmg test
 
-dmg: CXXFLAGS += -DDEBUG
+dmg: CXXFLAGS +=
 dmg: $(DMG_OBJECTS)
-	@$(LINKER) $(DMG_OBJECTS) $(LFLAGS) -o $@
+	$(LINKER) $(DMG_OBJECTS) $(LFLAGS) -o $@
 	@echo "Linking dmg complete!"
 
-test: CXXFLAGS += -DTEST
+test: CXXFLAGS +=
 test: $(TEST_OBJECTS)
-	@$(LINKER) $(TEST_OBJECTS) $(LFLAGS) -o $@
+	$(LINKER) $(TEST_OBJECTS) $(LFLAGS) -o $@
 	@echo "Linking test complete!"
 
 $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
-	@$(CC) $(CXXFLAGS) -c $< -o $@
+	$(CC) $(CXXFLAGS) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
 
 .PHONY: clean
