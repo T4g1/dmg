@@ -15,9 +15,19 @@ Personal attempt at creating a simple DMG GameBoy emulator from scratch.
 
 # Compilation
 
+Release:
+
 ```
-rm ./src/*.o; make dmg; rm ./src/*.o; make test
+make clean; make
 ```
+
+Debug:
+
+```
+make clean; make BUILD=devel
+```
+
+Test with `./test`
 
 # TODO
 
