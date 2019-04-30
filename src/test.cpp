@@ -75,6 +75,127 @@ bool test_CPU_NOP()
     return true;
 }
 
+bool test_CPU_LD_8bit()
+{
+    init(0x00);
+
+    cpu->reg[A] = 0xDD;
+
+    uint8_t program[] = {
+        0x02,               // LD (BC), A
+        0x12,               // LD (DE), A
+        0x22,               // LD (HL+), A
+        0x32,               // LD (HL-), A
+
+        0x06, 0xAA,         // LD B, d8
+        0x16, 0xAA,         // LD D, d8
+        0x26, 0xAA,         // LD H, d8
+        0x36, 0xAA,         // LD (HL), d8
+
+        0x0A,               // LD A, (BC)
+        0x1A,               // LD A, (DE)
+        0x2A,               // LD A, (HL+)
+        0x3A,               // LD A, (HL-)
+
+        0x0E, 0xAA,         // LD C, d8
+        0x1E, 0xAA,         // LD E, d8
+        0x2E, 0xAA,         // LD L, d8
+        0x3E, 0xAA,         // LD A, d8
+
+    };
+    mmu->load(program, 24);
+
+    ASSERT(cpu->PC == 0);
+    cpu->step();
+    ASSERT(cpu->PC == 1);
+    cpu->step();
+    ASSERT(cpu->PC == 2);
+    cpu->step();
+    ASSERT(cpu->PC == 3);
+    cpu->step();
+
+    ASSERT(mmu->get(cpu->reg16(BC)) == 0xDD);
+    ASSERT(mmu->get(cpu->reg16(DE)) == 0xDD);
+    ASSERT(mmu->get(cpu->reg16(HL)) == 0xDD);
+    ASSERT(mmu->get(cpu->reg16(HL) + 1) == 0xDD);
+    ASSERT(cpu->reg16(HL) == 0x00);
+
+    ASSERT(cpu->PC == 4);
+    cpu->step();
+    ASSERT(cpu->PC == 6);
+    cpu->step();
+    ASSERT(cpu->PC == 8);
+    cpu->step();
+    ASSERT(cpu->PC == 10);
+    cpu->step();
+
+    ASSERT(cpu->reg[B] == 0xAA);
+    ASSERT(cpu->reg[D] == 0xAA);
+    ASSERT(cpu->reg[H] == 0xAA);
+    ASSERT(cpu->reg16(HL) == 0xAA00);
+    ASSERT(mmu->get(cpu->reg16(HL)) == 0xAA);
+
+    ASSERT(cpu->reg16(BC) == 0xAA00);
+    ASSERT(cpu->reg16(DE) == 0xAA00);
+
+    mmu->set(cpu->reg16(BC), 0xCC);
+    mmu->set(cpu->reg16(DE), 0xCC);
+    mmu->set(cpu->reg16(HL), 0xCC);
+    mmu->set(cpu->reg16(HL) + 1, 0xCC);
+
+    ASSERT(cpu->PC == 12);
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0xCC);
+
+    ASSERT(cpu->PC == 13);
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0xCC);
+
+    ASSERT(cpu->PC == 14);
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0xCC);
+
+    ASSERT(cpu->PC == 15);
+    cpu->step();
+    ASSERTV(cpu->reg[A] == 0xCC, "HL+1: 0x%02X\n", mmu->get(cpu->reg16(HL) + 1));
+
+    ASSERT(cpu->PC == 16);
+    cpu->step();
+    ASSERT(cpu->PC == 18);
+    cpu->step();
+    ASSERT(cpu->PC == 20);
+    cpu->step();
+    ASSERT(cpu->PC == 22);
+    cpu->step();
+
+    ASSERT(cpu->PC == 24);
+
+    ASSERT(cpu->reg[C] == 0xAA);
+    ASSERT(cpu->reg[E] == 0xAA);
+    ASSERT(cpu->reg[L] == 0xAA);
+    ASSERT(cpu->reg[A] == 0xAA);
+
+    // Generic load 8-bit
+    init(0x00);
+    cpu->reg[A] = 0xEE;
+
+    execute({ 0x5F });      // LD E, A
+
+    ASSERT(cpu->reg[E] == cpu->reg[A]);
+
+    execute({ 0x77 });      // LD (HL), A
+
+    ASSERTV(
+        mmu->get(cpu->reg16(HL)) == 0xEE,
+        "A: 0x%02X HL: 0x%02X (HL): 0x%02X\n",
+        cpu->reg[A],
+        cpu->reg16(HL),
+        mmu->get(cpu->reg16(HL))
+    );
+
+    return true;
+}
+
 bool test_CPU_LD_16bit()
 {
     init(0x00);
@@ -614,16 +735,20 @@ bool test_audio_init()
     ASSERT(cpu->PC == 13);
     cpu->step();
     ASSERT(cpu->PC == 14);
+
     cpu->step();
     ASSERT(cpu->PC == 16);
+
     cpu->step();
     ASSERT(cpu->PC == 17);
 
-    cpu->display_registers();
-    mmu->dump(0xFF00, 0xFFFF);
-
     ASSERTV(cpu->reg16(HL) == 0xFF24, "HL should be 0xFF24: 0x%04X\n", cpu->reg16(HL));
-    ASSERT(cpu->reg[C] == 0x12);
+    ASSERTV(cpu->reg[C] == 0x12, "C: 0x%02X\n", cpu->reg[C]);
+    ASSERTV(cpu->reg[A] == 0x77, "A: 0x%02X\n", cpu->reg[A]);
+
+    ASSERT(mmu->get(0xFF24) == 0x77);
+    ASSERT(mmu->get(0xFF25) == 0xF3);
+    ASSERT(mmu->get(0xFF26) == 0x80);
 
     return true;
 }
@@ -648,6 +773,7 @@ int main(void)
     test("Binary Operations: RES", &test_BIN_RES);
     test("Binary Operations: SET", &test_BIN_SET);
     test("CPU: NOP", &test_CPU_NOP);
+    test("CPU: LD 8-Bit", &test_CPU_LD_8bit);
     test("CPU: LD 16-Bit", &test_CPU_LD_16bit);
     test("CPU: INC", &test_CPU_INC);
 

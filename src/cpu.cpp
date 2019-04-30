@@ -887,11 +887,14 @@ void CPU::ld()
             &reg[A]
         };
 
-        uint8_t *dst = l_address[(opcode - 0x40) % 8];
-        uint8_t *src = l_address[(opcode - 0x40) / 8];
+        size_t dst_index = (opcode - 0x40) / 8;
+        size_t src_index = (opcode - 0x40) % 8;
+
+        uint8_t *dst = l_address[dst_index];
+        uint8_t *src = l_address[src_index];
 
         size_t ticks = 4;
-        if (opcode % 8 == 6) {
+        if (src_index == 6 || dst_index == 6) {
             ticks += 4;
         }
 
