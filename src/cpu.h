@@ -60,8 +60,10 @@ private:
 
     cpu_callback l_callback[MAX_OPCODES];
 
-    void ld8(void *dst, void *src, size_t size, size_t clock);
-    void ld16(uint8_t *dst, uint8_t *src, size_t size, size_t clock);
+    void ld8_mmu(uint16_t address, const uint8_t *src, size_t size, size_t clock);
+
+    void ld8(uint8_t *dst, const uint8_t *src, size_t size, size_t clock);
+    void ld16(uint8_t *dst, const uint8_t *src, size_t size, size_t clock);
 
     void inc8(uint8_t *address);
     void dec8(uint8_t *address);

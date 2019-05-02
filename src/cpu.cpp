@@ -390,7 +390,16 @@ uint16_t CPU::reg16(size_t i)
     return (high << 8) + low;
 }
 
-void CPU::ld8(void *dst, void* src, size_t size, size_t ticks)
+void CPU::ld8_mmu(uint16_t address, const uint8_t* src, size_t size, size_t ticks)
+{
+    mmu->set(address, *(uint8_t*) src);
+    PC += size;
+    clock += ticks;
+
+    debug("LD reg\n");
+}
+
+void CPU::ld8(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
 {
     memcpy(dst, src, sizeof(uint8_t));
     PC += size;
@@ -402,7 +411,7 @@ void CPU::ld8(void *dst, void* src, size_t size, size_t ticks)
 /**
  * @brief Loads 16-bit value and invert order
  */
-void CPU::ld16(uint8_t *dst, uint8_t* src, size_t size, size_t ticks)
+void CPU::ld16(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
 {
     // Invert LOW and HIGH bytes
     memcpy(dst + 1, src, sizeof(uint8_t));
@@ -925,20 +934,20 @@ void CPU::ld()
 
     /* Load reg A into pointed address */
     case 0x02:    // Loads reg A to (BC)
-        ld8(mmu->at(reg16(BC)), &reg[A], 1, 8);
+        ld8_mmu(reg16(BC), &reg[A], 1, 8);
         break;
 
     case 0x12:    // Loads reg A to (DE)
-        ld8(mmu->at(reg16(DE)), &reg[A], 1, 8);
+        ld8_mmu(reg16(DE), &reg[A], 1, 8);
         break;
 
     case 0x22:    // Loads reg A to (HL), inc HL
-        ld8(mmu->at(reg16(HL)), &reg[A], 1, 8);
+        ld8_mmu(reg16(HL), &reg[A], 1, 8);
         inc16(&reg[HL]);
         break;
 
     case 0x32:    // Loads reg A to (HL), dec HL
-        ld8(mmu->at(reg16(HL)), &reg[A], 1, 8);
+        ld8_mmu(reg16(HL), &reg[A], 1, 8);
         dec16(&reg[HL]);
         break;
 
@@ -950,85 +959,85 @@ void CPU::ld()
 
     /* Load 8-bit immediate to reg */
     case 0x06:    // Loads 8-bit immediate to B
-        ld8(&reg[B], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[B], (uint8_t*) mmu->at(PC + 1), 2, 8);
         break;
 
     case 0x16:    // Loads 8-bit immediate to D
-        ld8(&reg[D], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[D], (uint8_t*) mmu->at(PC + 1), 2, 8);
         break;
 
     case 0x26:    // Loads 8-bit immediate to H
-        ld8(&reg[H], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[H], (uint8_t*) mmu->at(PC + 1), 2, 8);
         break;
 
     case 0x36:    // Loads 8-bit immediate to (HL)
-        ld8(mmu->at(reg16(HL)), mmu->at(PC + 1), 2, 12);
+        ld8_mmu(reg16(HL), (uint8_t*) mmu->at(PC + 1), 2, 12);
         break;
 
     /* Load pointed address into A */
     case 0x0A:    // Loads (BC) to reg A
-        ld8(&reg[A], mmu->at(reg16(BC)), 1, 8);
+        ld8(&reg[A], (uint8_t*) mmu->at(reg16(BC)), 1, 8);
         break;
 
     case 0x1A:    // Loads (DE) to reg A
-        ld8(&reg[A], mmu->at(reg16(DE)), 1, 8);
+        ld8(&reg[A], (uint8_t*) mmu->at(reg16(DE)), 1, 8);
         break;
 
     case 0x2A:    // Loads (HL) to reg A, inc HL
-        ld8(&reg[A], mmu->at(reg16(HL)), 1, 8);
+        ld8(&reg[A], (uint8_t*) mmu->at(reg16(HL)), 1, 8);
         inc16(&reg[HL]);
         break;
 
     case 0x3A:    // Loads (HL) to reg A, dec HL
-        ld8(&reg[A], mmu->at(reg16(HL)), 1, 8);
+        ld8(&reg[A], (uint8_t*) mmu->at(reg16(HL)), 1, 8);
         dec16(&reg[HL]);
         break;
 
     /* Load 8-bit immediate to reg */
     case 0x0E:    // Loads 8-bit immediate to C
-        ld8(&reg[C], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[C], (uint8_t*) mmu->at(PC + 1), 2, 8);
         break;
 
     case 0x1E:    // Loads 8-bit immediate to E
-        ld8(&reg[E], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[E], (uint8_t*) mmu->at(PC + 1), 2, 8);
         break;
 
     case 0x2E:    // Loads 8-bit immediate to L
-        ld8(&reg[L], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[L], (uint8_t*) mmu->at(PC + 1), 2, 8);
         break;
 
     case 0x3E:    // Loads 8-bit immediate to A
-        ld8(&reg[A], mmu->at(PC + 1), 2, 8);
+        ld8(&reg[A], (uint8_t*) mmu->at(PC + 1), 2, 8);
         break;
 
     /* Loads from/to 8-bit address */
     case 0xE0:      // Loads reg A to address immediate
         address = 0xFF00 + mmu->get(PC + 1);
-        ld8(mmu->at(address), &reg[A], 2, 12);
+        ld8_mmu(address, &reg[A], 2, 12);
         break;
 
     case 0xF0:      // Loads from address immediate to reg A
         address = 0xFF00 + mmu->get(PC + 1);
-        ld8(&reg[A], mmu->at(address), 2, 12);
+        ld8(&reg[A], (uint8_t*) mmu->at(address), 2, 12);
         break;
 
     case 0xE2:      // Loads from addres reg C to reg A
-        ld8(mmu->at(0xFF00 + reg[C]), &reg[A], 1, 8);
+        ld8_mmu(0xFF00 + reg[C], &reg[A], 1, 8);
         break;
 
     case 0xF2:      // Loads from reg A to addres reg C
-        ld8(&reg[A], mmu->at(0xFF00 + reg[C]), 1, 8);
+        ld8(&reg[A], (uint8_t*) mmu->at(0xFF00 + reg[C]), 1, 8);
         break;
 
     /* Loads from/to 16-bit address */
     case 0xEA:      // Loads reg A to address immediate
         address = mmu->get16(PC + 1);
-        ld8(mmu->at(address), &reg[A], 3, 16);
+        ld8_mmu(address, &reg[A], 3, 16);
         break;
 
     case 0xFA:      // Loads from address immediate to reg A
         address = mmu->get16(PC + 1);
-        ld8(&reg[A], mmu->at(address), 3, 16);
+        ld8(&reg[A], (uint8_t*) mmu->at(address), 3, 16);
         break;
 
     case 0xF8:      // Loads SP+r8 to HL

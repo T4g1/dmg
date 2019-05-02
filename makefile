@@ -7,11 +7,16 @@ LFLAGS   = -Wall -I. -lm
 SRCDIR   = src
 OBJDIR   = src
 
-SOURCES  := $(wildcard $(SRCDIR)/*.cpp)
+SOURCES  := $(wildcard $(SRCDIR)/*.cpp) \
+            $(wildcard $(SRCDIR)/mbc/*.cpp)
+SOURCES  := $(filter-out $(SRCDIR)/main.cpp, $(SOURCES))
+SOURCES  := $(filter-out $(SRCDIR)/test.cpp, $(SOURCES))
 INCLUDES := $(wildcard $(SRCDIR)/*.h)
-OBJECTS  := $(OBJDIR)/utils.o $(OBJDIR)/mmu.o $(OBJDIR)/cpu.o $(OBJDIR)/dmg.o
+OBJECTS  := $(patsubst %.cpp, %.o, $(SOURCES))
 DMG_OBJECTS  := $(OBJECTS) $(OBJDIR)/main.o
 TEST_OBJECTS  := $(OBJECTS) $(OBJDIR)/test.o
+
+$(info $$OBJECTS is [${OBJECTS}])
 
 BUILD := rel
 ifeq ($(BUILD),devel)
@@ -32,7 +37,7 @@ test: $(TEST_OBJECTS)
 	$(LINKER) $(TEST_OBJECTS) $(LFLAGS) -o $@
 	@echo "Linking test complete!"
 
-$(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
+$(OBJECTS): %.o : %.cpp
 	$(CC) $(CXXFLAGS) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
 
@@ -40,6 +45,7 @@ $(OBJECTS): $(OBJDIR)/%.o : $(SRCDIR)/%.cpp
 clean:
 ifneq (,$(wildcard $(OBJDIR)/*.o))
 	@rm $(OBJDIR)/*.o
+	@rm $(OBJDIR)/mbc/*.o
 endif
 	@echo "Cleanup complete!"
 

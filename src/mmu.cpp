@@ -7,14 +7,68 @@
 #include "mmu.h"
 
 
-void MMU::set(uint16_t address, uint8_t value)
+MMU::MMU() : booted(false), cart(nullptr)
 {
-    ram[address] = value;
+
 }
 
 
-void *MMU::at(uint16_t address)
+/**
+ * @brief      Get type of address controller at the specified address
+ * Used to determine if we can read/write and map request
+ * @param[in]  address  The address
+ * @return     The address identity.
+ */
+address_type MMU::get_address_identity(uint16_t address)
 {
+    // Assume BOOT and ROM memroies both starts at 0x0000
+
+    // boot ROM
+    if (!booted && /*address >= BOOT_START &&*/ address <= BOOT_END) {
+        return BOOT;
+    }
+
+    // Cartridge ROM
+    if (/*address >= ROM_START &&*/ address <= ROM_END) {
+        return ROM;
+    }
+
+    return RAM;
+}
+
+
+/**
+ * @brief      Set the value at the desired address
+ * @param[in]  address  The address
+ * @param[in]  value    The value to write
+ * @return     false if the address designed a READ only memory
+ */
+bool MMU::set(uint16_t address, uint8_t value)
+{
+    if (get_address_identity(address) == RAM) {
+        ram[address] = value;
+        return true;
+    }
+
+    // TODO: Request WRITE to corresponding ROM to trigger bank switch for example
+
+    return false;
+}
+
+
+/**
+ * @brief      Give the emulated address of the given DMG address
+ * @param[in]  address  The address in the DMG memory
+ * @return     Pointer to the immutable value
+ */
+const void *MMU::at(uint16_t address)
+{
+    if (get_address_identity(address) == ROM) {
+        if (cart != nullptr) {
+            return cart->at(address);
+        }
+    }
+
     return ram + address;
 }
 
@@ -40,17 +94,23 @@ int8_t MMU::get_signed(uint16_t address)
 }
 
 
-bool MMU::load(const char *filepath, uint16_t dst)
+/**
+ * @brief      Loads boot ROM
+ * @param[in]  path_rom     Where the ROM is
+ * @return     { description_of_the_return_value }
+ */
+bool MMU::load(const char *path_rom)
 {
-    debug("Loading: %s\n", filepath);
+    debug("Loading boot ROM: %s\n", path_rom);
 
-    FILE *f = fopen(filepath, "rb");
+    FILE *f = fopen(path_rom, "rb");
     if (f == NULL) {
         error("Unable to read provided boot ROM file\n");
         return false;
     }
 
     uint8_t byte;
+    uint16_t dst = BOOT_START;
     while (fread(&byte, sizeof(uint8_t), 1, f) == 1) {
         set(dst++, byte);
     }
@@ -102,4 +162,14 @@ void MMU::dump(uint16_t start, uint16_t end)
         }
     }
     info("\n");
+}
+
+
+/**
+ * @brief      Plugs a cartridge inside the memory
+ * @param      cart  Cartridge to be used
+ */
+void MMU::set_cartridge(Cartridge *cart)
+{
+    this->cart = cart;
 }

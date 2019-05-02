@@ -14,11 +14,15 @@ int DMG::run(const char *path_bios, const char *path_rom)
 
     cpu->reset();
 
-    if (!mmu.load(path_bios, 0x0000)) {
+    if (!mmu.load(path_bios)) {
         return EXIT_FAILURE;
     }
 
-    size_t frame_count = 0;
+    if (!cart.load(path_rom)) {
+        return EXIT_FAILURE;
+    }
+
+    mmu.set_cartridge(&cart);
 
     bool running = true;
     while (running) {

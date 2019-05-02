@@ -1,6 +1,8 @@
 #ifndef LOG_H
 #define LOG_H
 
+#include <stdio.h>
+
 
 #ifdef DEBUG
     #define debug(fmt, ...) fprintf(stdout, fmt, ## __VA_ARGS__)

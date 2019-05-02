@@ -41,16 +41,22 @@ void execute(std::initializer_list<uint8_t> program)
 
 bool test_MMU_ram()
 {
+    // Write to RAM
+    mmu->set(0x8000, 0x00);
+    mmu->set(0x8001, 0xDD);
+    mmu->set(0x8002, 0xFF);
+    mmu->set(0x8003, 0x12);
 
-    mmu->set(0x0000, 0x00);
-    mmu->set(0x0001, 0xDD);
-    mmu->set(0x0002, 0xFF);
-    mmu->set(0x0003, 0x12);
+    ASSERT(mmu->get(0x8000) == 0x00);
+    ASSERT(mmu->get(0x8001) == 0xDD);
+    ASSERT(mmu->get(0x8002) == 0xFF);
+    ASSERT(mmu->get(0x8003) == 0x12);
 
-    ASSERT(mmu->get(0x0000) == 0x00);
-    ASSERT(mmu->get(0x0001) == 0xDD);
-    ASSERT(mmu->get(0x0002) == 0xFF);
-    ASSERT(mmu->get(0x0003) == 0x12);
+    // Write to ROM
+    ASSERT(!mmu->set(0x0000, 0x00));
+    ASSERT(!mmu->set(0x0001, 0xDD));
+    ASSERT(!mmu->set(0x0002, 0xFF));
+    ASSERT(!mmu->set(0x0003, 0x12));
 
     size_t size = 3;
     uint8_t program[] = { 0x01, 0x00, 0x11 };
@@ -64,20 +70,23 @@ bool test_MMU_ram()
 
 bool test_CPU_NOP()
 {
+    init(0x00);
+
     // NOP
     cpu->PC = 0;
-    mmu->set(0, 0x00);
+    uint8_t program[] = { 0x00 };
+    mmu->load(program, 1);
 
     ASSERT(cpu->PC == 0);
     cpu->step();
-    ASSERT(cpu->PC == 1);
+    ASSERTV(cpu->PC == 1, "PC: %d\n", cpu->PC);
 
     return true;
 }
 
 bool test_CPU_LD_8bit()
 {
-    init(0x00);
+    init(0x88);
 
     cpu->reg[A] = 0xDD;
 
@@ -118,7 +127,7 @@ bool test_CPU_LD_8bit()
     ASSERT(mmu->get(cpu->reg16(DE)) == 0xDD);
     ASSERT(mmu->get(cpu->reg16(HL)) == 0xDD);
     ASSERT(mmu->get(cpu->reg16(HL) + 1) == 0xDD);
-    ASSERT(cpu->reg16(HL) == 0x00);
+    ASSERTV(cpu->reg16(HL) == 0x8888, "HL: 0x%04X\n", cpu->reg16(HL));
 
     ASSERT(cpu->PC == 4);
     cpu->step();
@@ -132,11 +141,11 @@ bool test_CPU_LD_8bit()
     ASSERT(cpu->reg[B] == 0xAA);
     ASSERT(cpu->reg[D] == 0xAA);
     ASSERT(cpu->reg[H] == 0xAA);
-    ASSERT(cpu->reg16(HL) == 0xAA00);
+    ASSERTV(cpu->reg16(HL) == 0xAA88, "HL: 0x%04X\n", cpu->reg16(HL));
     ASSERT(mmu->get(cpu->reg16(HL)) == 0xAA);
 
-    ASSERT(cpu->reg16(BC) == 0xAA00);
-    ASSERT(cpu->reg16(DE) == 0xAA00);
+    ASSERTV(cpu->reg16(BC) == 0xAA88, "BC: 0x%04X\n", cpu->reg16(BC));
+    ASSERTV(cpu->reg16(DE) == 0xAA88, "DE: 0x%04X\n", cpu->reg16(DE));
 
     mmu->set(cpu->reg16(BC), 0xCC);
     mmu->set(cpu->reg16(DE), 0xCC);
@@ -278,7 +287,7 @@ bool test_CPU_INC()
     cpu->step();
     ASSERT(cpu->reg[H] == 0x10);
 
-    cpu->reg[H] = 0x00;
+    cpu->reg[H] = 0x80;
     cpu->reg[L] = 0x00;
     mmu->set(cpu->reg16(HL), 0x00);
 
@@ -519,6 +528,7 @@ bool test_BIN_SWAP()
     execute({ 0xCB, 0x37 });
     ASSERT(cpu->reg[A] == 0X0F);
 
+    cpu->reg[H] = 0x80;
     mmu->set(cpu->reg16(HL), 0XF0);
     execute({ 0xCB, 0x36 });
     ASSERT(mmu->get(cpu->reg16(HL)) == 0X0F);
@@ -552,6 +562,7 @@ bool test_BIN_SRL()
     ASSERT(cpu->reg[A] == 0b01000111);
     ASSERT(cpu->reg[F] == 0x10);    // Test carry flag
 
+    cpu->reg[H] = 0x80;
     mmu->set(cpu->reg16(HL), 0b10001111);
     execute({ 0xCB, 0x3E });
     ASSERT(mmu->get(cpu->reg16(HL)) == 0b01000111);
@@ -570,19 +581,19 @@ bool test_BIN_BIT()
 
         /* (HL) special case */
         if (offset % 8 == 6) {
-            init(0x55);
-            mmu->set(0x5555, 0xFF);
+            init(0x88);
+            mmu->set(0x8888, 0xFF);
         } else {
             init(0xFF);
         }
 
         execute({ 0xCB, command });
-        ASSERTV((cpu->reg[F] & 0xF0) == 0x20, "FF value=%02X offset=%d\n", cpu->reg[F], offset);
+        ASSERTV((cpu->reg[F] & 0xF0) == 0x20, "F: 0x%02X opcode: 0x%02X\n", cpu->reg[F], command);
 
         /* (HL) special case */
         if (offset % 8 == 6) {
-            init(0x55);
-            mmu->set(0x5555, 0x00);
+            init(0x88);
+            mmu->set(0x8888, 0x00);
         } else {
             init(0x00);
         }
