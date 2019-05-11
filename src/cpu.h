@@ -60,6 +60,8 @@ public:
 private:
     MMU *mmu;
 
+    bool IME;
+
     cpu_callback l_callback[MAX_OPCODES];
 
     void ld8_mmu(uint16_t address, const uint8_t *src, size_t size, size_t clock);

@@ -331,6 +331,8 @@ void CPU::reset()
     mmu->set(0xFF23, 0x00);     //<! WY
     mmu->set(0xFF23, 0x00);     //<! WX
     mmu->set(0xFF23, 0x00);     //<! IE
+
+    IME = true;
 }
 
 void CPU::step()
@@ -556,6 +558,9 @@ void CPU::call()
     uint8_t high = (uint8_t)((PC & 0xFF00) >> 4);
     uint8_t low = (uint8_t)(PC & 0x00FF);
 
+    debug("high: 0x%02X\n", high);
+    debug("low: 0x%02X\n", low);
+
     bool do_call = true;
     /* Call if not Z */
     if ((opcode == 0xC4 && get_bit(reg[F], FZ) == 1) ||
@@ -570,10 +575,10 @@ void CPU::call()
     }
 
     if (do_call) {
+        dec16(&reg[SP]);
         mmu->set(reg16(SP), high);
         dec16(&reg[SP]);
         mmu->set(reg16(SP), low);
-        dec16(&reg[SP]);
 
         PC = address;
     }
@@ -608,10 +613,11 @@ void CPU::ret()
 
     /* RETI */
     if (opcode == 0xD9) {
-        // TODO enable interuptions
+        IME = true;
     }
 
     if (do_ret) {
+        debug("Get at 0x%04X\n", reg16(SP));
         PC = mmu->get16(reg16(SP));
         inc16(&reg[SP]);
         inc16(&reg[SP]);

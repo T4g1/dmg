@@ -14,6 +14,8 @@ CPU *cpu;
  */
 void init(uint8_t value)
 {
+    cpu->reset();
+
     cpu->PC = 0x00;
 
     cpu->reg[F] = 0x00;
@@ -959,6 +961,42 @@ bool test_audio_init()
     return true;
 }
 
+bool test_CPU_CALL_RET()
+{
+    init(0x00);
+
+    size_t size = 13;
+    uint8_t program[] = {
+        0xCD, 0x0A, 0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x3E, 0x4C,
+        0xC9
+    };
+    mmu->load(program, size);
+
+    cpu->step();
+    ASSERTV(cpu->PC == 10, "PC: 0x%02X\n", cpu->PC);
+
+    cpu->step();
+    ASSERTV(cpu->PC == 12, "PC: 0x%02X\n", cpu->PC);
+
+    cpu->step();
+
+    //cpu->display_registers();
+    //mmu->dump(0xFFF0, 0xFFFF);
+
+    ASSERT(cpu->reg[A] == 0x4C);
+    ASSERTV(cpu->PC == 3, "PC: 0x%02X\n", cpu->PC);
+
+    return true;
+}
+
 int main(void)
 {
     mmu = new MMU();
@@ -987,9 +1025,10 @@ int main(void)
     test("CPU: XOR", &test_CPU_XOR);
     test("CPU: OR", &test_CPU_OR);
     test("CPU: AND", &test_CPU_AND);
+    test("CPU: CALL/RET", &test_CPU_CALL_RET);
 
-    test("PROGRAM: Zero memory fro $8000 to $9FFF", &test_zero_memory);
-    test("PROGRAM: Init sound control registers", &test_audio_init);
+    //test("PROGRAM: Zero memory fro $8000 to $9FFF", &test_zero_memory);
+    //test("PROGRAM: Init sound control registers", &test_audio_init);
 
     return EXIT_SUCCESS;
 }
