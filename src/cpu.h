@@ -51,6 +51,8 @@ public:
     uint8_t reg[REGISTER_COUNT];
     uint16_t PC;                    //<! Program Counter
 
+    bool get_flag(size_t flag);
+
     uint16_t reg16(size_t i);
 
     void display_registers();
@@ -68,6 +70,7 @@ private:
     void inc8(uint8_t *address);
     void dec8(uint8_t *address);
 
+    void add8();
     void add16(uint8_t *dst, uint8_t *src);
 
     void prefix_CB();
@@ -91,6 +94,7 @@ private:
     void rxa();
     void nop();
     void _xor();
+    void sub();
 };
 
 #endif /* CPU_H */

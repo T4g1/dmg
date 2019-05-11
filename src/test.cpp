@@ -306,6 +306,161 @@ bool test_CPU_INC()
     return true;
 }
 
+bool test_CPU_ADD()
+{
+    init(0x44);
+
+    cpu->reg[H] = 0x80;
+    cpu->reg[L] = 0x00;
+
+    mmu->set(0x8000, 0xFF);
+
+    uint8_t program[] = {
+        0x80,       // ADD A,B
+        0x81,       // ADD A,C
+        0x82,       // ADD A,D
+        0x83,       // ADD A,E
+        0x84,       // ADD A,H
+        0x85,       // ADD A,L
+        0x86,       // ADD A,(HL)
+        0x87,       // ADD A,A
+
+        0x88,       // ADC A,B
+    };
+    mmu->load(program, 9);
+
+    cpu->reg[A] = 0x11;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x55);
+
+    cpu->reg[A] = 0x11;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x55);
+
+    cpu->reg[A] = 0x11;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x55);
+
+    cpu->reg[A] = 0x11;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x55);
+
+    cpu->reg[A] = 0x11;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x91);
+
+    cpu->reg[A] = 0x11;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x11);
+
+    cpu->reg[A] = 0x11;
+    cpu->step();
+    ASSERT(cpu->get_flag(FH));
+    ASSERT(cpu->get_flag(FC));
+    ASSERT(cpu->reg[A] == 0x10);
+
+    cpu->reg[A] = 0x11;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x22);
+
+    cpu->reg[A] = 0x00;
+    cpu->reg[B] = 0xFF;
+    cpu->reg[F] = 0xFF;
+    cpu->step();
+    ASSERT(cpu->get_flag(FH));
+    ASSERT(cpu->get_flag(FC));
+    ASSERT(cpu->reg[A] == 0x00);
+
+    return true;
+}
+
+bool test_CPU_SUB()
+{
+    init(0x11);
+
+    cpu->reg[H] = 0x80;
+    cpu->reg[L] = 0x00;
+
+    mmu->set(0x8000, 0x11);
+
+    uint8_t program[] = {
+        0x90,       // SUB A,B
+        0x91,       // SUB A,C
+        0x92,       // SUB A,D
+        0x93,       // SUB A,E
+        0x94,       // SUB A,H
+        0x95,       // SUB A,L
+        0x96,       // SUB A,(HL)
+        0x97,       // SUB A,A
+
+        0x98,       // SBC A,B
+    };
+    mmu->load(program, 9);
+
+    cpu->reg[A] = 0x44;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x33);
+
+    cpu->reg[A] = 0x44;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x33);
+
+    cpu->reg[A] = 0x44;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x33);
+
+    cpu->reg[A] = 0x44;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x33);
+
+    cpu->reg[A] = 0x44;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0xC4);
+    ASSERT(cpu->get_flag(FC));
+
+    cpu->reg[A] = 0x44;
+    cpu->step();
+    ASSERTV(cpu->reg[A] == 0x44, "A: %02X\n", cpu->reg[A]);
+
+    cpu->reg[A] = 0x44;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x33);
+
+    cpu->reg[A] = 0x11;
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x00);
+
+    cpu->reg[A] = 0x00;
+    cpu->reg[B] = 0xFF;
+    cpu->reg[F] = 0xFF;
+    cpu->step();
+    ASSERT(cpu->get_flag(FH));
+    ASSERT(cpu->get_flag(FC));
+    ASSERTV(cpu->reg[A] == 0x00, "A: %02X\n", cpu->reg[A]);
+
+    return true;
+}
+
+bool test_CPU_XOR()
+{
+    init(0x00);
+
+    cpu->reg[A] = 0x0F;
+    cpu->reg[B] = 0x13;
+
+    execute({ 0xA8 });  // XOR B
+    ASSERTV(cpu->reg[A] == 0x1C, "A: %02X\n", cpu->reg[A]);
+
+    cpu->reg[A] = 0x0F;
+    cpu->reg[B] = 0x0F;
+
+    execute({ 0xA8 });  // XOR B
+    ASSERT(cpu->reg[A] == 0x00);
+    ASSERT(cpu->get_flag(FZ));
+
+    return true;
+}
+
 bool test_BIN_RLC()
 {
     init(0xF0);
@@ -787,6 +942,9 @@ int main(void)
     test("CPU: LD 8-Bit", &test_CPU_LD_8bit);
     test("CPU: LD 16-Bit", &test_CPU_LD_16bit);
     test("CPU: INC", &test_CPU_INC);
+    test("CPU: ADD", &test_CPU_ADD);
+    test("CPU: SUB", &test_CPU_SUB);
+    test("CPU: XOR", &test_CPU_XOR);
 
     test("PROGRAM: Zero memory fro $8000 to $9FFF", &test_zero_memory);
     test("PROGRAM: Init sound control registers", &test_audio_init);

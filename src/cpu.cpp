@@ -149,39 +149,39 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0x7E] = &CPU::ld;
     l_callback[0x7F] = &CPU::ld;
 
-    l_callback[0x80] = 0;
-    l_callback[0x81] = 0;
-    l_callback[0x82] = 0;
-    l_callback[0x83] = 0;
-    l_callback[0x84] = 0;
-    l_callback[0x85] = 0;
-    l_callback[0x86] = 0;
-    l_callback[0x87] = 0;
-    l_callback[0x88] = 0;
-    l_callback[0x89] = 0;
-    l_callback[0x8A] = 0;
-    l_callback[0x8B] = 0;
-    l_callback[0x8C] = 0;
-    l_callback[0x8D] = 0;
-    l_callback[0x8E] = 0;
-    l_callback[0x8F] = 0;
+    l_callback[0x80] = &CPU::add;
+    l_callback[0x81] = &CPU::add;
+    l_callback[0x82] = &CPU::add;
+    l_callback[0x83] = &CPU::add;
+    l_callback[0x84] = &CPU::add;
+    l_callback[0x85] = &CPU::add;
+    l_callback[0x86] = &CPU::add;
+    l_callback[0x87] = &CPU::add;
+    l_callback[0x88] = &CPU::add;
+    l_callback[0x89] = &CPU::add;
+    l_callback[0x8A] = &CPU::add;
+    l_callback[0x8B] = &CPU::add;
+    l_callback[0x8C] = &CPU::add;
+    l_callback[0x8D] = &CPU::add;
+    l_callback[0x8E] = &CPU::add;
+    l_callback[0x8F] = &CPU::add;
 
-    l_callback[0x90] = 0;
-    l_callback[0x91] = 0;
-    l_callback[0x92] = 0;
-    l_callback[0x93] = 0;
-    l_callback[0x94] = 0;
-    l_callback[0x95] = 0;
-    l_callback[0x96] = 0;
-    l_callback[0x97] = 0;
-    l_callback[0x98] = 0;
-    l_callback[0x99] = 0;
-    l_callback[0x9A] = 0;
-    l_callback[0x9B] = 0;
-    l_callback[0x9C] = 0;
-    l_callback[0x9D] = 0;
-    l_callback[0x9E] = 0;
-    l_callback[0x9F] = 0;
+    l_callback[0x90] = &CPU::sub;
+    l_callback[0x91] = &CPU::sub;
+    l_callback[0x92] = &CPU::sub;
+    l_callback[0x93] = &CPU::sub;
+    l_callback[0x94] = &CPU::sub;
+    l_callback[0x95] = &CPU::sub;
+    l_callback[0x96] = &CPU::sub;
+    l_callback[0x97] = &CPU::sub;
+    l_callback[0x98] = &CPU::sub;
+    l_callback[0x99] = &CPU::sub;
+    l_callback[0x9A] = &CPU::sub;
+    l_callback[0x9B] = &CPU::sub;
+    l_callback[0x9C] = &CPU::sub;
+    l_callback[0x9D] = &CPU::sub;
+    l_callback[0x9E] = &CPU::sub;
+    l_callback[0x9F] = &CPU::sub;
 
     l_callback[0xA0] = 0;
     l_callback[0xA1] = 0;
@@ -191,13 +191,13 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xA5] = 0;
     l_callback[0xA6] = 0;
     l_callback[0xA7] = 0;
-    l_callback[0xA8] = 0;
-    l_callback[0xA9] = 0;
-    l_callback[0xAA] = 0;
-    l_callback[0xAB] = 0;
-    l_callback[0xAC] = 0;
-    l_callback[0xAD] = 0;
-    l_callback[0xAE] = 0;
+    l_callback[0xA8] = &CPU::_xor;
+    l_callback[0xA9] = &CPU::_xor;
+    l_callback[0xAA] = &CPU::_xor;
+    l_callback[0xAB] = &CPU::_xor;
+    l_callback[0xAC] = &CPU::_xor;
+    l_callback[0xAD] = &CPU::_xor;
+    l_callback[0xAE] = &CPU::_xor;
     l_callback[0xAF] = &CPU::_xor;
 
     l_callback[0xB0] = 0;
@@ -376,6 +376,16 @@ void CPU::display_registers()
     info("DE: 0x%04X\n", reg16(DE));
     info("HL: 0x%04X\n", reg16(HL));
     info("SP: 0x%04X\n", reg16(SP));
+}
+
+/**
+ * @brief      Give the value of the desired flag
+ * @param[in]  flag  The flag index
+ * @return     The flag value (True if it is set)
+ */
+bool CPU::get_flag(size_t flag)
+{
+    return get_bit(reg[F], flag);
 }
 
 /**
@@ -711,6 +721,9 @@ void CPU::add()
         add16(&reg[HL], &reg[SP]);
         ticks = 8;
         break;
+    default:
+        add8();
+        return;
     }
 
     PC += 1;
@@ -1208,20 +1221,148 @@ void CPU::prefix_CB()
 
 void CPU::_xor()
 {
+    uint8_t *l_address[] = {
+        &reg[B],
+        &reg[C],
+        &reg[D],
+        &reg[E],
+        &reg[H],
+        &reg[L],
+        (uint8_t*) mmu->at(reg16(HL)),
+        &reg[A]
+    };
+
     uint8_t opcode = mmu->get(PC);
-    switch (opcode) {
-    case 0xAF:    // XOR A
-    default:
-        reg[A] ^= reg[A];
+    size_t target_index = opcode % 8;
+    uint8_t *target = l_address[target_index];
 
-        reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
-        reg[F] = set_bit(reg[F], FN, 0);
-        reg[F] = set_bit(reg[F], FH, 0);
-        reg[F] = set_bit(reg[F], FC, 0);
-
+    // (HL) case
+    if (target_index == 6) {
+        PC += 1;
+        clock += 8;
+    } else {
         PC += 1;
         clock += 4;
-
-        debug("XOR A\n");
     }
+
+    reg[A] ^= *target;
+
+    reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
+    reg[F] = set_bit(reg[F], FN, 0);
+    reg[F] = set_bit(reg[F], FH, 0);
+    reg[F] = set_bit(reg[F], FC, 0);
+
+    debug("XOR\n");
+}
+
+/**
+ * @brief      Handles ADD and ADC
+ */
+void CPU::add8()
+{
+    uint8_t *l_address[] = {
+        &reg[B],
+        &reg[C],
+        &reg[D],
+        &reg[E],
+        &reg[H],
+        &reg[L],
+        (uint8_t*) mmu->at(reg16(HL)),
+        &reg[A]
+    };
+
+    uint8_t opcode = mmu->get(PC);
+    size_t target_index = opcode % 8;
+    uint8_t *target = l_address[target_index];
+
+    // (HL) case
+    if (target_index == 6) {
+        PC += 1;
+        clock += 8;
+    } else {
+        PC += 1;
+        clock += 4;
+    }
+
+    uint16_t value = *target;
+
+    // ADC
+    if (opcode >= 0x88) {
+        value += get_bit(reg[F], FC);
+
+        debug("ADC\n");
+    } else {
+        debug("ADD\n");
+    }
+
+    uint16_t result = reg[A] + value;
+
+    // FH set when adding carry flag
+    bool half_carry = (*target & 0xF0) < (value & 0xFFF0);
+
+    half_carry |= (reg[A] & 0x0F) + (value & 0x0F) > 0x0F;
+
+    reg[A] = (uint8_t) result;
+
+    reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
+    reg[F] = set_bit(reg[F], FN, 0);
+    reg[F] = set_bit(reg[F], FH, half_carry);
+    reg[F] = set_bit(reg[F], FC, result > 0x00FF);  // Overflow
+}
+
+/**
+ * @brief      Handles SUB and SBC
+ */
+void CPU::sub()
+{
+    uint8_t *l_address[] = {
+        &reg[B],
+        &reg[C],
+        &reg[D],
+        &reg[E],
+        &reg[H],
+        &reg[L],
+        (uint8_t*) mmu->at(reg16(HL)),
+        &reg[A]
+    };
+
+    uint8_t opcode = mmu->get(PC);
+    size_t target_index = opcode % 8;
+    uint8_t *target = l_address[target_index];
+
+    // (HL) case
+    if (target_index == 6) {
+        PC += 1;
+        clock += 8;
+    } else {
+        PC += 1;
+        clock += 4;
+    }
+
+    uint16_t value = *target;
+
+    bool half_carry = (reg[A] & 0x0F) < (value & 0x0F);
+
+    uint16_t result = (0x0100 + reg[A]) - value;
+
+    // SBC
+    if (opcode >= 0x98) {
+        value = get_bit(reg[F], FC);
+
+        // FH set when substracting carry flag
+        half_carry |= (result & 0x0F) < (value & 0x0F);
+
+        result -= value;
+
+        debug("SBC\n");
+    } else {
+        debug("SUB\n");
+    }
+
+    reg[A] = (uint8_t) result;
+
+    reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
+    reg[F] = set_bit(reg[F], FN, 1);
+    reg[F] = set_bit(reg[F], FH, half_carry);
+    reg[F] = set_bit(reg[F], FC, !(result & 0x100));   // Underflow
 }
