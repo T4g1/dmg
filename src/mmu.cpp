@@ -112,7 +112,7 @@ bool MMU::load(const char *path_rom)
     uint8_t byte;
     uint16_t dst = BOOT_START;
     while (fread(&byte, sizeof(uint8_t), 1, f) == 1) {
-        set(dst++, byte);
+        ram[dst++] = byte;
     }
 
     // Failure of reading not EOF related

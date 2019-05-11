@@ -208,14 +208,14 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xB5] = &CPU::or_xor_and;
     l_callback[0xB6] = &CPU::or_xor_and;
     l_callback[0xB7] = &CPU::or_xor_and;
-    l_callback[0xB8] = 0;
-    l_callback[0xB9] = 0;
-    l_callback[0xBA] = 0;
-    l_callback[0xBB] = 0;
-    l_callback[0xBC] = 0;
-    l_callback[0xBD] = 0;
-    l_callback[0xBE] = 0;
-    l_callback[0xBF] = 0;
+    l_callback[0xB8] = &CPU::cp;
+    l_callback[0xB9] = &CPU::cp;
+    l_callback[0xBA] = &CPU::cp;
+    l_callback[0xBB] = &CPU::cp;
+    l_callback[0xBC] = &CPU::cp;
+    l_callback[0xBD] = &CPU::cp;
+    l_callback[0xBE] = &CPU::cp;
+    l_callback[0xBF] = &CPU::cp;
 
     l_callback[0xC0] = &CPU::ret;
     l_callback[0xC1] = &CPU::pop;
@@ -351,11 +351,7 @@ void CPU::step()
     (*this.*l_callback[opcode])();
 
     // DEBUG
-    /*if (PC == 0x0027) {
-        mmu->dump(0x0000, 0x0100);
-        sleep(1);
-    }*/
-    if (PC >= 0x00A3) {
+    if (PC >= 0x0027) {
         sleep(1);
     }
 }
@@ -438,6 +434,9 @@ void CPU::ld16(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
 void CPU::inc8(uint8_t *address)
 {
     *address = *address + 1;
+    if (*address == 0x00) {
+        *address = 0xFF;
+    }
 
     reg[F] = set_bit(reg[F], FZ, *address == 0);
     reg[F] = set_bit(reg[F], FN, 0);
@@ -447,6 +446,9 @@ void CPU::inc8(uint8_t *address)
 void CPU::dec8(uint8_t *address)
 {
     *address = *address - 1;
+    if (*address == 0xFF) {
+        *address = 0;
+    }
 
     reg[F] = set_bit(reg[F], FZ, *address == 0);
     reg[F] = set_bit(reg[F], FN, 1);
@@ -505,10 +507,10 @@ void CPU::push()
     uint8_t high = (uint8_t)((value & 0xFF00) >> 4);
     uint8_t low = (uint8_t)(value & 0x00FF);
 
+    dec16(&reg[SP]);
     mmu->set(reg16(SP), high);
     dec16(&reg[SP]);
     mmu->set(reg16(SP), low);
-    dec16(&reg[SP]);
 
     PC += 1;
     clock += 16;
@@ -557,9 +559,6 @@ void CPU::call()
 
     uint8_t high = (uint8_t)((PC & 0xFF00) >> 4);
     uint8_t low = (uint8_t)(PC & 0x00FF);
-
-    debug("high: 0x%02X\n", high);
-    debug("low: 0x%02X\n", low);
 
     bool do_call = true;
     /* Call if not Z */
@@ -617,7 +616,6 @@ void CPU::ret()
     }
 
     if (do_ret) {
-        debug("Get at 0x%04X\n", reg16(SP));
         PC = mmu->get16(reg16(SP));
         inc16(&reg[SP]);
         inc16(&reg[SP]);
@@ -1276,6 +1274,40 @@ void CPU::or_xor_and()
     reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
     reg[F] = set_bit(reg[F], FN, 0);
     reg[F] = set_bit(reg[F], FC, 0);
+}
+
+void CPU::cp()
+{
+    uint8_t *l_address[] = {
+        &reg[B],
+        &reg[C],
+        &reg[D],
+        &reg[E],
+        &reg[H],
+        &reg[L],
+        (uint8_t*) mmu->at(reg16(HL)),
+        &reg[A]
+    };
+
+    uint8_t opcode = mmu->get(PC);
+    size_t target_index = opcode % 8;
+    uint8_t *target = l_address[target_index];
+
+    // (HL) case
+    if (target_index == 6) {
+        PC += 1;
+        clock += 8;
+    } else {
+        PC += 1;
+        clock += 4;
+    }
+
+    uint16_t result = reg[A] - *target;
+
+    reg[F] = set_bit(reg[F], FZ, (result & 0x00FF) == 0);
+    reg[F] = set_bit(reg[F], FN, 1);
+    reg[F] = set_bit(reg[F], FH, (reg[A] & 0x0F) < (*target & 0x0F));
+    reg[F] = set_bit(reg[F], FC, !(result & 0x100));   // Underflow
 }
 
 /**

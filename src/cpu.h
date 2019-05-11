@@ -97,6 +97,7 @@ private:
     void nop();
     void or_xor_and();
     void sub();
+    void cp();
 };
 
 #endif /* CPU_H */

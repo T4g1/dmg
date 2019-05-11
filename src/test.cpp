@@ -997,6 +997,61 @@ bool test_CPU_CALL_RET()
     return true;
 }
 
+bool test_graphic_routine()
+{
+    init(0x00);
+
+    size_t size = 34;
+    uint8_t program[] = {
+        0x3E, 0xFC,
+        0xE0, 0x47,
+        0x11, 0x04, 0x01,
+        0x21, 0x10, 0x80,
+        0x1A,
+        0xCD, 0x0F, 0x00,
+        0x00,
+        0x4f,
+        0x06, 0x04,
+        0xc5,
+        0xcb, 0x11,
+        0x17,
+        0xc1,
+        0xcb, 0x11,
+        0x17,
+        0x05,
+        0x20, 0xF5,
+        0x22,
+        0x23,
+        0x22,
+        0x23,
+        0xc9,
+    };
+    mmu->load(program, size);
+
+    //mmu->dump(0x0000, 0x00FF);
+    //cpu->display_registers();
+
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    ASSERT(cpu->reg[A] == 0x00);
+    ASSERT(cpu->PC == 0x0F);
+
+    size_t opcount = 0;
+    const size_t max_opcount = 20;
+    while (cpu->PC != 14 && opcount < max_opcount) {
+        cpu->step();
+        opcount++;
+    }
+
+    ASSERT(opcount < max_opcount);
+
+    return true;
+}
+
 int main(void)
 {
     mmu = new MMU();
@@ -1027,8 +1082,12 @@ int main(void)
     test("CPU: AND", &test_CPU_AND);
     test("CPU: CALL/RET", &test_CPU_CALL_RET);
 
-    //test("PROGRAM: Zero memory fro $8000 to $9FFF", &test_zero_memory);
-    //test("PROGRAM: Init sound control registers", &test_audio_init);
+    // TODO: Test PUSH/POP
+    // TODO: Test INC/DEC
+
+    test("PROGRAM: Zero memory from $8000 to $9FFF", &test_zero_memory);
+    test("PROGRAM: Init sound control registers", &test_audio_init);
+    test("PROGRAM: Boot graphic routine", &test_graphic_routine);
 
     return EXIT_SUCCESS;
 }

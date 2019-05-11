@@ -31,12 +31,7 @@ bool Cartridge::load(const char *path_rom)
     uint8_t memory_bank[MBC_SIZE];
     size_t address = 0;     //!< Address in the memory bank being read
     size_t mb_index = 0;    //!< Index of memory bank
-    while (!feof(f)) {
-        if (fread(&memory_bank[address++], sizeof(uint8_t), 1, f) != 1) {
-            error("Error while reading provided boot ROM file\n");
-            return false;
-        }
-
+    while (fread(&memory_bank[address++], sizeof(uint8_t), 1, f) == 1) {
         if (address != MBC_SIZE) {
             continue;
         }
@@ -44,6 +39,7 @@ bool Cartridge::load(const char *path_rom)
         // First memory bank: We need the type of MBC to use
         if (mb_index == 0) {
             uint8_t cartridge_type = memory_bank[0x0147];
+            //debug("Cartridge type: 0x%02X\n", cartridge_type);
 
             if (cartridge_type == 0x01) {
                 mbc = new MBC1();
@@ -57,11 +53,15 @@ bool Cartridge::load(const char *path_rom)
         if (!mbc->load(mb_index, memory_bank)) {
             return false;
         }
+
+        mb_index += 1;
+        address = 0;
     }
 
     // Failure of reading not EOF related
     if (!feof(f)) {
         error("Unkown error prevented the loading of the game cartridge ROM\n");
+        debug("MB index: %zu, address %zu\n", mb_index, address);
         return false;
     }
 
