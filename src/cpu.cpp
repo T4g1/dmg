@@ -183,31 +183,31 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0x9E] = &CPU::sub;
     l_callback[0x9F] = &CPU::sub;
 
-    l_callback[0xA0] = 0;
-    l_callback[0xA1] = 0;
-    l_callback[0xA2] = 0;
-    l_callback[0xA3] = 0;
-    l_callback[0xA4] = 0;
-    l_callback[0xA5] = 0;
-    l_callback[0xA6] = 0;
-    l_callback[0xA7] = 0;
-    l_callback[0xA8] = &CPU::_xor;
-    l_callback[0xA9] = &CPU::_xor;
-    l_callback[0xAA] = &CPU::_xor;
-    l_callback[0xAB] = &CPU::_xor;
-    l_callback[0xAC] = &CPU::_xor;
-    l_callback[0xAD] = &CPU::_xor;
-    l_callback[0xAE] = &CPU::_xor;
-    l_callback[0xAF] = &CPU::_xor;
+    l_callback[0xA0] = &CPU::or_xor_and;
+    l_callback[0xA1] = &CPU::or_xor_and;
+    l_callback[0xA2] = &CPU::or_xor_and;
+    l_callback[0xA3] = &CPU::or_xor_and;
+    l_callback[0xA4] = &CPU::or_xor_and;
+    l_callback[0xA5] = &CPU::or_xor_and;
+    l_callback[0xA6] = &CPU::or_xor_and;
+    l_callback[0xA7] = &CPU::or_xor_and;
+    l_callback[0xA8] = &CPU::or_xor_and;
+    l_callback[0xA9] = &CPU::or_xor_and;
+    l_callback[0xAA] = &CPU::or_xor_and;
+    l_callback[0xAB] = &CPU::or_xor_and;
+    l_callback[0xAC] = &CPU::or_xor_and;
+    l_callback[0xAD] = &CPU::or_xor_and;
+    l_callback[0xAE] = &CPU::or_xor_and;
+    l_callback[0xAF] = &CPU::or_xor_and;
 
-    l_callback[0xB0] = 0;
-    l_callback[0xB1] = 0;
-    l_callback[0xB2] = 0;
-    l_callback[0xB3] = 0;
-    l_callback[0xB4] = 0;
-    l_callback[0xB5] = 0;
-    l_callback[0xB6] = 0;
-    l_callback[0xB7] = 0;
+    l_callback[0xB0] = &CPU::or_xor_and;
+    l_callback[0xB1] = &CPU::or_xor_and;
+    l_callback[0xB2] = &CPU::or_xor_and;
+    l_callback[0xB3] = &CPU::or_xor_and;
+    l_callback[0xB4] = &CPU::or_xor_and;
+    l_callback[0xB5] = &CPU::or_xor_and;
+    l_callback[0xB6] = &CPU::or_xor_and;
+    l_callback[0xB7] = &CPU::or_xor_and;
     l_callback[0xB8] = 0;
     l_callback[0xB9] = 0;
     l_callback[0xBA] = 0;
@@ -1219,7 +1219,7 @@ void CPU::prefix_CB()
     debug("Prefix CB\n");
 }
 
-void CPU::_xor()
+void CPU::or_xor_and()
 {
     uint8_t *l_address[] = {
         &reg[B],
@@ -1245,14 +1245,31 @@ void CPU::_xor()
         clock += 4;
     }
 
-    reg[A] ^= *target;
+    // OR
+    if (opcode >= 0xB0) {
+        reg[A] |= *target;
+
+        reg[F] = set_bit(reg[F], FH, 0);
+        debug("OR\n");
+    }
+    // XOR
+    else if (opcode >= 0xA8) {
+        reg[A] ^= *target;
+
+        reg[F] = set_bit(reg[F], FH, 0);
+        debug("XOR\n");
+    }
+    // AND
+    else if (opcode >= 0xA0) {
+        reg[A] &= *target;
+
+        reg[F] = set_bit(reg[F], FH, 1);
+        debug("AND\n");
+    }
 
     reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
     reg[F] = set_bit(reg[F], FN, 0);
-    reg[F] = set_bit(reg[F], FH, 0);
     reg[F] = set_bit(reg[F], FC, 0);
-
-    debug("XOR\n");
 }
 
 /**

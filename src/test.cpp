@@ -461,6 +461,46 @@ bool test_CPU_XOR()
     return true;
 }
 
+bool test_CPU_OR()
+{
+    init(0x00);
+
+    cpu->reg[A] = 0x0F;
+    cpu->reg[B] = 0x13;
+
+    execute({ 0xB0 });  // OR B
+    ASSERTV(cpu->reg[A] == 0x1F, "A: %02X\n", cpu->reg[A]);
+
+    cpu->reg[A] = 0x00;
+    cpu->reg[B] = 0x00;
+
+    execute({ 0xB0 });  // OR B
+    ASSERT(cpu->reg[A] == 0x00);
+    ASSERT(cpu->get_flag(FZ));
+
+    return true;
+}
+
+bool test_CPU_AND()
+{
+    init(0x00);
+
+    cpu->reg[A] = 0x0F;
+    cpu->reg[B] = 0x13;
+
+    execute({ 0xA0 });  // AND B
+    ASSERTV(cpu->reg[A] == 0x03, "A: %02X\n", cpu->reg[A]);
+
+    cpu->reg[A] = 0x0F;
+    cpu->reg[B] = 0xF0;
+
+    execute({ 0xA0 });  // AND B
+    ASSERT(cpu->reg[A] == 0x00);
+    ASSERT(cpu->get_flag(FZ));
+
+    return true;
+}
+
 bool test_BIN_RLC()
 {
     init(0xF0);
@@ -945,6 +985,8 @@ int main(void)
     test("CPU: ADD", &test_CPU_ADD);
     test("CPU: SUB", &test_CPU_SUB);
     test("CPU: XOR", &test_CPU_XOR);
+    test("CPU: OR", &test_CPU_OR);
+    test("CPU: AND", &test_CPU_AND);
 
     test("PROGRAM: Zero memory fro $8000 to $9FFF", &test_zero_memory);
     test("PROGRAM: Init sound control registers", &test_audio_init);

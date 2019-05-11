@@ -93,7 +93,7 @@ private:
     void ld();
     void rxa();
     void nop();
-    void _xor();
+    void or_xor_and();
     void sub();
 };
 
