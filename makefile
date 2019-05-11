@@ -16,8 +16,6 @@ OBJECTS  := $(patsubst %.cpp, %.o, $(SOURCES))
 DMG_OBJECTS  := $(OBJECTS) $(OBJDIR)/main.o
 TEST_OBJECTS  := $(OBJECTS) $(OBJDIR)/test.o
 
-$(info $$OBJECTS is [${OBJECTS}])
-
 BUILD := rel
 ifeq ($(BUILD),devel)
 CXXFLAGS += -DDEBUG
