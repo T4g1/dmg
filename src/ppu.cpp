@@ -92,12 +92,14 @@ bool PPU::draw()
     bool refresh = false;
     if (lcd_enabled) {
         if (draw_line()) {
-            frame += 1;
             return SDL_UpdateWindowSurface(sdl_window) == 0;
         }
     } else {
         SDL_FillRect(sdl_screen, NULL, color_ldc_disabled);
-        clock += 4;
+
+        // TODO: Handle LCD control register so PPU gets CPU clock time when LCD is on
+        // DEBUG: Arbitrary increase wiating for display to be active
+        clock += CLOCK_H_BLANK;
 
         return SDL_UpdateWindowSurface(sdl_window) == 0;
     }
