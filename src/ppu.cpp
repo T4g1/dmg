@@ -11,8 +11,6 @@ PPU::PPU(MMU *mmu) : mmu(mmu)
     window_enabled = false;
     sprites_enabled = false;
     background_enabled = false;
-
-    pixel_fifo = 0x00;
 }
 
 bool PPU::init()
@@ -110,7 +108,32 @@ bool PPU::draw()
 
 void PPU::draw_background()
 {
+    const size_t FIFO_SIZE = 16;
+    uint8_t pixel_fifo[FIFO_SIZE] = { 0b00 };
 
+    size_t pf_size = 0;             // How many pixels in the FIFO
+    size_t pf_index = 0;            // Position in the FIFO
+
+    for (size_t y=0; y<LINE_Y_COUNT; y++) {
+        // Viewport position
+        uint8_t scy = mmu->get(BG_SCY);
+        uint8_t scx = mmu->get(BG_SCX);
+
+        for (size_t x=0; x<LINE_X_COUNT; x++) {
+            if (pf_size <= 8) {
+                // Fetch next 8 pixels
+                // TODO
+
+                pf_size += 8;
+            }
+
+            size_t pixel = pixel_fifo[pf_index];
+            pf_index = (pf_index + 1) % FIFO_SIZE;
+            pf_size -= 1;
+
+            set_pixel(sdl_screen, x, y, palette[pixel]);
+        }
+    }
 }
 
 void PPU::draw_window()

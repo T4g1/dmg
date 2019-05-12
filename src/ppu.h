@@ -5,8 +5,11 @@
 
 #include "mmu.h"
 
-#define SCREEN_WIDTH            160
-#define SCREEN_HEIGHT           144
+#define LINE_Y_COUNT        144
+#define LINE_X_COUNT        160
+
+#define SCREEN_WIDTH            LINE_X_COUNT
+#define SCREEN_HEIGHT           LINE_Y_COUNT
 
 #define ADDR_LCDC               0xFF40  // LCD Controle register
 
@@ -25,6 +28,10 @@
 #define TILE_ADDRESS_2      0x8800
 #define MAP_ADDRESS_1       0x9800
 #define MAP_ADDRESS_2       0x9C00
+
+
+#define BG_SCY              0xFF42
+#define BG_SCX              0xFF43
 
 /**
  * @brief      Pixel Processing Unit
@@ -46,8 +53,6 @@ private:
 
     Uint32 color_ldc_disabled;
     Uint32 palette[PALETTE_SIZE];
-
-    uint16_t pixel_fifo;
 
     bool lcd_enabled;
     bool window_enabled;

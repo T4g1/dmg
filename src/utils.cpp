@@ -68,3 +68,10 @@ void inc16(uint8_t *address)
         *high += 1;
     }
 }
+
+void set_pixel(SDL_Surface *surface, size_t x, size_t y, Uint32 color)
+{
+    Uint32 *pixels = (Uint32 *) surface->pixels;
+
+    pixels[(y * surface->w) + x] = color;
+}
