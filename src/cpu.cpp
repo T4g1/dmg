@@ -183,72 +183,72 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0x9E] = &CPU::sub;
     l_callback[0x9F] = &CPU::sub;
 
-    l_callback[0xA0] = &CPU::or_xor_and;
-    l_callback[0xA1] = &CPU::or_xor_and;
-    l_callback[0xA2] = &CPU::or_xor_and;
-    l_callback[0xA3] = &CPU::or_xor_and;
-    l_callback[0xA4] = &CPU::or_xor_and;
-    l_callback[0xA5] = &CPU::or_xor_and;
-    l_callback[0xA6] = &CPU::or_xor_and;
-    l_callback[0xA7] = &CPU::or_xor_and;
-    l_callback[0xA8] = &CPU::or_xor_and;
-    l_callback[0xA9] = &CPU::or_xor_and;
-    l_callback[0xAA] = &CPU::or_xor_and;
-    l_callback[0xAB] = &CPU::or_xor_and;
-    l_callback[0xAC] = &CPU::or_xor_and;
-    l_callback[0xAD] = &CPU::or_xor_and;
-    l_callback[0xAE] = &CPU::or_xor_and;
-    l_callback[0xAF] = &CPU::or_xor_and;
+    l_callback[0xA0] = &CPU::or_xor_and_cp;
+    l_callback[0xA1] = &CPU::or_xor_and_cp;
+    l_callback[0xA2] = &CPU::or_xor_and_cp;
+    l_callback[0xA3] = &CPU::or_xor_and_cp;
+    l_callback[0xA4] = &CPU::or_xor_and_cp;
+    l_callback[0xA5] = &CPU::or_xor_and_cp;
+    l_callback[0xA6] = &CPU::or_xor_and_cp;
+    l_callback[0xA7] = &CPU::or_xor_and_cp;
+    l_callback[0xA8] = &CPU::or_xor_and_cp;
+    l_callback[0xA9] = &CPU::or_xor_and_cp;
+    l_callback[0xAA] = &CPU::or_xor_and_cp;
+    l_callback[0xAB] = &CPU::or_xor_and_cp;
+    l_callback[0xAC] = &CPU::or_xor_and_cp;
+    l_callback[0xAD] = &CPU::or_xor_and_cp;
+    l_callback[0xAE] = &CPU::or_xor_and_cp;
+    l_callback[0xAF] = &CPU::or_xor_and_cp;
 
-    l_callback[0xB0] = &CPU::or_xor_and;
-    l_callback[0xB1] = &CPU::or_xor_and;
-    l_callback[0xB2] = &CPU::or_xor_and;
-    l_callback[0xB3] = &CPU::or_xor_and;
-    l_callback[0xB4] = &CPU::or_xor_and;
-    l_callback[0xB5] = &CPU::or_xor_and;
-    l_callback[0xB6] = &CPU::or_xor_and;
-    l_callback[0xB7] = &CPU::or_xor_and;
-    l_callback[0xB8] = &CPU::cp;
-    l_callback[0xB9] = &CPU::cp;
-    l_callback[0xBA] = &CPU::cp;
-    l_callback[0xBB] = &CPU::cp;
-    l_callback[0xBC] = &CPU::cp;
-    l_callback[0xBD] = &CPU::cp;
-    l_callback[0xBE] = &CPU::cp;
-    l_callback[0xBF] = &CPU::cp;
+    l_callback[0xB0] = &CPU::or_xor_and_cp;
+    l_callback[0xB1] = &CPU::or_xor_and_cp;
+    l_callback[0xB2] = &CPU::or_xor_and_cp;
+    l_callback[0xB3] = &CPU::or_xor_and_cp;
+    l_callback[0xB4] = &CPU::or_xor_and_cp;
+    l_callback[0xB5] = &CPU::or_xor_and_cp;
+    l_callback[0xB6] = &CPU::or_xor_and_cp;
+    l_callback[0xB7] = &CPU::or_xor_and_cp;
+    l_callback[0xB8] = &CPU::or_xor_and_cp;
+    l_callback[0xB9] = &CPU::or_xor_and_cp;
+    l_callback[0xBA] = &CPU::or_xor_and_cp;
+    l_callback[0xBB] = &CPU::or_xor_and_cp;
+    l_callback[0xBC] = &CPU::or_xor_and_cp;
+    l_callback[0xBD] = &CPU::or_xor_and_cp;
+    l_callback[0xBE] = &CPU::or_xor_and_cp;
+    l_callback[0xBF] = &CPU::or_xor_and_cp;
 
     l_callback[0xC0] = &CPU::ret;
     l_callback[0xC1] = &CPU::pop;
-    l_callback[0xC2] = 0;
-    l_callback[0xC3] = 0;
+    l_callback[0xC2] = &CPU::jp;
+    l_callback[0xC3] = &CPU::jp;
     l_callback[0xC4] = &CPU::call;
     l_callback[0xC5] = &CPU::push;
-    l_callback[0xC6] = 0;
+    l_callback[0xC6] = &CPU::add;
     l_callback[0xC7] = 0;
     l_callback[0xC8] = &CPU::ret;
     l_callback[0xC9] = &CPU::ret;
-    l_callback[0xCA] = 0;
+    l_callback[0xCA] = &CPU::jp;
     l_callback[0xCB] = &CPU::prefix_CB;
     l_callback[0xCC] = &CPU::call;
     l_callback[0xCD] = &CPU::call;
-    l_callback[0xCE] = 0;
+    l_callback[0xCE] = &CPU::add;
     l_callback[0xCF] = 0;
 
     l_callback[0xD0] = &CPU::ret;
     l_callback[0xD1] = &CPU::pop;
-    l_callback[0xD2] = 0;
+    l_callback[0xD2] = &CPU::jp;
     l_callback[0xD3] = NULL;
     l_callback[0xD4] = &CPU::call;
     l_callback[0xD5] = &CPU::push;
-    l_callback[0xD6] = 0;
+    l_callback[0xD6] = &CPU::sub;
     l_callback[0xD7] = 0;
     l_callback[0xD8] = &CPU::ret;
     l_callback[0xD9] = &CPU::ret;
-    l_callback[0xDA] = 0;
+    l_callback[0xDA] = &CPU::jp;
     l_callback[0xDB] = NULL;
     l_callback[0xDC] = &CPU::call;
     l_callback[0xDD] = NULL;
-    l_callback[0xDE] = 0;
+    l_callback[0xDE] = &CPU::sub;
     l_callback[0xDF] = 0;
 
     l_callback[0xE0] = &CPU::ld;
@@ -257,32 +257,32 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xE3] = NULL;
     l_callback[0xE4] = NULL;
     l_callback[0xE5] = &CPU::push;
-    l_callback[0xE6] = 0;
+    l_callback[0xE6] = &CPU::or_xor_and_cp;
     l_callback[0xE7] = 0;
     l_callback[0xE8] = 0;
-    l_callback[0xE9] = 0;
+    l_callback[0xE9] = &CPU::jp_hl;
     l_callback[0xEA] = &CPU::ld;
     l_callback[0xEB] = NULL;
     l_callback[0xEC] = NULL;
     l_callback[0xED] = NULL;
-    l_callback[0xEE] = 0;
+    l_callback[0xEE] = &CPU::or_xor_and_cp;
     l_callback[0xEF] = 0;
 
     l_callback[0xF0] = &CPU::ld;
     l_callback[0xF1] = &CPU::pop;
     l_callback[0xF2] = &CPU::ld;
-    l_callback[0xF3] = 0;
+    l_callback[0xF3] = &CPU::di;
     l_callback[0xF4] = NULL;
     l_callback[0xF5] = &CPU::push;
-    l_callback[0xF6] = 0;
+    l_callback[0xF6] = &CPU::or_xor_and_cp;
     l_callback[0xF7] = 0;
     l_callback[0xF8] = &CPU::ld;
     l_callback[0xF9] = &CPU::ld;
     l_callback[0xFA] = &CPU::ld;
-    l_callback[0xFB] = 0;
+    l_callback[0xFB] = &CPU::ei;
     l_callback[0xFC] = NULL;
     l_callback[0xFD] = NULL;
-    l_callback[0xFE] = 0;
+    l_callback[0xFE] = &CPU::or_xor_and_cp;
     l_callback[0xFF] = 0;
 }
 
@@ -546,6 +546,46 @@ void CPU::pop()
     clock += 12;
 
     debug("POP\n");
+}
+
+void CPU::jp()
+{
+    uint8_t ticks = 16;
+
+    uint8_t opcode = mmu->get(PC);
+    uint16_t address = mmu->get16(PC + 1);
+
+    bool jump = true;
+    /* Jump if not Z */
+    if ((opcode == 0xC2 && get_bit(reg[F], FZ) == 1) ||
+    /* Jump if not C */
+        (opcode == 0xD2 && get_bit(reg[F], FC) == 1) ||
+    /* Jump if Z */
+        (opcode == 0xCA && get_bit(reg[F], FZ) == 0) ||
+    /* Jump if C */
+        (opcode == 0xDA && get_bit(reg[F], FC) == 0)) {
+        ticks = 12;
+        jump = false;
+    }
+
+    if (jump) {
+        PC = address;
+    } else {
+        PC += 3;
+    }
+
+    clock += ticks;
+
+    debug("JP %04X\n", address);
+}
+
+void CPU::jp_hl()
+{
+    PC = mmu->get16(reg16(HL));
+
+    debug("JP (HL)\n");
+
+    clock += 4;
 }
 
 void CPU::call()
@@ -1223,91 +1263,82 @@ void CPU::prefix_CB()
     debug("Prefix CB\n");
 }
 
-void CPU::or_xor_and()
+void CPU::or_xor_and_cp()
 {
-    uint8_t *l_address[] = {
+    const uint8_t *l_address[] = {
         &reg[B],
         &reg[C],
         &reg[D],
         &reg[E],
         &reg[H],
         &reg[L],
-        (uint8_t*) mmu->at(reg16(HL)),
+        (const uint8_t*) mmu->at(reg16(HL)),
         &reg[A]
     };
 
     uint8_t opcode = mmu->get(PC);
     size_t target_index = opcode % 8;
-    uint8_t *target = l_address[target_index];
+    const uint8_t *target = l_address[target_index];
 
+    // OR/XOR/AND/CP with d8
+    if (opcode > 0xC0) {
+        target = (const uint8_t*) mmu->at(PC + 1);
+        //debug("Target value: 0x%02X\n", *target);
+        PC += 2;
+        clock += 8;
+    }
     // (HL) case
-    if (target_index == 6) {
+    else if (target_index == 6) {
         PC += 1;
         clock += 8;
-    } else {
+    }
+    else {
         PC += 1;
         clock += 4;
     }
 
+    // CP
+    if ((opcode >= 0xB8 && opcode < 0xC0) || opcode == 0xFE) {
+        uint16_t result = reg[A] - *target;
+
+        reg[F] = set_bit(reg[F], FZ, (result & 0x00FF) == 0);
+        reg[F] = set_bit(reg[F], FN, 1);
+        reg[F] = set_bit(reg[F], FH, (reg[A] & 0x0F) < (*target & 0x0F));
+        reg[F] = set_bit(reg[F], FC, !(result & 0x100));   // Underflow
+    }
     // OR
-    if (opcode >= 0xB0) {
+    else if ((opcode >= 0xB0 && opcode < 0xB8) || opcode == 0xF6) {
         reg[A] |= *target;
 
+        reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
+        reg[F] = set_bit(reg[F], FN, 0);
         reg[F] = set_bit(reg[F], FH, 0);
+        reg[F] = set_bit(reg[F], FC, 0);
+
         debug("OR\n");
     }
     // XOR
-    else if (opcode >= 0xA8) {
+    else if ((opcode >= 0xA8 && opcode < 0xB0) || opcode == 0xEE) {
         reg[A] ^= *target;
 
+        reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
+        reg[F] = set_bit(reg[F], FN, 0);
         reg[F] = set_bit(reg[F], FH, 0);
+        reg[F] = set_bit(reg[F], FC, 0);
+
         debug("XOR\n");
     }
     // AND
-    else if (opcode >= 0xA0) {
+    else if ((opcode >= 0xA0 && opcode < 0xA8) || opcode == 0xE6) {
         reg[A] &= *target;
 
+        reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
+        reg[F] = set_bit(reg[F], FN, 0);
         reg[F] = set_bit(reg[F], FH, 1);
+        reg[F] = set_bit(reg[F], FC, 0);
+
         debug("AND\n");
     }
-
-    reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
-    reg[F] = set_bit(reg[F], FN, 0);
-    reg[F] = set_bit(reg[F], FC, 0);
-}
-
-void CPU::cp()
-{
-    uint8_t *l_address[] = {
-        &reg[B],
-        &reg[C],
-        &reg[D],
-        &reg[E],
-        &reg[H],
-        &reg[L],
-        (uint8_t*) mmu->at(reg16(HL)),
-        &reg[A]
-    };
-
-    uint8_t opcode = mmu->get(PC);
-    size_t target_index = opcode % 8;
-    uint8_t *target = l_address[target_index];
-
-    // (HL) case
-    if (target_index == 6) {
-        PC += 1;
-        clock += 8;
-    } else {
-        PC += 1;
-        clock += 4;
-    }
-
-    uint16_t result = reg[A] - *target;
-
-    reg[F] = set_bit(reg[F], FZ, (result & 0x00FF) == 0);
-    reg[F] = set_bit(reg[F], FN, 1);
-    reg[F] = set_bit(reg[F], FH, (reg[A] & 0x0F) < (*target & 0x0F));
-    reg[F] = set_bit(reg[F], FC, !(result & 0x100));   // Underflow
 }
 
 /**
@@ -1315,23 +1346,29 @@ void CPU::cp()
  */
 void CPU::add8()
 {
-    uint8_t *l_address[] = {
+    const uint8_t *l_address[] = {
         &reg[B],
         &reg[C],
         &reg[D],
         &reg[E],
         &reg[H],
         &reg[L],
-        (uint8_t*) mmu->at(reg16(HL)),
+        (const uint8_t*) mmu->at(reg16(HL)),
         &reg[A]
     };
 
     uint8_t opcode = mmu->get(PC);
     size_t target_index = opcode % 8;
-    uint8_t *target = l_address[target_index];
+    const uint8_t *target = l_address[target_index];
 
+    // ADD/ADC d8
+    if (opcode > 0xC0) {
+        target = (const uint8_t*) mmu->at(PC + 1);
+        PC += 2;
+        clock += 8;
+    }
     // (HL) case
-    if (target_index == 6) {
+    else if (target_index == 6) {
         PC += 1;
         clock += 8;
     } else {
@@ -1342,7 +1379,7 @@ void CPU::add8()
     uint16_t value = *target;
 
     // ADC
-    if (opcode >= 0x88) {
+    if (opcode >= 0x88 && opcode != 0xC6) {
         value += get_bit(reg[F], FC);
 
         debug("ADC\n");
@@ -1370,23 +1407,29 @@ void CPU::add8()
  */
 void CPU::sub()
 {
-    uint8_t *l_address[] = {
+    const uint8_t *l_address[] = {
         &reg[B],
         &reg[C],
         &reg[D],
         &reg[E],
         &reg[H],
         &reg[L],
-        (uint8_t*) mmu->at(reg16(HL)),
+        (const uint8_t*) mmu->at(reg16(HL)),
         &reg[A]
     };
 
     uint8_t opcode = mmu->get(PC);
     size_t target_index = opcode % 8;
-    uint8_t *target = l_address[target_index];
+    const uint8_t *target = l_address[target_index];
 
+    // SUB/SBC d8
+    if (opcode > 0xD0) {
+        target = (const uint8_t*) mmu->at(PC + 1);
+        PC += 2;
+        clock += 8;
+    }
     // (HL) case
-    if (target_index == 6) {
+    else if (target_index == 6) {
         PC += 1;
         clock += 8;
     } else {
@@ -1401,7 +1444,7 @@ void CPU::sub()
     uint16_t result = (0x0100 + reg[A]) - value;
 
     // SBC
-    if (opcode >= 0x98) {
+    if (opcode >= 0x98 && opcode != 0xD6) {
         value = get_bit(reg[F], FC);
 
         // FH set when substracting carry flag
@@ -1420,4 +1463,20 @@ void CPU::sub()
     reg[F] = set_bit(reg[F], FN, 1);
     reg[F] = set_bit(reg[F], FH, half_carry);
     reg[F] = set_bit(reg[F], FC, !(result & 0x100));   // Underflow
+}
+
+void CPU::ei()
+{
+    IME = true;
+
+    PC += 1;
+    clock += 4;
+}
+
+void CPU::di()
+{
+    IME = false;
+
+    PC += 1;
+    clock += 4;
 }

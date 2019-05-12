@@ -60,7 +60,7 @@ public:
 private:
     MMU *mmu;
 
-    bool IME;
+    bool IME;       // Interrupts are enabled when this is at true
 
     cpu_callback l_callback[MAX_OPCODES];
 
@@ -95,9 +95,12 @@ private:
     void ld();
     void rxa();
     void nop();
-    void or_xor_and();
+    void or_xor_and_cp();
     void sub();
-    void cp();
+    void jp();
+    void jp_hl();
+    void ei();
+    void di();
 };
 
 #endif /* CPU_H */

@@ -460,6 +460,13 @@ bool test_CPU_XOR()
     ASSERT(cpu->reg[A] == 0x00);
     ASSERT(cpu->get_flag(FZ));
 
+    cpu->reg[A] = 0x0F;
+    cpu->reg[B] = 0x0F;
+
+    execute({ 0xEE, 0x0F });  // XOR d8
+    ASSERTV(cpu->reg[A] == 0x00, "A: %02X\n", cpu->reg[A]);
+    ASSERT(cpu->get_flag(FZ));
+
     return true;
 }
 
