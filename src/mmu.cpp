@@ -33,6 +33,11 @@ address_type MMU::get_address_identity(uint16_t address)
         return ROM;
     }
 
+    // BOOT ROM enable refister
+    if (address == BOOT_ROM_ENABLE) {
+        return REG_BOOT_ROM_ENABLE;
+    }
+
     return RAM;
 }
 
@@ -45,9 +50,17 @@ address_type MMU::get_address_identity(uint16_t address)
  */
 bool MMU::set(uint16_t address, uint8_t value)
 {
-    if (get_address_identity(address) == RAM) {
+    address_type identity = get_address_identity(address);
+
+    if (identity == RAM) {
         ram[address] = value;
         return true;
+    } else if (identity == REG_BOOT_ROM_ENABLE) {
+        if (value & 0x01) {
+            booted = true;
+        } else {
+            booted = false;
+        }
     }
 
     // TODO: Request WRITE to corresponding ROM to trigger bank switch for example

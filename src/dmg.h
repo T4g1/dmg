@@ -3,6 +3,7 @@
 
 #include "cpu.h"
 #include "mmu.h"
+#include "ppu.h"
 #include "cartridge.h"
 
 #define FRAME_CYCLES        70244  //<! Amount of CPU cycle between each frame
@@ -15,7 +16,7 @@ class DMG {
     Cartridge cart;
     MMU mmu;
     CPU *cpu;
-    //GPU *gpu;
+    PPU *ppu;
 
 public:
     int run(const char *path_bios, const char *path_rom);

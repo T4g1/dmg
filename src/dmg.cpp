@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
+#include <SDL/SDL.h>
+
 #include "log.h"
 
 #include "dmg.h"
@@ -9,11 +11,14 @@
 
 int DMG::run(const char *path_bios, const char *path_rom)
 {
+    SDL_Event event;
+
     cpu = new CPU(&mmu);
-    //gpu = new GPU(&mmu);
+    ppu = new PPU(&mmu);
 
     cpu->reset();
 
+    // ROM loading
     if (!mmu.load(path_bios)) {
         return EXIT_FAILURE;
     }
@@ -24,11 +29,22 @@ int DMG::run(const char *path_bios, const char *path_rom)
 
     mmu.set_cartridge(&cart);
 
+    // Graphic initialization
+    if (!ppu->init()) {
+        return EXIT_FAILURE;
+    }
+
     bool running = true;
     while (running) {
         step_frame();
 
-        //gpu.draw();
+        ppu->draw();
+
+        while (SDL_PollEvent(&event)) {
+            if (event.type == SDL_QUIT) {
+                running = false;
+            }
+        }
     }
 
     return EXIT_SUCCESS;

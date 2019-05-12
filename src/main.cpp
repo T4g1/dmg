@@ -5,6 +5,8 @@
 #include "log.h"
 #include "dmg.h"
 
+#include "main.h"
+
 
 int main(int argc, char *argv[])
 {

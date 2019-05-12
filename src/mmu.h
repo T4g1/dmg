@@ -11,11 +11,13 @@
 #define ROM_END         0x7FFF
 #define BOOT_START      0x0000
 #define BOOT_END        0x00FF
+#define BOOT_ROM_ENABLE 0xFF50
 
 enum address_type {
     BOOT,
     ROM,
-    RAM
+    RAM,
+    REG_BOOT_ROM_ENABLE,
 };
 
 

@@ -2,7 +2,7 @@ CC       = g++
 CXXFLAGS = -std=c++11 -Wall -Wextra -I. -ggdb
 
 LINKER   = g++
-LFLAGS   = -Wall -I. -lm
+LFLAGS   = -Wall -I. -lm -lSDL
 
 SRCDIR   = src
 OBJDIR   = src
