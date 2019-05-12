@@ -29,9 +29,19 @@
 #define MAP_ADDRESS_1       0x9800
 #define MAP_ADDRESS_2       0x9C00
 
-
 #define BG_SCY              0xFF42
 #define BG_SCX              0xFF43
+#define LY                  0xFF44
+#define LYC                 0xFF45      // TODO
+
+#define V_BLANK_PERIOD      10
+#define MAX_LY              LINE_Y_COUNT + V_BLANK_PERIOD
+
+// Clock timing
+#define CLOCK_OAM_SEARCH        20
+#define CLOCK_PIXEL_TRANSFER    43
+#define CLOCK_H_BLANK           51
+#define CLOCK_V_BLANK           CLOCK_OAM_SEARCH + CLOCK_PIXEL_TRANSFER + CLOCK_H_BLANK
 
 /**
  * @brief      Pixel Processing Unit
@@ -43,6 +53,11 @@ public:
     bool init();
     bool draw();
     void quit();
+
+    size_t clock;
+
+    //DEBUG
+    size_t frame;
 
 private:
     MMU *mmu;
@@ -65,9 +80,7 @@ private:
     uint16_t bg_map_address;
     uint16_t window_map_address;
 
-    void draw_background();
-    void draw_window();
-    void draw_sprites();
+    bool draw_line();
 };
 
 #endif /* PPU_H */

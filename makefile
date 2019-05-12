@@ -19,7 +19,10 @@ TEST_OBJECTS  := $(OBJECTS) $(OBJDIR)/test.o
 BUILD := rel
 ifeq ($(BUILD),devel)
 CXXFLAGS += -DDEBUG
-else
+endif
+
+TEST := no
+ifeq ($(BUILD),yes)
 CXXFLAGS += -DTEST
 endif
 

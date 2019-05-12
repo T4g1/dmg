@@ -2,6 +2,7 @@
 
 #include <initializer_list>
 
+#include "log.h"
 #include "cpu.h"
 #include "mmu.h"
 

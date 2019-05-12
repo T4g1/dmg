@@ -40,9 +40,13 @@ int DMG::run(const char *path_bios, const char *path_rom)
 
     bool running = true;
     while (running) {
-        step_frame();
+        //info("FRAME: %zu CPU: %zu PC: 0x%04X PPU: %zu\n", ppu->frame, cpu->clock, cpu->PC, ppu->clock);
 
-        ppu->draw();
+        if (ppu->clock < cpu->clock) {
+            ppu->draw();
+        } else {
+            cpu->step();
+        }
 
         while (SDL_PollEvent(&event)) {
             if (event.type == SDL_QUIT) {

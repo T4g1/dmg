@@ -11,6 +11,9 @@ PPU::PPU(MMU *mmu) : mmu(mmu)
     window_enabled = false;
     sprites_enabled = false;
     background_enabled = false;
+
+    clock = 0;
+    frame = 0;
 }
 
 bool PPU::init()
@@ -86,38 +89,53 @@ bool PPU::draw()
 
     big_sprites = get_bit(lcdc, BIT_SPRITES_SIZE);
 
+    bool refresh = false;
     if (lcd_enabled) {
-        SDL_FillRect(sdl_screen, NULL, palette[0b00]);
-        if (background_enabled) {
-            draw_background();
-        }
-
-        if (window_enabled) {
-            draw_window();
-        }
-
-        if (sprites_enabled) {
-            draw_sprites();
+        if (draw_line()) {
+            frame += 1;
+            return SDL_UpdateWindowSurface(sdl_window) == 0;
         }
     } else {
         SDL_FillRect(sdl_screen, NULL, color_ldc_disabled);
+        clock += 4;
+
+        return SDL_UpdateWindowSurface(sdl_window) == 0;
     }
 
-    return SDL_UpdateWindowSurface(sdl_window) == 0;
+    return true;
 }
 
-void PPU::draw_background()
+/**
+ * @brief      Draws a line.
+ * @return     true if the screen can be refreshed
+ */
+bool PPU::draw_line()
 {
     const size_t FIFO_SIZE = 16;
     uint8_t pixel_fifo[FIFO_SIZE] = { 0b00 };
 
+    // DEBUG
+    pixel_fifo[0] = 0b00;
+    pixel_fifo[1] = 0b01;
+    pixel_fifo[2] = 0b10;
+    pixel_fifo[3] = 0b11;
+    pixel_fifo[4] = 0b11;
+    pixel_fifo[5] = 0b10;
+
     size_t pf_size = 0;             // How many pixels in the FIFO
     size_t pf_index = 0;            // Position in the FIFO
 
-    for (size_t y=0; y<LINE_Y_COUNT; y++) {
+    uint8_t y = mmu->get(LY);
+    if (y < LINE_Y_COUNT) {
+        y += 1;
+        mmu->set(LY, y);
+
         // Viewport position
         uint8_t scy = mmu->get(BG_SCY);
         uint8_t scx = mmu->get(BG_SCX);
+
+        // DEBUG
+        pf_index = scy % FIFO_SIZE;
 
         for (size_t x=0; x<LINE_X_COUNT; x++) {
             if (pf_size <= 8) {
@@ -133,15 +151,27 @@ void PPU::draw_background()
 
             set_pixel(sdl_screen, x, y, palette[pixel]);
         }
+
+        clock += CLOCK_OAM_SEARCH;
+        clock += CLOCK_PIXEL_TRANSFER;
+
+        // H-Blank
+        clock += CLOCK_H_BLANK;
     }
-}
+    // V-Blank
+    else if (y < MAX_LY) {
+        clock += CLOCK_V_BLANK;
 
-void PPU::draw_window()
-{
-}
+        y += 1;
+        mmu->set(LY, y);
+    }
+    // Reset LY
+    else {
+        mmu->set(LY, 0);
+    }
 
-void PPU::draw_sprites()
-{
+    // Arbitrary choice to refresh SDL screen at last line draw
+    return y == LINE_Y_COUNT;
 }
 
 void PPU::quit()
