@@ -13,8 +13,6 @@ PPU::PPU(MMU *mmu) : mmu(mmu)
     background_enabled = false;
 
     pixel_fifo = 0x00;
-
-    mmu->call_register(ADDR_LCDC, &on_lcd_control_set);
 }
 
 bool PPU::init()
@@ -62,6 +60,34 @@ bool PPU::init()
  */
 bool PPU::draw()
 {
+    uint8_t lcdc = mmu->get(ADDR_LCDC);
+
+    lcd_enabled = get_bit(lcdc, BIT_LCD_ENABLED);
+
+    window_enabled = get_bit(lcdc, BIT_WINDOW_ENABLED);
+    sprites_enabled = get_bit(lcdc, BIT_SPRITES_ENABLED);
+    background_enabled = get_bit(lcdc, BIT_BACKGROUND_ENABLED);
+
+    // Where are the tiles for gackground and window
+    bg_window_tile_data_address = TILE_ADDRESS_2;
+    if (get_bit(lcdc, BIT_BG_WINDOW_TILE_DATA_SELECT)) {
+        bg_window_tile_data_address = TILE_ADDRESS_1;
+    }
+
+    // Where are the data for background
+    bg_map_address = MAP_ADDRESS_2;
+    if (get_bit(lcdc, BIT_BG_MAP_SELECT)) {
+        bg_map_address = MAP_ADDRESS_1;
+    }
+
+    // Where are the data for window
+    window_map_address = MAP_ADDRESS_2;
+    if (get_bit(lcdc, BIT_WINDOW_MAP_SELECT)) {
+        window_map_address = MAP_ADDRESS_1;
+    }
+
+    big_sprites = get_bit(lcdc, BIT_SPRITES_SIZE);
+
     if (lcd_enabled) {
         SDL_FillRect(sdl_screen, NULL, palette[0b00]);
         if (background_enabled) {
@@ -82,17 +108,9 @@ bool PPU::draw()
     return SDL_UpdateWindowSurface(sdl_window) == 0;
 }
 
-void PPU::on_lcd_control_set()
-{
-    uint8_t lcdc = mmu->get(ADDR_LCDC);
-    lcd_enabled = get_bit(lcdc, BIT_LCD_ENABLED);
-    window_enabled = get_bit(lcdc, BIT_WINDOW_ENABLED);
-    sprites_enabled = get_bit(lcdc, BIT_SPRITES_ENABLED);
-    background_enabled = get_bit(lcdc, BIT_BACKGROUND_ENABLED);
-}
-
 void PPU::draw_background()
 {
+
 }
 
 void PPU::draw_window()
