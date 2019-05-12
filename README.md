@@ -31,7 +31,10 @@ Test with `./test`
 
 # TODO
 
-* [ ] Implement Z80 instruction set (80%)
+* [-] Implement Z80 instruction set
+    * [ ] Implement DAA
+    * [ ] Implement HALT
+    * [ ] Implement STOP
 * [ ] Implement interupts
 * [X] Implement MMU
 * [ ] Implement PPU
