@@ -73,7 +73,7 @@ private:
     void dec8(uint8_t *address);
 
     void add8();
-    void add16(uint8_t *dst, uint8_t *src);
+    void add16(uint8_t *dst, const uint8_t *src);
 
     void prefix_CB();
     void CB_set();
@@ -101,6 +101,7 @@ private:
     void jp_hl();
     void ei();
     void di();
+    void rst();
 };
 
 #endif /* CPU_H */

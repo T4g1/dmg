@@ -224,7 +224,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xC4] = &CPU::call;
     l_callback[0xC5] = &CPU::push;
     l_callback[0xC6] = &CPU::add;
-    l_callback[0xC7] = 0;
+    l_callback[0xC7] = &CPU::rst;
     l_callback[0xC8] = &CPU::ret;
     l_callback[0xC9] = &CPU::ret;
     l_callback[0xCA] = &CPU::jp;
@@ -232,7 +232,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xCC] = &CPU::call;
     l_callback[0xCD] = &CPU::call;
     l_callback[0xCE] = &CPU::add;
-    l_callback[0xCF] = 0;
+    l_callback[0xCF] = &CPU::rst;
 
     l_callback[0xD0] = &CPU::ret;
     l_callback[0xD1] = &CPU::pop;
@@ -241,7 +241,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xD4] = &CPU::call;
     l_callback[0xD5] = &CPU::push;
     l_callback[0xD6] = &CPU::sub;
-    l_callback[0xD7] = 0;
+    l_callback[0xD7] = &CPU::rst;
     l_callback[0xD8] = &CPU::ret;
     l_callback[0xD9] = &CPU::ret;
     l_callback[0xDA] = &CPU::jp;
@@ -249,7 +249,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xDC] = &CPU::call;
     l_callback[0xDD] = NULL;
     l_callback[0xDE] = &CPU::sub;
-    l_callback[0xDF] = 0;
+    l_callback[0xDF] = &CPU::rst;
 
     l_callback[0xE0] = &CPU::ld;
     l_callback[0xE1] = &CPU::pop;
@@ -258,15 +258,15 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xE4] = NULL;
     l_callback[0xE5] = &CPU::push;
     l_callback[0xE6] = &CPU::or_xor_and_cp;
-    l_callback[0xE7] = 0;
-    l_callback[0xE8] = 0;
+    l_callback[0xE7] = &CPU::rst;
+    l_callback[0xE8] = &CPU::add;
     l_callback[0xE9] = &CPU::jp_hl;
     l_callback[0xEA] = &CPU::ld;
     l_callback[0xEB] = NULL;
     l_callback[0xEC] = NULL;
     l_callback[0xED] = NULL;
     l_callback[0xEE] = &CPU::or_xor_and_cp;
-    l_callback[0xEF] = 0;
+    l_callback[0xEF] = &CPU::rst;
 
     l_callback[0xF0] = &CPU::ld;
     l_callback[0xF1] = &CPU::pop;
@@ -275,7 +275,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xF4] = NULL;
     l_callback[0xF5] = &CPU::push;
     l_callback[0xF6] = &CPU::or_xor_and_cp;
-    l_callback[0xF7] = 0;
+    l_callback[0xF7] = &CPU::rst;
     l_callback[0xF8] = &CPU::ld;
     l_callback[0xF9] = &CPU::ld;
     l_callback[0xFA] = &CPU::ld;
@@ -283,7 +283,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xFC] = NULL;
     l_callback[0xFD] = NULL;
     l_callback[0xFE] = &CPU::or_xor_and_cp;
-    l_callback[0xFF] = 0;
+    l_callback[0xFF] = &CPU::rst;
 }
 
 void CPU::reset()
@@ -434,9 +434,10 @@ void CPU::ld16(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
 void CPU::inc8(uint8_t *address)
 {
     *address = *address + 1;
-    if (*address == 0x00) {
-        *address = 0xFF;
-    }
+    // TODO: Necessary?
+    //if (*address == 0x00) {
+    //    *address = 0xFF;
+    //}
 
     reg[F] = set_bit(reg[F], FZ, *address == 0);
     reg[F] = set_bit(reg[F], FN, 0);
@@ -446,23 +447,86 @@ void CPU::inc8(uint8_t *address)
 void CPU::dec8(uint8_t *address)
 {
     *address = *address - 1;
-    if (*address == 0xFF) {
-        *address = 0;
-    }
+    // TODO: Necessary?
+    //if (*address == 0xFF) {
+    //    *address = 0;
+    //}
 
     reg[F] = set_bit(reg[F], FZ, *address == 0);
     reg[F] = set_bit(reg[F], FN, 1);
     reg[F] = set_bit(reg[F], FH, (*address & 0x0F) == 0x0F); // Went from 0xX0 to 0xXF
 }
 
-void CPU::add16(uint8_t *dst, uint8_t *src)
+/**
+ * @brief      Handles ADD and ADC
+ */
+void CPU::add8()
 {
+    const uint8_t *l_address[] = {
+        &reg[B],
+        &reg[C],
+        &reg[D],
+        &reg[E],
+        &reg[H],
+        &reg[L],
+        (const uint8_t*) mmu->at(reg16(HL)),
+        &reg[A]
+    };
+
+    uint8_t opcode = mmu->get(PC);
+    size_t target_index = opcode % 8;
+    const uint8_t *target = l_address[target_index];
+
+    // ADD/ADC d8
+    if (opcode > 0xC0) {
+        target = (const uint8_t*) mmu->at(PC + 1);
+        PC += 2;
+        clock += 8;
+    }
+    // (HL) case
+    else if (target_index == 6) {
+        PC += 1;
+        clock += 8;
+    } else {
+        PC += 1;
+        clock += 4;
+    }
+
+    uint16_t value = *target;
+
+    // ADC
+    if (opcode >= 0x88 && opcode != 0xC6) {
+        value += get_bit(reg[F], FC);
+
+        debug("ADC\n");
+    } else {
+        debug("ADD\n");
+    }
+
+    uint16_t result = reg[A] + value;
+
+    // FH set when adding carry flag
+    bool half_carry = (*target & 0xF0) < (value & 0xFFF0);
+
+    half_carry |= (reg[A] & 0x0F) + (value & 0x0F) > 0x0F;
+
+    reg[A] = (uint8_t) result;
+
+    reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
+    reg[F] = set_bit(reg[F], FN, 0);
+    reg[F] = set_bit(reg[F], FH, half_carry);
+    reg[F] = set_bit(reg[F], FC, result > 0x00FF);  // Overflow
+}
+
+void CPU::add16(uint8_t *dst, const uint8_t *src)
+{
+    debug("ADD 0x%04X to 0x%04X\n", *(uint16_t*) dst, *(uint16_t*) src);
     bool half_carry = false, carry = false;
 
     uint8_t *dh = dst;
-    uint8_t *sh = src;
+    const uint8_t *sh = src;
     uint8_t *dl = dst + 1;
-    uint8_t *sl = src + 1;
+    const uint8_t *sl = src + 1;
 
     int idl = (int)*dl;
     int isl = (int)*sl;
@@ -490,7 +554,7 @@ void CPU::add16(uint8_t *dst, uint8_t *src)
 void CPU::push()
 {
     uint8_t opcode = mmu->get(PC);
-    uint8_t value;
+    uint16_t value;
     if (opcode == 0xC5) {
         value = reg16(BC);
     }
@@ -504,7 +568,7 @@ void CPU::push()
         value = reg16(AF);
     }
 
-    uint8_t high = (uint8_t)((value & 0xFF00) >> 4);
+    uint8_t high = (uint8_t)((value & 0xFF00) >> 8);
     uint8_t low = (uint8_t)(value & 0x00FF);
 
     dec16(&reg[SP]);
@@ -745,6 +809,7 @@ void CPU::halt()
 void CPU::add()
 {
     size_t ticks = 4;
+    uint16_t value;
 
     uint8_t opcode = mmu->get(PC);
     switch(opcode) {
@@ -764,6 +829,15 @@ void CPU::add()
     case 0x39:
         add16(&reg[HL], &reg[SP]);
         ticks = 8;
+        break;
+    case 0xE8:
+        value = mmu->get(PC + 1);
+        add16(&reg[SP], (uint8_t*) &value);
+
+        reg[F] = set_bit(reg[F], FZ, 0);
+
+        ticks = 16;
+        PC += 1;
         break;
     default:
         add8();
@@ -1342,67 +1416,6 @@ void CPU::or_xor_and_cp()
 }
 
 /**
- * @brief      Handles ADD and ADC
- */
-void CPU::add8()
-{
-    const uint8_t *l_address[] = {
-        &reg[B],
-        &reg[C],
-        &reg[D],
-        &reg[E],
-        &reg[H],
-        &reg[L],
-        (const uint8_t*) mmu->at(reg16(HL)),
-        &reg[A]
-    };
-
-    uint8_t opcode = mmu->get(PC);
-    size_t target_index = opcode % 8;
-    const uint8_t *target = l_address[target_index];
-
-    // ADD/ADC d8
-    if (opcode > 0xC0) {
-        target = (const uint8_t*) mmu->at(PC + 1);
-        PC += 2;
-        clock += 8;
-    }
-    // (HL) case
-    else if (target_index == 6) {
-        PC += 1;
-        clock += 8;
-    } else {
-        PC += 1;
-        clock += 4;
-    }
-
-    uint16_t value = *target;
-
-    // ADC
-    if (opcode >= 0x88 && opcode != 0xC6) {
-        value += get_bit(reg[F], FC);
-
-        debug("ADC\n");
-    } else {
-        debug("ADD\n");
-    }
-
-    uint16_t result = reg[A] + value;
-
-    // FH set when adding carry flag
-    bool half_carry = (*target & 0xF0) < (value & 0xFFF0);
-
-    half_carry |= (reg[A] & 0x0F) + (value & 0x0F) > 0x0F;
-
-    reg[A] = (uint8_t) result;
-
-    reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
-    reg[F] = set_bit(reg[F], FN, 0);
-    reg[F] = set_bit(reg[F], FH, half_carry);
-    reg[F] = set_bit(reg[F], FC, result > 0x00FF);  // Overflow
-}
-
-/**
  * @brief      Handles SUB and SBC
  */
 void CPU::sub()
@@ -1479,4 +1492,46 @@ void CPU::di()
 
     PC += 1;
     clock += 4;
+}
+
+void CPU::rst()
+{
+    uint8_t opcode = mmu->get(PC);
+
+    PC += 1;
+
+    uint8_t high = (uint8_t)((PC & 0xFF00) >> 4);
+    uint8_t low = (uint8_t)(PC & 0x00FF);
+
+    mmu->set(SP - 1, high);
+    mmu->set(SP - 2, low);
+
+    switch(opcode) {
+    case 0xC7:
+        PC = 0x00;
+        break;
+    case 0xCF:
+        PC = 0x08;
+        break;
+    case 0xD7:
+        PC = 0x10;
+        break;
+    case 0xDF:
+        PC = 0x18;
+        break;
+    case 0xE7:
+        PC = 0x20;
+        break;
+    case 0xEF:
+        PC = 0x28;
+        break;
+    case 0xF7:
+        PC = 0x30;
+        break;
+    case 0xFF:
+        PC = 0x38;
+        break;
+    }
+
+    clock += 16;
 }

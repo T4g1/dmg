@@ -328,8 +328,10 @@ bool test_CPU_ADD()
         0x87,       // ADD A,A
 
         0x88,       // ADC A,B
+
+        0xE8, 0x11, // ADD SP,r8
     };
-    mmu->load(program, 9);
+    mmu->load(program, 11);
 
     cpu->reg[A] = 0x11;
     cpu->step();
@@ -372,6 +374,9 @@ bool test_CPU_ADD()
     ASSERT(cpu->get_flag(FH));
     ASSERT(cpu->get_flag(FC));
     ASSERT(cpu->reg[A] == 0x00);
+
+    cpu->step();
+    ASSERTV(cpu->reg16(SP) == 0x10FE, "SP: 0x%04X\n", cpu->reg16(SP));
 
     return true;
 }
@@ -506,6 +511,66 @@ bool test_CPU_AND()
     execute({ 0xA0 });  // AND B
     ASSERT(cpu->reg[A] == 0x00);
     ASSERT(cpu->get_flag(FZ));
+
+    return true;
+}
+
+bool test_CPU_CALL_RET()
+{
+    init(0x00);
+
+    size_t size = 13;
+    uint8_t program[] = {
+        0xCD, 0x0A, 0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x00,
+        0x3E, 0x4C,
+        0xC9
+    };
+    mmu->load(program, size);
+
+    cpu->step();
+    ASSERTV(cpu->PC == 10, "PC: 0x%02X\n", cpu->PC);
+
+    cpu->step();
+    ASSERTV(cpu->PC == 12, "PC: 0x%02X\n", cpu->PC);
+
+    cpu->step();
+
+    //cpu->display_registers();
+    //mmu->dump(0xFFF0, 0xFFFF);
+
+    ASSERT(cpu->reg[A] == 0x4C);
+    ASSERTV(cpu->PC == 3, "PC: 0x%02X\n", cpu->PC);
+
+    return true;
+}
+
+bool test_CPU_RST()
+{
+    init(0x00);
+
+    uint8_t program[] = {
+        0x3C,
+        0xC7
+    };
+    mmu->load(program, 2);
+
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    ASSERTV(cpu->PC == 0, "PC: 0x%02X\n", cpu->PC);
+    ASSERTV(cpu->reg[A] == 4, "A: 0x%02X\n", cpu->reg[A]);
 
     return true;
 }
@@ -968,42 +1033,6 @@ bool test_audio_init()
     return true;
 }
 
-bool test_CPU_CALL_RET()
-{
-    init(0x00);
-
-    size_t size = 13;
-    uint8_t program[] = {
-        0xCD, 0x0A, 0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x00,
-        0x3E, 0x4C,
-        0xC9
-    };
-    mmu->load(program, size);
-
-    cpu->step();
-    ASSERTV(cpu->PC == 10, "PC: 0x%02X\n", cpu->PC);
-
-    cpu->step();
-    ASSERTV(cpu->PC == 12, "PC: 0x%02X\n", cpu->PC);
-
-    cpu->step();
-
-    //cpu->display_registers();
-    //mmu->dump(0xFFF0, 0xFFFF);
-
-    ASSERT(cpu->reg[A] == 0x4C);
-    ASSERTV(cpu->PC == 3, "PC: 0x%02X\n", cpu->PC);
-
-    return true;
-}
-
 bool test_graphic_routine()
 {
     init(0x00);
@@ -1048,13 +1077,39 @@ bool test_graphic_routine()
     ASSERT(cpu->PC == 0x0F);
 
     size_t opcount = 0;
-    const size_t max_opcount = 20;
+    const size_t max_opcount = 100;
     while (cpu->PC != 14 && opcount < max_opcount) {
         cpu->step();
         opcount++;
     }
 
     ASSERT(opcount < max_opcount);
+
+    return true;
+}
+
+bool test_CPU_PUSH_POP()
+{
+    init(0x00);
+
+    size_t size = 2;
+    uint8_t program[] = {
+        0xC5,
+        0xC1
+    };
+    mmu->load(program, size);
+
+    cpu->reg[B] = 0x12;
+    cpu->reg[C] = 0x34;
+
+    cpu->step();
+
+    cpu->reg[B] = 0x00;
+    cpu->reg[C] = 0x00;
+
+    cpu->step();
+    ASSERTV(cpu->reg[B] == 0x12, "B: 0x%02X\n", cpu->reg[B]);
+    ASSERTV(cpu->reg[C] == 0x34, "C: 0x%02X\n", cpu->reg[C]);
 
     return true;
 }
@@ -1088,8 +1143,9 @@ int main(void)
     test("CPU: OR", &test_CPU_OR);
     test("CPU: AND", &test_CPU_AND);
     test("CPU: CALL/RET", &test_CPU_CALL_RET);
+    test("CPU: RST", &test_CPU_RST);
+    test("CPU: PUSH/POP", &test_CPU_PUSH_POP);
 
-    // TODO: Test PUSH/POP
     // TODO: Test INC/DEC
 
     test("PROGRAM: Zero memory from $8000 to $9FFF", &test_zero_memory);
