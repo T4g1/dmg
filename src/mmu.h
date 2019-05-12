@@ -17,6 +17,8 @@ enum address_type {
     BOOT,
     ROM,
     RAM,
+    VRAM,
+    OAM,
     REG_BOOT_ROM_ENABLE,
 };
 

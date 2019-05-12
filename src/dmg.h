@@ -1,9 +1,8 @@
 #ifndef DMG_H
 #define DMG_H
 
-#include "cpu.h"
-#include "mmu.h"
 #include "ppu.h"
+#include "cpu.h"
 #include "cartridge.h"
 
 #define FRAME_CYCLES        70244  //<! Amount of CPU cycle between each frame

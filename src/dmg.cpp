@@ -2,11 +2,12 @@
 #include <stdlib.h>
 #include <stdbool.h>
 
-#include <SDL/SDL.h>
+#include <SDL2/SDL.h>
 
 #include "log.h"
 
 #include "dmg.h"
+#include <unistd.h>     // DEBUG
 
 
 int DMG::run(const char *path_bios, const char *path_rom)
@@ -34,6 +35,9 @@ int DMG::run(const char *path_bios, const char *path_rom)
         return EXIT_FAILURE;
     }
 
+    // Initial black screen
+    ppu->draw();
+
     bool running = true;
     while (running) {
         step_frame();
@@ -46,6 +50,8 @@ int DMG::run(const char *path_bios, const char *path_rom)
             }
         }
     }
+
+    ppu->quit();
 
     return EXIT_SUCCESS;
 }
