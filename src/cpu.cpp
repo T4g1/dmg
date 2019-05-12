@@ -349,11 +349,6 @@ void CPU::step()
     }
 
     (*this.*l_callback[opcode])();
-
-    // DEBUG
-    if (PC >= 0x0027) {
-        sleep(1);
-    }
 }
 
 /**
@@ -434,10 +429,6 @@ void CPU::ld16(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
 void CPU::inc8(uint8_t *address)
 {
     *address = *address + 1;
-    // TODO: Necessary?
-    //if (*address == 0x00) {
-    //    *address = 0xFF;
-    //}
 
     reg[F] = set_bit(reg[F], FZ, *address == 0);
     reg[F] = set_bit(reg[F], FN, 0);
@@ -447,10 +438,6 @@ void CPU::inc8(uint8_t *address)
 void CPU::dec8(uint8_t *address)
 {
     *address = *address - 1;
-    // TODO: Necessary?
-    //if (*address == 0xFF) {
-    //    *address = 0;
-    //}
 
     reg[F] = set_bit(reg[F], FZ, *address == 0);
     reg[F] = set_bit(reg[F], FN, 1);
@@ -1379,6 +1366,8 @@ void CPU::or_xor_and_cp()
         reg[F] = set_bit(reg[F], FN, 1);
         reg[F] = set_bit(reg[F], FH, (reg[A] & 0x0F) < (*target & 0x0F));
         reg[F] = set_bit(reg[F], FC, !(result & 0x100));   // Underflow
+
+        debug("CP\n");
     }
     // OR
     else if ((opcode >= 0xB0 && opcode < 0xB8) || opcode == 0xF6) {
