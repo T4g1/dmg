@@ -38,7 +38,7 @@ bool Cartridge::load(const char *path_rom)
 
         // First memory bank: We need the type of MBC to use
         if (mb_index == 0) {
-            uint8_t cartridge_type = memory_bank[0x0147];
+            uint8_t cartridge_type = memory_bank[CARTRIDGE_TYPE_ADDRESS];
             //debug("Cartridge type: 0x%02X\n", cartridge_type);
 
             if (cartridge_type == 0x01) {

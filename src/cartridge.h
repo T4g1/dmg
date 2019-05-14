@@ -5,6 +5,8 @@
 
 #include "mbc.h"
 
+#define CARTRIDGE_TYPE_ADDRESS      0x0147
+
 
 /**
  * @brief      DMG Emulator
