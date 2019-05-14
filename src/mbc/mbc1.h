@@ -20,6 +20,7 @@ public:
 
     const void *at(uint16_t address);
     bool load(size_t mb_index, const uint8_t *rom);
+    void dump(size_t mb_index, uint16_t start, uint16_t end);
 };
 
 #endif /* MBC1_H */

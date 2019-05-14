@@ -1181,7 +1181,7 @@ void CPU::ld()
 
 void CPU::rxa()
 {
-    uint8_t opcode = mmu->get(PC + 1);
+    uint8_t opcode = mmu->get(PC);
     bool is_left = true;
     if (opcode == 0x0F || opcode == 0x1F) {
         is_left = false;
@@ -1190,13 +1190,17 @@ void CPU::rxa()
     bool carry, old_carry = get_bit(reg[F], FC);
     reg[A] = rotate(reg[A], is_left, &carry);
 
+    bool new_value = carry;
+
     /* Through carry flag */
-    if (opcode == 0x17 || opcode == 0x01F) {
-        if (is_left) {
-            reg[A] = set_bit(reg[A], 0, old_carry);
-        } else {
-            reg[A] = set_bit(reg[A], 7, old_carry);
-        }
+    if (opcode == 0x17 || opcode == 0x1F) {
+        new_value = old_carry;
+    }
+
+    if (is_left) {
+        reg[A] = set_bit(reg[A], 0, new_value);
+    } else {
+        reg[A] = set_bit(reg[A], 7, new_value);
     }
 
     reg[F] = set_bit(reg[F], FZ, 0);

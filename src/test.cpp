@@ -191,9 +191,15 @@ bool test_CPU_LD_8bit()
     init(0x00);
     cpu->reg[A] = 0xEE;
 
+    execute({ 0x4F });      // LD C, A
+
+    ASSERT(cpu->reg[A] == 0xEE);
+    ASSERT(cpu->reg[C] == 0xEE);
+
     execute({ 0x5F });      // LD E, A
 
-    ASSERT(cpu->reg[E] == cpu->reg[A]);
+    ASSERT(cpu->reg[A] == 0xEE);
+    ASSERT(cpu->reg[E] == 0xEE);
 
     execute({ 0x77 });      // LD (HL), A
 
@@ -572,6 +578,61 @@ bool test_CPU_RST()
     cpu->step();
     ASSERTV(cpu->PC == 0, "PC: 0x%02X\n", cpu->PC);
     ASSERTV(cpu->reg[A] == 4, "A: 0x%02X\n", cpu->reg[A]);
+
+    return true;
+}
+
+bool test_CPU_PUSH_POP()
+{
+    init(0x00);
+
+    size_t size = 2;
+    uint8_t program[] = {
+        0xC5,       // PUSH BC
+        0xC1        // POP BC
+    };
+    mmu->load(program, size);
+
+    cpu->reg[B] = 0x12;
+    cpu->reg[C] = 0x34;
+
+    cpu->step();
+
+    cpu->reg[B] = 0x00;
+    cpu->reg[C] = 0x00;
+
+    cpu->step();
+    ASSERTV(cpu->reg[B] == 0x12, "B: 0x%02X\n", cpu->reg[B]);
+    ASSERTV(cpu->reg[C] == 0x34, "C: 0x%02X\n", cpu->reg[C]);
+
+    return true;
+}
+
+bool test_CPU_RLA_RLCA()
+{
+    init(0xF0);
+
+    execute({ 0x07 });      // RLCA
+    ASSERTV(cpu->reg[A] == 0b11100001, "A: 0x%02X\n", cpu->reg[A]);
+    ASSERT(cpu->get_flag(FC));          // Test carry flag
+
+    init(0xF0);
+
+    execute({ 0x17 });      // RLA
+    ASSERTV(cpu->reg[A] == 0b11100000, "A: 0x%02X\n", cpu->reg[A]);
+    ASSERT(cpu->get_flag(FC));          // Test carry flag
+
+    init(0x0F);
+
+    execute({ 0x0F });      // RRCA
+    ASSERTV(cpu->reg[A] == 0b10000111, "A: 0x%02X\n", cpu->reg[A]);
+    ASSERT(cpu->get_flag(FC));          // Test carry flag
+
+    init(0x0F);
+
+    execute({ 0x1F });      // RRA
+    ASSERTV(cpu->reg[A] == 0b00000111, "A: 0x%02X\n", cpu->reg[A]);
+    ASSERT(cpu->get_flag(FC));          // Test carry flag
 
     return true;
 }
@@ -1089,32 +1150,6 @@ bool test_graphic_routine()
     return true;
 }
 
-bool test_CPU_PUSH_POP()
-{
-    init(0x00);
-
-    size_t size = 2;
-    uint8_t program[] = {
-        0xC5,
-        0xC1
-    };
-    mmu->load(program, size);
-
-    cpu->reg[B] = 0x12;
-    cpu->reg[C] = 0x34;
-
-    cpu->step();
-
-    cpu->reg[B] = 0x00;
-    cpu->reg[C] = 0x00;
-
-    cpu->step();
-    ASSERTV(cpu->reg[B] == 0x12, "B: 0x%02X\n", cpu->reg[B]);
-    ASSERTV(cpu->reg[C] == 0x34, "C: 0x%02X\n", cpu->reg[C]);
-
-    return true;
-}
-
 bool test_CARTRIDGE_read_MBC1()
 {
     Cartridge cart;
@@ -1163,6 +1198,7 @@ int main(void)
     test("CPU: CALL/RET", &test_CPU_CALL_RET);
     test("CPU: RST", &test_CPU_RST);
     test("CPU: PUSH/POP", &test_CPU_PUSH_POP);
+    test("CPU: RLA/RLCA", &test_CPU_RLA_RLCA);
 
     // TODO: Test INC/DEC
 

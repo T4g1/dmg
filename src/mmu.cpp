@@ -52,8 +52,9 @@ bool MMU::set(uint16_t address, uint8_t value)
 {
     address_type identity = get_address_identity(address);
     // DEBUG
-    //if (address < 0xFF00)
-    //    info("set 0x%04X 0x%02X\n", address, value);
+    if (address < 0xFF00) {
+        debug("set 0x%04X 0x%02X\n", address, value);
+    }
 
     if (identity == RAM) {
         ram[address] = value;
