@@ -1042,26 +1042,26 @@ bool test_graphic_routine()
     uint8_t program[] = {
         0x3E, 0xFC,
         0xE0, 0x47,
-        0x11, 0x04, 0x01,
-        0x21, 0x10, 0x80,
-        0x1A,
-        0xCD, 0x0F, 0x00,
-        0x00,
-        0x4f,
-        0x06, 0x04,
-        0xc5,
-        0xcb, 0x11,
-        0x17,
-        0xc1,
-        0xcb, 0x11,
-        0x17,
-        0x05,
-        0x20, 0xF5,
-        0x22,
-        0x23,
-        0x22,
-        0x23,
-        0xc9,
+        0x11, 0x04, 0x01,       // LD DE, 0x0104
+        0x21, 0x10, 0x80,       // LD HL, 0x8010
+        0x1A,                   // LD A, (DE)
+        0xCD, 0x0F, 0x00,       // CALL
+        0x00,                   // NOP
+        0x4f,                   // LD C, A
+        0x06, 0x04,             // LD B, 0x04
+        0xc5,                   // PUSH BC
+        0xcb, 0x11,             // RL C
+        0x17,                   // RLA
+        0xc1,                   // POP BC
+        0xcb, 0x11,             // RL C
+        0x17,                   // RLA
+        0x05,                   // DEC B
+        0x20, 0xF5,             // JR NZ,
+        0x22,                   // LD (HL+), A
+        0x23,                   // INC HL
+        0x22,                   // LD (HL+), A
+        0x23,                   // INC HL
+        0xc9,                   // RET
     };
     mmu->load(program, size);
 
@@ -1074,7 +1074,7 @@ bool test_graphic_routine()
     cpu->step();
     cpu->step();
     cpu->step();
-    ASSERT(cpu->reg[A] == 0x00);
+    ASSERTV(cpu->reg[A] == 0x00, "A: 0x%02X\n", cpu->reg[A]);
     ASSERT(cpu->PC == 0x0F);
 
     size_t opcount = 0;
@@ -1111,6 +1111,23 @@ bool test_CPU_PUSH_POP()
     cpu->step();
     ASSERTV(cpu->reg[B] == 0x12, "B: 0x%02X\n", cpu->reg[B]);
     ASSERTV(cpu->reg[C] == 0x34, "C: 0x%02X\n", cpu->reg[C]);
+
+    return true;
+}
+
+bool test_CARTRIDGE_read_MBC1()
+{
+    Cartridge cart;
+    ASSERT(cart.load("tests/data/fake_rom.gb"));
+
+    mmu->set_cartridge(&cart);
+
+    ASSERT(mmu->get(0x0104) == 0xCE);
+
+    cpu->reg[D] = 0x01;
+    cpu->reg[E] = 0x04;
+    execute({ 0x1A });      // LD A,(DE)
+    ASSERT(cpu->reg[A] == 0xCE);
 
     return true;
 }
@@ -1152,6 +1169,8 @@ int main(void)
     test("PROGRAM: Zero memory from $8000 to $9FFF", &test_zero_memory);
     test("PROGRAM: Init sound control registers", &test_audio_init);
     test("PROGRAM: Boot graphic routine", &test_graphic_routine);
+
+    test("CARTRIDGE: Read from MBC1", &test_CARTRIDGE_read_MBC1);
 
     return EXIT_SUCCESS;
 }
