@@ -318,19 +318,19 @@ void CPU::reset()
     mmu->set(0xFF21, 0x00);     //<! NR42
     mmu->set(0xFF22, 0x00);     //<! NR43
     mmu->set(0xFF23, 0xBF);     //<! NR44
-    mmu->set(0xFF23, 0x77);     //<! NR50
-    mmu->set(0xFF23, 0xF3);     //<! NR51
-    mmu->set(0xFF23, 0xF1);     //<! NR52
-    mmu->set(0xFF23, 0x91);     //<! LCDC
-    mmu->set(0xFF23, 0x00);     //<! SCY
-    mmu->set(0xFF23, 0x00);     //<! SCX
-    mmu->set(0xFF23, 0x00);     //<! LYC
-    mmu->set(0xFF23, 0xFC);     //<! BGP
-    mmu->set(0xFF23, 0xFF);     //<! OBP0
-    mmu->set(0xFF23, 0xFF);     //<! OBP1
-    mmu->set(0xFF23, 0x00);     //<! WY
-    mmu->set(0xFF23, 0x00);     //<! WX
-    mmu->set(0xFF23, 0x00);     //<! IE
+    mmu->set(0xFF24, 0x77);     //<! NR50
+    mmu->set(0xFF25, 0xF3);     //<! NR51
+    mmu->set(0xFF26, 0xF1);     //<! NR52
+    mmu->set(LCDC, 0x91);       //<! LCDC
+    mmu->set(SCY, 0x00);        //<! SCY
+    mmu->set(SCX, 0x00);        //<! SCX
+    mmu->set(LYC, 0x00);        //<! LYC
+    mmu->set(0xFF47, 0xFC);     //<! BGP
+    mmu->set(0xFF48, 0xFF);     //<! OBP0
+    mmu->set(0xFF49, 0xFF);     //<! OBP1
+    mmu->set(0xFF4A, 0x00);     //<! WY
+    mmu->set(0xFF4B, 0x00);     //<! WX
+    mmu->set(0xFFFF, 0x00);     //<! IE
 
     IME = true;
 }

@@ -13,6 +13,17 @@
 #define BOOT_END        0x00FF
 #define BOOT_ROM_ENABLE 0xFF50
 
+#define TILE_ADDRESS_1      0x8000
+#define TILE_ADDRESS_2      0x8800
+#define MAP_ADDRESS_1       0x9800
+#define MAP_ADDRESS_2       0x9C00
+
+#define LCDC                0xFF40  // LCD Controle register
+#define SCY                 0xFF42
+#define SCX                 0xFF43
+#define LY                  0xFF44
+#define LYC                 0xFF45      // TODO
+
 enum address_type {
     BOOT,
     ROM,

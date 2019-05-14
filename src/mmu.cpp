@@ -33,7 +33,7 @@ address_type MMU::get_address_identity(uint16_t address)
         return ROM;
     }
 
-    // BOOT ROM enable refister
+    // BOOT ROM enable register
     if (address == BOOT_ROM_ENABLE) {
         return REG_BOOT_ROM_ENABLE;
     }
@@ -51,6 +51,9 @@ address_type MMU::get_address_identity(uint16_t address)
 bool MMU::set(uint16_t address, uint8_t value)
 {
     address_type identity = get_address_identity(address);
+    // DEBUG
+    //if (address < 0xFF00)
+    //    info("set 0x%04X 0x%02X\n", address, value);
 
     if (identity == RAM) {
         ram[address] = value;
@@ -76,7 +79,8 @@ bool MMU::set(uint16_t address, uint8_t value)
  */
 const void *MMU::at(uint16_t address)
 {
-    if (get_address_identity(address) == ROM) {
+    address_type identity = get_address_identity(address);
+    if (identity == ROM) {
         if (cart != nullptr) {
             return cart->at(address);
         }

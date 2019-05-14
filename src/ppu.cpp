@@ -1,6 +1,7 @@
 #include "ppu.h"
 
 #include <SDL2/SDL.h>
+#include <unistd.h>     // DEBUG
 
 #include "log.h"
 #include "utils.h"
@@ -61,7 +62,7 @@ bool PPU::init()
  */
 bool PPU::draw()
 {
-    uint8_t lcdc = mmu->get(ADDR_LCDC);
+    uint8_t lcdc = mmu->get(LCDC);
 
     lcd_enabled = get_bit(lcdc, BIT_LCD_ENABLED);
 
@@ -76,20 +77,22 @@ bool PPU::draw()
     }
 
     // Where are the data for background
-    bg_map_address = MAP_ADDRESS_2;
+    bg_map_address = MAP_ADDRESS_1;
     if (get_bit(lcdc, BIT_BG_MAP_SELECT)) {
-        bg_map_address = MAP_ADDRESS_1;
+        bg_map_address = MAP_ADDRESS_2;
     }
 
     // Where are the data for window
-    window_map_address = MAP_ADDRESS_2;
+    window_map_address = MAP_ADDRESS_1;
     if (get_bit(lcdc, BIT_WINDOW_MAP_SELECT)) {
-        window_map_address = MAP_ADDRESS_1;
+        window_map_address = MAP_ADDRESS_2;
     }
 
-    big_sprites = get_bit(lcdc, BIT_SPRITES_SIZE);
+    /*sprite_height = 8;
+    if (get_bit(lcdc, BIT_SPRITES_SIZE)) {
+        sprite_height = 16;
+    }*/
 
-    bool refresh = false;
     if (lcd_enabled) {
         if (draw_line()) {
             return SDL_UpdateWindowSurface(sdl_window) == 0;
@@ -113,45 +116,32 @@ bool PPU::draw()
  */
 bool PPU::draw_line()
 {
-    const size_t FIFO_SIZE = 16;
-    uint8_t pixel_fifo[FIFO_SIZE] = { 0b00 };
+    pf_size = 0;
+    pf_index = 0;
 
-    // DEBUG
-    pixel_fifo[0] = 0b00;
-    pixel_fifo[1] = 0b01;
-    pixel_fifo[2] = 0b10;
-    pixel_fifo[3] = 0b11;
-    pixel_fifo[4] = 0b11;
-    pixel_fifo[5] = 0b10;
+    uint8_t ly = mmu->get(LY);
 
-    size_t pf_size = 0;             // How many pixels in the FIFO
-    size_t pf_index = 0;            // Position in the FIFO
-
-    uint8_t y = mmu->get(LY);
-    if (y < LINE_Y_COUNT) {
-        y += 1;
-        mmu->set(LY, y);
-
+//    info("LY: 0x%02X\n", ly);
+    if (ly < LINE_Y_COUNT) {
         // Viewport position
-        uint8_t scy = mmu->get(BG_SCY);
-        uint8_t scx = mmu->get(BG_SCX);
+        uint8_t scy = mmu->get(SCY);
+        uint8_t scx = mmu->get(SCX);
+//        info("SCX: 0x%02X ", scx);
+//        info("SCY: 0x%02X\n", scy);
 
-        // DEBUG
-        pf_index = scy % FIFO_SIZE;
+        fetch(scx, scy, 0, ly);
 
         for (size_t x=0; x<LINE_X_COUNT; x++) {
-            if (pf_size <= 8) {
-                // Fetch next 8 pixels
-                // TODO
-
-                pf_size += 8;
+            // Fetch next 8 pixels
+            if (pf_size <= TILE_WIDTH) {
+                fetch(scx, scy, x, ly);
             }
 
             size_t pixel = pixel_fifo[pf_index];
             pf_index = (pf_index + 1) % FIFO_SIZE;
             pf_size -= 1;
 
-            set_pixel(sdl_screen, x, y, palette[pixel]);
+            set_pixel(sdl_screen, x, ly, palette[pixel]);
         }
 
         clock += CLOCK_OAM_SEARCH;
@@ -159,13 +149,16 @@ bool PPU::draw_line()
 
         // H-Blank
         clock += CLOCK_H_BLANK;
+
+        ly += 1;
+        mmu->set(LY, ly);
     }
     // V-Blank
-    else if (y < MAX_LY) {
+    else if (ly < MAX_LY) {
         clock += CLOCK_V_BLANK;
 
-        y += 1;
-        mmu->set(LY, y);
+        ly += 1;
+        mmu->set(LY, ly);
     }
     // Reset LY
     else {
@@ -173,7 +166,46 @@ bool PPU::draw_line()
     }
 
     // Arbitrary choice to refresh SDL screen at last line draw
-    return y == LINE_Y_COUNT;
+    return ly == LINE_Y_COUNT;
+}
+
+void PPU::fetch(uint8_t scx, uint8_t scy, size_t x, size_t ly)
+{
+    // We want the position of the viewport)
+    // We add pf_size so we get the pixels needed when the fifo arrives at those pixels
+    size_t viewport_x = (scx + x + pf_size) % (BG_MAP_WIDTH * TILE_WIDTH);
+    size_t viewport_y = (scy + ly) % (BG_MAP_HEIGHT * TILE_HEIGHT);
+
+    // Index of the tile in the BG map
+    size_t tile_x = viewport_x / TILE_WIDTH;
+    size_t tile_y = viewport_y / TILE_HEIGHT;
+
+    // Address of the sprite in the BG map
+    uint16_t map_address = bg_map_address + (tile_y * BG_MAP_WIDTH) + tile_x;
+
+    // Tile index in the BG tileset
+    uint8_t tile_id  = mmu->get(map_address);
+
+    // Address of the sprite in the BG tileset
+    uint16_t tile_address = bg_window_tile_data_address + (tile_id * TILE_SIZE);
+
+    // Data for the current line of the tile being drawn
+    uint16_t tile_line_address = tile_address + TILE_LINE_SIZE * (viewport_y % TILE_HEIGHT);
+    //uint16_t tile_line_address = 0x8190 + TILE_LINE_SIZE * (viewport_y % TILE_HEIGHT);
+
+    uint8_t data1 = mmu->get(tile_line_address);
+    uint8_t data2 = mmu->get(tile_line_address + 1);
+
+    // Exctract the 8 pixels for the data
+    for (size_t i=0; i<TILE_WIDTH; i++) {
+        // 8 first bit (data1) = first bit of data for the pixels
+        // 8 last bit (data2) = second bit of data for the pixels
+        // b7 b6 b5 b4 b3 b2 b1 b0 so 7 - i to get correct bit
+        size_t bit1 = get_bit(data1, 7 - i);
+        size_t bit2 = get_bit(data2, 7 - i);
+
+        pixel_fifo[pf_size++] = (bit1 << 1) + bit2;
+    }
 }
 
 void PPU::quit()

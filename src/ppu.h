@@ -11,7 +11,6 @@
 #define SCREEN_WIDTH            LINE_X_COUNT
 #define SCREEN_HEIGHT           LINE_Y_COUNT
 
-#define ADDR_LCDC               0xFF40  // LCD Controle register
 
 #define BIT_LCD_ENABLED                     7
 #define BIT_WINDOW_MAP_SELECT               6
@@ -24,16 +23,6 @@
 
 #define PALETTE_SIZE            4       // How many colors available
 
-#define TILE_ADDRESS_1      0x8000
-#define TILE_ADDRESS_2      0x8800
-#define MAP_ADDRESS_1       0x9800
-#define MAP_ADDRESS_2       0x9C00
-
-#define BG_SCY              0xFF42
-#define BG_SCX              0xFF43
-#define LY                  0xFF44
-#define LYC                 0xFF45      // TODO
-
 #define V_BLANK_PERIOD      10
 #define MAX_LY              LINE_Y_COUNT + V_BLANK_PERIOD
 
@@ -42,6 +31,21 @@
 #define CLOCK_PIXEL_TRANSFER    43
 #define CLOCK_H_BLANK           51
 #define CLOCK_V_BLANK           CLOCK_OAM_SEARCH + CLOCK_PIXEL_TRANSFER + CLOCK_H_BLANK
+
+#define BG_MAP_WIDTH            32
+#define BG_MAP_HEIGHT           32
+
+#define PIXEL_SIZE              2      // Size of a pixel data in bit
+
+// TODO: SPRITE_HEIGHT should be handled by the BIT_SPRITE_SIZE in LCDC
+#define TILE_HEIGHT             8
+#define TILE_WIDTH              8
+#define TILE_LINE_SIZE          2       // Size of a line of a tile in bytes
+
+// Size of a tile in memory in bytes. Should be 0x10
+#define TILE_SIZE               TILE_HEIGHT * TILE_LINE_SIZE
+
+#define FIFO_SIZE               16
 
 /**
  * @brief      Pixel Processing Unit
@@ -74,13 +78,18 @@ private:
     bool sprites_enabled;
     bool background_enabled;
 
-    bool big_sprites;            // Sprites have height 8 if false, 16 if true
+    //size_t sprite_height;
 
     uint16_t bg_window_tile_data_address;
     uint16_t bg_map_address;
     uint16_t window_map_address;
 
+    uint8_t pixel_fifo[FIFO_SIZE];
+    size_t pf_size;             // How many pixels in the FIFO
+    size_t pf_index;            // Position in the FIFO
+
     bool draw_line();
+    void fetch(uint8_t scx, uint8_t scy, size_t x, size_t ly);
 };
 
 #endif /* PPU_H */
