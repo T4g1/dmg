@@ -18,7 +18,7 @@ MBC1::MBC1() : selected_mbc(0)
  */
 const void *MBC1::at(uint16_t address)
 {
-    debug("MBC1 %zu 0x%04X : 0x%02X\n", selected_mbc, address, mbc[selected_mbc][address % MBC_SIZE]);
+    //debug("MBC1 %zu 0x%04X : 0x%02X\n", selected_mbc, address, mbc[selected_mbc][address % MBC_SIZE]);
     return &mbc[selected_mbc][address % MBC_SIZE];
 }
 

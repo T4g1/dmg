@@ -187,7 +187,6 @@ void PPU::fetch(uint8_t scx, uint8_t scy, size_t x, size_t ly)
 
     // Data for the current line of the tile being drawn
     uint16_t tile_line_address = tile_address + TILE_LINE_SIZE * (viewport_y % TILE_HEIGHT);
-    //uint16_t tile_line_address = 0x8190 + TILE_LINE_SIZE * (viewport_y % TILE_HEIGHT);
 
     uint8_t data1 = mmu->get(tile_line_address);
     uint8_t data2 = mmu->get(tile_line_address + 1);
@@ -200,7 +199,7 @@ void PPU::fetch(uint8_t scx, uint8_t scy, size_t x, size_t ly)
         size_t bit1 = get_bit(data1, 7 - i);
         size_t bit2 = get_bit(data2, 7 - i);
 
-        pixel_fifo[pf_size++] = (bit1 << 1) + bit2;
+        pixel_fifo[(pf_index + pf_size++) % FIFO_SIZE] = (bit1 << 1) + bit2;
     }
 }
 

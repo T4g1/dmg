@@ -522,6 +522,21 @@ bool test_CPU_AND()
     return true;
 }
 
+bool test_CPU_CP()
+{
+    init(0x00);
+
+    cpu->reg[A] = 0x09;
+    execute({ 0xFE, 0x90 });        // CP 0x90
+    ASSERT(!cpu->get_flag(FZ));
+
+    cpu->reg[A] = 0x90;
+    execute({ 0xFE, 0x90 });        // CP 0x90
+    ASSERT(cpu->get_flag(FZ));
+
+    return true;
+}
+
 bool test_CPU_CALL_RET()
 {
     init(0x00);
@@ -667,6 +682,37 @@ bool test_BIN_RLC()
     init(0x00);
     execute({ 0xCB, 0x08 });
     ASSERT(cpu->reg[F] == 0b10000000);
+
+    return true;
+}
+
+bool test_CPU_INC_DEC()
+{
+    init(0xF0);
+
+    execute({ 0x04 });      // INC B
+    ASSERT(cpu->reg[B] == 0xF1);
+
+    init(0xFF);
+
+    execute({ 0x04 });      // INC B
+    ASSERT(cpu->reg[B] == 0x00);
+
+    init(0xF0);
+
+    execute({ 0x05 });      // DEC B
+    ASSERT(cpu->reg[B] == 0xEF);
+
+    init(0x00);
+
+    execute({ 0x05 });      // DEC B
+    ASSERT(cpu->reg[B] == 0xFF);
+
+    init(0x01);
+
+    execute({ 0x05 });      // DEC B
+    ASSERT(cpu->reg[B] == 0x00);
+    ASSERT(cpu->get_flag(FZ));
 
     return true;
 }
@@ -1175,6 +1221,7 @@ int main(void)
     fprintf(stdout, "DMG auto testing\n");
 
     test("MMU: RAM check", &test_MMU_ram);
+
     test("Binary Operations: RLC", &test_BIN_RLC);
     test("Binary Operations: RRC", &test_BIN_RRC);
     test("Binary Operations: RL", &test_BIN_RL);
@@ -1186,6 +1233,7 @@ int main(void)
     test("Binary Operations: BIT", &test_BIN_BIT);
     test("Binary Operations: RES", &test_BIN_RES);
     test("Binary Operations: SET", &test_BIN_SET);
+
     test("CPU: NOP", &test_CPU_NOP);
     test("CPU: LD 8-Bit", &test_CPU_LD_8bit);
     test("CPU: LD 16-Bit", &test_CPU_LD_16bit);
@@ -1195,12 +1243,12 @@ int main(void)
     test("CPU: XOR", &test_CPU_XOR);
     test("CPU: OR", &test_CPU_OR);
     test("CPU: AND", &test_CPU_AND);
+    test("CPU: CP", &test_CPU_CP);
     test("CPU: CALL/RET", &test_CPU_CALL_RET);
     test("CPU: RST", &test_CPU_RST);
     test("CPU: PUSH/POP", &test_CPU_PUSH_POP);
     test("CPU: RLA/RLCA", &test_CPU_RLA_RLCA);
-
-    // TODO: Test INC/DEC
+    test("CPU: INC/DEC", &test_CPU_INC_DEC);
 
     test("PROGRAM: Zero memory from $8000 to $9FFF", &test_zero_memory);
     test("PROGRAM: Init sound control registers", &test_audio_init);
