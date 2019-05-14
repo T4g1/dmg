@@ -1,7 +1,6 @@
 #include "ppu.h"
 
 #include <SDL2/SDL.h>
-#include <unistd.h>     // DEBUG
 
 #include "log.h"
 #include "utils.h"
@@ -121,13 +120,10 @@ bool PPU::draw_line()
 
     uint8_t ly = mmu->get(LY);
 
-//    info("LY: 0x%02X\n", ly);
     if (ly < LINE_Y_COUNT) {
         // Viewport position
         uint8_t scy = mmu->get(SCY);
         uint8_t scx = mmu->get(SCX);
-//        info("SCX: 0x%02X ", scx);
-//        info("SCY: 0x%02X\n", scy);
 
         fetch(scx, scy, 0, ly);
 
