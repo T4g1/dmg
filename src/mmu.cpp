@@ -52,6 +52,11 @@ address_type MMU::get_address_identity(uint16_t address)
  */
 bool MMU::set(uint16_t address, uint8_t value)
 {
+#ifdef DEBUG
+    if (ppu == nullptr) {
+        error("PPU is not linked to the MMU: Segfault will happen. Use mmu->set_ppu()\n");
+    }
+#endif
     address_type identity = get_address_identity(address);
     //debug("set 0x%04X 0x%02X\n", address, value);
 
@@ -68,14 +73,19 @@ bool MMU::set(uint16_t address, uint8_t value)
 
     ram[address] = value;
 
+    // BOOT Status
     if (address == BOOT_ROM_ENABLE) {
         set_boot_rom_enable(value);
-    } else if (address == LCDC) {
-        if (ppu == nullptr) {
-            error("No PPU set in the MMU\n");
-        } else {
-            ppu->set_lcdc(value);
-        }
+    }
+
+    // LCD Control
+    else if (address == LCDC) {
+        ppu->set_lcdc(value);
+    }
+
+    // BG Palette
+    else if (address == BGP) {
+        ppu->set_bgp(value);
     }
 
     return false;
@@ -210,6 +220,7 @@ void MMU::set_boot_rom_enable(uint8_t value)
 {
     if (value & 0x01) {
         booted = true;
+        debug("BOOT sequence over\n");
     } else {
         booted = false;
     }

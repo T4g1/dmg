@@ -61,6 +61,7 @@ public:
     size_t clock;
 
     void set_lcdc(uint8_t lcdc);
+    void set_bgp(uint8_t bgp);
 
 private:
     MMU *mmu;
@@ -71,6 +72,7 @@ private:
 
     Uint32 color_ldc_disabled;
     Uint32 palette[PALETTE_SIZE];
+    Uint32 bg_palette[PALETTE_SIZE];
 
     bool lcd_enabled;
     bool window_enabled;

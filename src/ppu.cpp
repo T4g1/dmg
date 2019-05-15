@@ -47,6 +47,7 @@ bool PPU::init()
 
     color_ldc_disabled = SDL_MapRGB(pixel_format, 150, 125, 16);
 
+    // Fixed colors of the DMG
     palette[0b00] = SDL_MapRGB(pixel_format, 110, 125, 70);
     palette[0b01] = SDL_MapRGB(pixel_format,  80, 105, 75);
     palette[0b10] = SDL_MapRGB(pixel_format,  60,  90, 85);
@@ -105,7 +106,8 @@ bool PPU::draw_line()
             pf_index = (pf_index + 1) % FIFO_SIZE;
             pf_size -= 1;
 
-            set_pixel(sdl_screen, x, ly, palette[pixel]);
+            // TODO: Check if pixel is BG, Window or Sprite
+            set_pixel(sdl_screen, x, ly, bg_palette[pixel]);
         }
 
         clock += CLOCK_OAM_SEARCH;
@@ -206,4 +208,18 @@ void PPU::set_lcdc(uint8_t lcdc)
     if (get_bit(lcdc, BIT_SPRITES_SIZE)) {
         sprite_height = 16;
     }*/
+}
+
+
+/**
+ * @brief      Set the palette used for background tiles
+ * @param[in]  bgp  BGP value
+ */
+void PPU::set_bgp(uint8_t bgp)
+{
+    info("Set BGP: 0x%02X\n", bgp);
+    bg_palette[0b00] = palette[(bgp & 0b00000011)     ];
+    bg_palette[0b01] = palette[(bgp & 0b00001100) >> 2];
+    bg_palette[0b10] = palette[(bgp & 0b00110000) >> 4];
+    bg_palette[0b11] = palette[(bgp & 0b11000000) >> 6];
 }

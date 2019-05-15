@@ -18,11 +18,15 @@
 #define MAP_ADDRESS_1       0x9800
 #define MAP_ADDRESS_2       0x9C00
 
-#define LCDC                0xFF40  // LCD Controle register
-#define SCY                 0xFF42
-#define SCX                 0xFF43
-#define LY                  0xFF44
-#define LYC                 0xFF45      // TODO
+#define LCDC                0xFF40      // LCD Control register
+#define LCD_STATUS          0xFF41      // Status of the LCD
+#define SCY                 0xFF42      // Viewport Y position
+#define SCX                 0xFF43      // Viewport X position
+#define LY                  0xFF44      // Current line being drawn
+#define LYC                 0xFF45      // Value to be compared with LY (interrupts)
+#define BGP                 0xFF47      // BG Palette data
+#define WY                  0xFF4A      // Window Y position
+#define WX                  0xFF4B      // Window X position
 
 enum address_type {
     BOOT,
