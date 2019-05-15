@@ -79,6 +79,7 @@ public:
     void set_cartridge(Cartridge *cart);
 
     void set_boot_rom_enable(uint8_t value);
+    bool is_booted();
 };
 
 #endif /* MMU_H */

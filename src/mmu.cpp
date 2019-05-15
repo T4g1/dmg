@@ -253,3 +253,9 @@ void MMU::set_boot_rom_enable(uint8_t value)
         booted = false;
     }
 }
+
+
+bool MMU::is_booted()
+{
+    return booted;
+}

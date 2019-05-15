@@ -346,7 +346,10 @@ bool CPU::step()
 {
     uint8_t opcode = mmu->get(PC);
 
-    debug_cpu("PC: 0x%04X\tClock: %d\tOpcode: 0x%02X\n", PC, (int)clock, opcode);
+    // DEBUG
+    if (mmu->is_booted()) {
+        info("PC: 0x%04X\tClock: %d\tOpcode: 0x%02X\n", PC, (int)clock, opcode);
+    }
 
     // Some instructions are not meant to do anything, crash the system
     if (l_callback[opcode] == NULL) {
@@ -433,8 +436,6 @@ void CPU::ld16(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
 
     PC += size;
     clock += ticks;
-
-    debug_cpu("LD r16\n");
 }
 
 void CPU::inc8(uint8_t *address)
@@ -1046,18 +1047,22 @@ void CPU::ld()
     switch (opcode) {
     /* Load 16-bit immediate to r16 */
     case 0x01:    // Loads 16-bit immediate to BC
+        debug_cpu("LD BC,0x%02X%02X\n", mmu->get(PC + 2), mmu->get(PC + 3));
         ld16(&reg[BC], (uint8_t*)mmu->at(PC + 1), 3, 12);
         break;
 
     case 0x11:    // Loads 16-bit immediate to DE
+        debug_cpu("LD DE,0x%02X%02X\n", mmu->get(PC + 2), mmu->get(PC + 3));
         ld16(&reg[DE], (uint8_t*)mmu->at(PC + 1), 3, 12);
         break;
 
     case 0x21:    // Loads 16-bit immediate to HL
+        debug_cpu("LD HL,0x%02X%02X\n", mmu->get(PC + 2), mmu->get(PC + 3));
         ld16(&reg[HL], (uint8_t*)mmu->at(PC + 1), 3, 12);
         break;
 
     case 0x31:    // Loads 16-bit immediate to SP
+        debug_cpu("LD SP,0x%02X%02X\n", mmu->get(PC + 2), mmu->get(PC + 3));
         ld16(&reg[SP], (uint8_t*)mmu->at(PC + 1), 3, 12);
         break;
 
@@ -1082,6 +1087,7 @@ void CPU::ld()
 
     /* Load 16-bit Sp to (immediate 16-bit) */
     case 0x08:
+        debug_cpu("LD 0x%02X%02X,SP\n", mmu->get(PC + 2), mmu->get(PC + 3));
         address = mmu->get16(PC + 1);
         ld16((uint8_t*)mmu->at(address), &reg[SP], 3, 20);
         break;
