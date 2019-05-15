@@ -38,13 +38,7 @@ bool PPU::init()
 
     pixel_format = sdl_screen->format;
 
-    color_ldc_disabled = SDL_MapRGB(pixel_format, 150, 125, 16);
-
-    // Fixed colors of the DMG
-    palette[0b00] = SDL_MapRGB(pixel_format, 110, 125, 70);
-    palette[0b01] = SDL_MapRGB(pixel_format,  80, 105, 75);
-    palette[0b10] = SDL_MapRGB(pixel_format,  60,  90, 85);
-    palette[0b11] = SDL_MapRGB(pixel_format,  60,  80, 75);
+    set_palette(0);
 
     return true;
 }
@@ -73,6 +67,16 @@ bool PPU::draw()
 
 
 /**
+ * @brief      Reset the fifo
+ */
+void PPU::clear_fifo()
+{
+    pf_index = 0;
+    pf_size = 0;
+}
+
+
+/**
  * @brief      Consume a pixel in the fifo
  * @return     Pixel poped
  */
@@ -92,27 +96,38 @@ size_t PPU::pop_pixel()
  */
 bool PPU::draw_line()
 {
-    pf_size = 0;
-    pf_index = 0;
+    clear_fifo();
 
+    pixel_type fetching_type = BG;
     uint8_t ly = mmu->get(LY);
 
     if (ly < LINE_Y_COUNT) {
         // Viewport position
-        uint8_t scy = mmu->get(SCY);
+        //uint8_t scy = mmu->get(SCY);
         uint8_t scx = mmu->get(SCX);
 
-        fetch(scx, scy, 0, ly);
+        // Window position
+        //uint8_t wy = mmu->get(WY);
+        uint8_t wx = mmu->get(WX);
 
-        // Drop pixel according to SCX to scroll LEFT/RIGHT
+        fetch(0, ly, fetching_type);
+
+        // Drop a few pixels according to SCX to scroll LEFT/RIGHT
         for (size_t i=0; i<scx % TILE_WIDTH; i++) {
             pop_pixel();
         }
 
         for (size_t x=0; x<LINE_X_COUNT; x++) {
+            // We want to draw the window
+            if (x == wx && window_enabled) {
+                info("Fetch window!\n");
+                clear_fifo();
+                fetching_type = WINDOW;
+            }
+
             // Fetch next 8 pixels
             if (pf_size <= TILE_WIDTH) {
-                fetch(scx, scy, x, ly);
+                fetch(x, ly, fetching_type);
             }
 
             size_t pixel = pop_pixel();
@@ -154,25 +169,80 @@ bool PPU::draw_line()
  * @param[in]  x     Current column to draw [0, 160[
  * @param[in]  ly    Current line to draw
  */
-void PPU::fetch(uint8_t scx, uint8_t scy, size_t x, size_t ly)
+void PPU::fetch(size_t x, size_t ly, pixel_type type)
 {
+    if (type == BG) {
+        fetch_bg(x, ly);
+    } else if (type == WINDOW) {
+        fetch_window(x, ly);
+    } else {
+        error("Encountered non-implemented pixel type!\n");
+    }
+}
+
+
+/**
+ * @brief      Fetch 8 next pixels to display for background
+ * @param[in]  scx   Current viewport X
+ * @param[in]  scy   Current viewport Y
+ * @param[in]  x     Current column to draw [0, 160[
+ * @param[in]  ly    Current line to draw
+ */
+void PPU::fetch_bg(size_t x, size_t ly)
+{
+    // Viewport position
+    uint8_t scy = mmu->get(SCY);
+    uint8_t scx = mmu->get(SCX);
+
     // We want the position of the viewport)
     // We add pf_size so we get the pixels needed when the fifo arrives at those pixels
-    size_t viewport_x = (scx + x + pf_size) % (BG_MAP_WIDTH * TILE_WIDTH);
-    size_t viewport_y = (scy + ly) % (BG_MAP_HEIGHT * TILE_HEIGHT);
+    size_t viewport_x = (scx + x + pf_size) % (MAP_WIDTH * TILE_WIDTH);
+    size_t viewport_y = (scy + ly) % (MAP_HEIGHT * TILE_HEIGHT);
 
-    // Index of the tile in the BG map
+    fetch_at(bg_map_address, bg_window_tile_data_address, viewport_x, viewport_y);
+}
+
+
+/**
+ * @brief      Fetch 8 next pixels to display for window
+ * @param[in]  wx    Window X
+ * @param[in]  wy    Window Y
+ * @param[in]  x     Current column to draw [0, 160[
+ * @param[in]  ly    Current line to draw
+ */
+void PPU::fetch_window(size_t x, size_t ly)
+{
+    // Window position
+    uint8_t wy = mmu->get(WY);
+    uint8_t wx = mmu->get(WX);
+
+    // Given the line/column being drawn and the position of the window
+    // gets the position in the window to draw
+    size_t window_x = x - wx;
+    size_t window_y = ly - wy;
+
+    fetch_at(window_map_address, bg_window_tile_data_address, window_x, window_y);
+}
+
+
+void PPU::fetch_at(
+    uint16_t base_map_address,
+    uint16_t base_tileset_address,
+    size_t viewport_x,
+    size_t viewport_y
+) {
+    // Index of the tile in the map
     size_t tile_x = viewport_x / TILE_WIDTH;
     size_t tile_y = viewport_y / TILE_HEIGHT;
 
-    // Address of the sprite in the BG map
-    uint16_t map_address = bg_map_address + (tile_y * BG_MAP_WIDTH) + tile_x;
+    // Address of the tile in the map
+    uint16_t map_address = base_map_address + (tile_y * MAP_WIDTH) + tile_x;
 
-    // Tile index in the BG tileset
+    // Tile index in the tileset
     uint8_t tile_id  = mmu->get(map_address);
 
-    // Address of the sprite in the BG tileset
-    uint16_t tile_address = bg_window_tile_data_address + (tile_id * TILE_SIZE);
+    // Address of the tile in the tileset
+    uint16_t tile_address = base_tileset_address + (tile_id * TILE_SIZE);
 
     // Data for the current line of the tile being drawn
     uint16_t tile_line_address = tile_address + TILE_LINE_SIZE * (viewport_y % TILE_HEIGHT);
@@ -248,4 +318,28 @@ void PPU::set_bgp(uint8_t bgp)
 Uint32 PPU::get_window_id()
 {
     return SDL_GetWindowID(sdl_window);
+}
+
+
+/**
+ * @brief      Set the pre-defined palette colors to use
+ * @param[in]  palette_index  0 is old shcool, same as the DMG
+ *                            1 is high contrast with real black/white
+ */
+void PPU::set_palette(size_t palette_index)
+{
+    color_ldc_disabled = SDL_MapRGB(pixel_format, 150, 125, 16);
+
+    // Fixed colors of the DMG
+    if (palette_index == 1) {
+        palette[0b00] = SDL_MapRGB(pixel_format, 255, 255, 255);
+        palette[0b01] = SDL_MapRGB(pixel_format, 211, 211, 211);
+        palette[0b10] = SDL_MapRGB(pixel_format, 120, 120, 120);
+        palette[0b11] = SDL_MapRGB(pixel_format,   0,   0,   0);
+    } else {
+        palette[0b00] = SDL_MapRGB(pixel_format, 110, 125,  70);
+        palette[0b01] = SDL_MapRGB(pixel_format,  80, 105,  75);
+        palette[0b10] = SDL_MapRGB(pixel_format,  60,  90,  85);
+        palette[0b11] = SDL_MapRGB(pixel_format,  60,  80,  75);
+    }
 }

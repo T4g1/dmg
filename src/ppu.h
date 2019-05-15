@@ -32,8 +32,8 @@
 #define CLOCK_H_BLANK           51
 #define CLOCK_V_BLANK           CLOCK_OAM_SEARCH + CLOCK_PIXEL_TRANSFER + CLOCK_H_BLANK
 
-#define BG_MAP_WIDTH            32
-#define BG_MAP_HEIGHT           32
+#define MAP_WIDTH            32
+#define MAP_HEIGHT           32
 
 #define PIXEL_SIZE              2      // Size of a pixel data in bit
 
@@ -46,6 +46,12 @@
 #define TILE_SIZE               TILE_HEIGHT * TILE_LINE_SIZE
 
 #define FIFO_SIZE               16
+
+enum pixel_type {
+    BG,
+    WINDOW,
+    SPRITE,
+};
 
 /**
  * @brief      Pixel Processing Unit
@@ -64,6 +70,8 @@ public:
     void set_bgp(uint8_t bgp);
 
     Uint32 get_window_id();
+
+    void set_palette(size_t palette_index);
 
 private:
     MMU *mmu;
@@ -92,8 +100,14 @@ private:
     size_t pf_index;            // Position in the FIFO
 
     bool draw_line();
-    void fetch(uint8_t scx, uint8_t scy, size_t x, size_t ly);
+    void fetch(size_t x, size_t ly, pixel_type type);
+    void fetch_bg(size_t x, size_t ly);
+    void fetch_window(size_t x, size_t ly);
+    void fetch_at(
+        uint16_t map_address, uint16_t tileset_address,
+        size_t viewport_x, size_t viewport_y);
 
+    void clear_fifo();
     size_t pop_pixel();
 };
 

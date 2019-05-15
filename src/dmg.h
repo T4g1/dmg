@@ -26,6 +26,7 @@ public:
     bool init(const char *path_bios, const char *path_rom);
     int run();
     void handle_event(SDL_Event *event);
+    void set_palette(char palette_index);
 };
 
 #endif /* DMG_H */

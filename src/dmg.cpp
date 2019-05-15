@@ -115,3 +115,13 @@ void DMG::handle_event(SDL_Event *event)
         }
     }
 }
+
+
+void DMG::set_palette(char palette_index)
+{
+    if (palette_index < '0' || palette_index > '9') {
+        return;
+    }
+
+    ppu->set_palette(palette_index - '0');
+}

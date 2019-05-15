@@ -12,8 +12,8 @@ int main(int argc, char *argv[])
 {
     info("DMG emulation\n");
 
-    if (argc != 3) {
-        error("Usage: dmg <BOOT ROM> <GAME ROM>\n");
+    if (argc < 3 || argc > 4) {
+        error("Usage: dmg <BOOT ROM> <GAME ROM> [<PALETTE>]\n");
         return EXIT_FAILURE;
     }
 
@@ -23,6 +23,10 @@ int main(int argc, char *argv[])
     DMG dmg;
     if (!dmg.init(argv[1], argv[2])) {
         return EXIT_FAILURE;
+    }
+
+    if (argc == 4) {
+        dmg.set_palette(argv[3][0]);
     }
 
     return dmg.run();
