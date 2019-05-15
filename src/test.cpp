@@ -30,6 +30,8 @@ void init(uint8_t value)
     cpu->reg[H] = value;
     cpu->reg[L] = value;
     cpu->reg[A] = value;
+
+    mmu->set(BOOT_ROM_ENABLE, 0x00);
 }
 
 /**
@@ -1198,19 +1200,43 @@ bool test_graphic_routine()
     return true;
 }
 
+bool test_CARTRIDGE_post_boot()
+{
+    init(0x00);
+
+    Cartridge cart;
+    ASSERT(cart.load("tests/data/fake_rom.gb"));
+
+    uint8_t program[] = { 0x00 };
+    mmu->load(program, 1);
+
+    mmu->set_cartridge(&cart);
+
+    ASSERTV(mmu->get(0x0000) == 0x00, "0x0000: 0x%02X\n", mmu->get(0x0000));
+
+    mmu->set(BOOT_ROM_ENABLE, 0x01);
+
+    ASSERT(mmu->get(0x0000) == 0x87);
+
+    return true;
+}
+
 bool test_CARTRIDGE_read_MBC1()
 {
+    init(0x00);
+
     Cartridge cart;
     ASSERT(cart.load("tests/data/fake_rom.gb"));
 
     mmu->set_cartridge(&cart);
+    ASSERT(*(uint8_t *)cart.at(0x0104) == 0xCE);
 
     ASSERT(mmu->get(0x0104) == 0xCE);
 
     cpu->reg[D] = 0x01;
     cpu->reg[E] = 0x04;
     execute({ 0x1A });      // LD A,(DE)
-    ASSERT(cpu->reg[A] == 0xCE);
+    ASSERTV(cpu->reg[A] == 0xCE, "A: 0x%02X\n", cpu->reg[A]);
 
     return true;
 }
@@ -1259,6 +1285,7 @@ int main(void)
     test("PROGRAM: Init sound control registers", &test_audio_init);
     test("PROGRAM: Boot graphic routine", &test_graphic_routine);
 
+    test("CARTRIDGE: Post boot", &test_CARTRIDGE_post_boot);
     test("CARTRIDGE: Read from MBC1", &test_CARTRIDGE_read_MBC1);
 
     return EXIT_SUCCESS;
