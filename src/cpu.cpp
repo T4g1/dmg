@@ -660,7 +660,7 @@ void CPU::call()
 
     PC += 3;
 
-    uint8_t high = (uint8_t)((PC & 0xFF00) >> 4);
+    uint8_t high = (uint8_t)((PC & 0xFF00) >> 8);
     uint8_t low = (uint8_t)(PC & 0x00FF);
 
     bool do_call = true;

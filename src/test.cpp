@@ -1265,6 +1265,65 @@ bool test_CARTRIDGE_read_MBC1()
     return true;
 }
 
+/**
+ * @brief      Loads a test cartridge cpu_instrs.gb and does some check
+ */
+bool test_CARTRIDGE_CPU_instrs()
+{
+    init(0x00);
+
+    Cartridge cart;
+    ASSERT(cart.load("tests/data/cpu_instrs.gb"));
+
+    mmu->set_cartridge(&cart);
+
+    cpu->PC = 0x0100;
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+
+    ASSERTV(cpu->PC == 0x0456, "PC: %04X\n", cpu->PC);
+
+    cpu->step();
+
+    //cpu->display_registers();
+    //mmu->dump(0xDF00, 0xDFFF);
+
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+    cpu->step();
+
+    //cpu->display_registers();
+    //mmu->dump(0xDF00, 0xDFFF);
+
+    ASSERTV(cpu->PC == 0x0459, "PC: %04X\n", cpu->PC);
+
+    return true;
+}
+
 int main(void)
 {
     mmu = new MMU();
@@ -1274,7 +1333,7 @@ int main(void)
     mmu->set_ppu(ppu);
 
     fprintf(stdout, "DMG auto testing\n");
-
+/*
     test("MMU: RAM check", &test_MMU_ram);
 
     test("Binary Operations: RLC", &test_BIN_RLC);
@@ -1310,7 +1369,8 @@ int main(void)
     test("PROGRAM: Boot graphic routine", &test_graphic_routine);
 
     test("CARTRIDGE: Post boot", &test_CARTRIDGE_post_boot);
-    test("CARTRIDGE: Read from MBC1", &test_CARTRIDGE_read_MBC1);
+    test("CARTRIDGE: Read from MBC1", &test_CARTRIDGE_read_MBC1);*/
+    test("CARTRIDGE: CPU Instrs", &test_CARTRIDGE_CPU_instrs);
 
     return EXIT_SUCCESS;
 }
