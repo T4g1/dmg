@@ -71,6 +71,21 @@ bool PPU::draw()
     return true;
 }
 
+
+/**
+ * @brief      Consume a pixel in the fifo
+ * @return     Pixel poped
+ */
+size_t PPU::pop_pixel()
+{
+    size_t pixel = pixel_fifo[pf_index];
+    pf_index = (pf_index + 1) % FIFO_SIZE;
+    pf_size -= 1;
+
+    return pixel;
+}
+
+
 /**
  * @brief      Draws a line.
  * @return     true if the screen can be refreshed
@@ -89,15 +104,18 @@ bool PPU::draw_line()
 
         fetch(scx, scy, 0, ly);
 
+        // Drop pixel according to SCX to scroll LEFT/RIGHT
+        for (size_t i=0; i<scx % TILE_WIDTH; i++) {
+            pop_pixel();
+        }
+
         for (size_t x=0; x<LINE_X_COUNT; x++) {
             // Fetch next 8 pixels
             if (pf_size <= TILE_WIDTH) {
                 fetch(scx, scy, x, ly);
             }
 
-            size_t pixel = pixel_fifo[pf_index];
-            pf_index = (pf_index + 1) % FIFO_SIZE;
-            pf_size -= 1;
+            size_t pixel = pop_pixel();
 
             // TODO: Check if pixel is BG, Window or Sprite
             set_pixel(sdl_screen, x, ly, bg_palette[pixel]);
@@ -128,6 +146,14 @@ bool PPU::draw_line()
     return ly == LINE_Y_COUNT;
 }
 
+
+/**
+ * @brief      Fetch 8 next pixels to display
+ * @param[in]  scx   Current viewport X
+ * @param[in]  scy   Current viewport Y
+ * @param[in]  x     Current column to draw [0, 160[
+ * @param[in]  ly    Current line to draw
+ */
 void PPU::fetch(uint8_t scx, uint8_t scy, size_t x, size_t ly)
 {
     // We want the position of the viewport)

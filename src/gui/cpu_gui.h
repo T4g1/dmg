@@ -28,6 +28,11 @@ private:
 
     SDL_Window *sdl_window;
     SDL_Surface *sdl_screen;
+    SDL_PixelFormat *pixel_format;
+
+    Uint32 last_refresh;
+
+    void refresh_window();
 };
 
 #endif /* CPU_GUI_H */

@@ -2,6 +2,7 @@
 
 #include "log.h"
 
+#include "mbc/none.h"
 #include "mbc/mbc1.h"
 
 
@@ -41,12 +42,17 @@ bool Cartridge::load(const char *path_rom)
             uint8_t cartridge_type = memory_bank[CARTRIDGE_TYPE_ADDRESS];
             //debug("Cartridge type: 0x%02X\n", cartridge_type);
 
-            if (cartridge_type == 0x01) {
+            if (cartridge_type == CART_TYPE_ROM_ONLY) {
+                mbc = new NoMBC();
+            }
+
+            else if (cartridge_type == CART_TYPE_MBC1) {
                 mbc = new MBC1();
-                if (mbc == nullptr) {
-                    error("Unable to allocate space for the MBC\n");
-                    return false;
-                }
+            }
+
+            if (mbc == nullptr) {
+                error("Unable to allocate space for the MBC\n");
+                return false;
             }
         }
 

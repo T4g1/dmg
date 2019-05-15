@@ -93,6 +93,8 @@ private:
 
     bool draw_line();
     void fetch(uint8_t scx, uint8_t scy, size_t x, size_t ly);
+
+    size_t pop_pixel();
 };
 
 #endif /* PPU_H */

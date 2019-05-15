@@ -7,6 +7,9 @@
 
 #define CARTRIDGE_TYPE_ADDRESS      0x0147
 
+#define CART_TYPE_ROM_ONLY      0x00
+#define CART_TYPE_MBC1          0x01
+
 
 /**
  * @brief      DMG Emulator

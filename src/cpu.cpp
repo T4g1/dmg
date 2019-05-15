@@ -7,7 +7,7 @@
 
 #include "cpu.h"
 
-//#define debug_cpu(...) debug(...)
+//#define debug_cpu info
 #define debug_cpu(...)
 
 CPU::CPU(MMU *mmu) : mmu(mmu)
@@ -346,11 +346,11 @@ bool CPU::step()
 {
     uint8_t opcode = mmu->get(PC);
 
-    debug_cpu("PC: %08X\tClock: %d\tOpcode: %02X\n", PC, (int)clock, opcode);
+    debug_cpu("PC: 0x%04X\tClock: %d\tOpcode: 0x%02X\n", PC, (int)clock, opcode);
 
     // Some instructions are not meant to do anything, crash the system
     if (l_callback[opcode] == NULL) {
-        error("Not Implemented!\n");
+        error("Not Implemented PC: 0x%04X\tOpcode: 0x%02X\n", PC, opcode);
         PC += 1; // Just in case
 
         // TODO: Crash?

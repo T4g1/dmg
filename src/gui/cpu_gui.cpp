@@ -33,6 +33,10 @@ bool CPUGui::init()
 
     running = true;
 
+    pixel_format = sdl_screen->format;
+
+    last_refresh = 0;
+
     return true;
 }
 
@@ -43,6 +47,21 @@ void CPUGui::update()
         return;
     }
 
+    Uint32 current_ticks = SDL_GetTicks();
+    if (current_ticks < last_refresh + 1000) {
+        return;
+    }
+
+    refresh_window();
+
+    last_refresh = current_ticks;
+}
+
+
+void CPUGui::refresh_window()
+{
+    SDL_FillRect(sdl_screen, NULL, SDL_MapRGB(pixel_format, 150, 125, 16));
+    SDL_UpdateWindowSurface(sdl_window);
 }
 
 
