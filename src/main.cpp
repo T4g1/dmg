@@ -21,7 +21,9 @@ int main(int argc, char *argv[])
     info("ROM: %s\n", argv[2]);
 
     DMG dmg;
-    dmg.run(argv[1], argv[2]);
+    if (!dmg.init(argv[1], argv[2])) {
+        return EXIT_FAILURE;
+    }
 
-    return EXIT_SUCCESS;
+    return dmg.run();
 }

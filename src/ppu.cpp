@@ -17,13 +17,6 @@ PPU::PPU(MMU *mmu) : mmu(mmu)
 
 bool PPU::init()
 {
-    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
-        error("Unable to initialize SDL\n");
-        return false;
-    }
-
-    atexit(SDL_Quit);
-
     sdl_window = SDL_CreateWindow(
         "DMG - Emulator",
         SDL_WINDOWPOS_UNDEFINED,
@@ -175,6 +168,8 @@ void PPU::fetch(uint8_t scx, uint8_t scy, size_t x, size_t ly)
 
 void PPU::quit()
 {
+    SDL_FreeSurface(sdl_screen);
+    SDL_DestroyWindow(sdl_window);
 }
 
 
@@ -217,9 +212,14 @@ void PPU::set_lcdc(uint8_t lcdc)
  */
 void PPU::set_bgp(uint8_t bgp)
 {
-    debug("Set BGP: 0x%02X\n", bgp);
     bg_palette[0b00] = palette[(bgp & 0b00000011)     ];
     bg_palette[0b01] = palette[(bgp & 0b00001100) >> 2];
     bg_palette[0b10] = palette[(bgp & 0b00110000) >> 4];
     bg_palette[0b11] = palette[(bgp & 0b11000000) >> 6];
+}
+
+
+Uint32 PPU::get_window_id()
+{
+    return SDL_GetWindowID(sdl_window);
 }

@@ -247,7 +247,7 @@ void MMU::set_boot_rom_enable(uint8_t value)
 {
     if (value & 0x01) {
         booted = true;
-        debug("BOOT sequence over\n");
+        info("BOOT sequence over\n");
     } else {
         booted = false;
     }

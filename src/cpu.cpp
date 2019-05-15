@@ -7,6 +7,9 @@
 
 #include "cpu.h"
 
+//#define debug_cpu(...) debug(...)
+#define debug_cpu(...)
+
 CPU::CPU(MMU *mmu) : mmu(mmu)
 {
     PC = 0;
@@ -335,20 +338,28 @@ void CPU::reset()
     IME = true;
 }
 
-void CPU::step()
+/**
+ * @brief      Execute the opcode pointed by PC
+ * @return     false in case of crash
+ */
+bool CPU::step()
 {
     uint8_t opcode = mmu->get(PC);
 
-    debug("PC: %08X\tClock: %d\tOpcode: %02X\n", PC, (int)clock, opcode);
+    debug_cpu("PC: %08X\tClock: %d\tOpcode: %02X\n", PC, (int)clock, opcode);
 
-    // DEBUG: Should crash if NULL
+    // Some instructions are not meant to do anything, crash the system
     if (l_callback[opcode] == NULL) {
-        debug("Not Implemented!\n");
+        error("Not Implemented!\n");
         PC += 1; // Just in case
-        return;
+
+        // TODO: Crash?
+        return false;
     }
 
     (*this.*l_callback[opcode])();
+
+    return true;
 }
 
 /**
@@ -399,7 +410,7 @@ void CPU::ld8_mmu(uint16_t address, const uint8_t* src, size_t size, size_t tick
     PC += size;
     clock += ticks;
 
-    debug("LD reg\n");
+    debug_cpu("LD reg\n");
 }
 
 void CPU::ld8(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
@@ -408,7 +419,7 @@ void CPU::ld8(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
     PC += size;
     clock += ticks;
 
-    debug("LD reg\n");
+    debug_cpu("LD reg\n");
 }
 
 /**
@@ -423,7 +434,7 @@ void CPU::ld16(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
     PC += size;
     clock += ticks;
 
-    debug("LD r16\n");
+    debug_cpu("LD r16\n");
 }
 
 void CPU::inc8(uint8_t *address)
@@ -485,9 +496,9 @@ void CPU::add8()
     if (opcode >= 0x88 && opcode != 0xC6) {
         value += get_bit(reg[F], FC);
 
-        debug("ADC\n");
+        debug_cpu("ADC\n");
     } else {
-        debug("ADD\n");
+        debug_cpu("ADD\n");
     }
 
     uint16_t result = reg[A] + value;
@@ -507,7 +518,7 @@ void CPU::add8()
 
 void CPU::add16(uint8_t *dst, const uint8_t *src)
 {
-    debug("ADD 0x%04X to 0x%04X\n", *(uint16_t*) dst, *(uint16_t*) src);
+    debug_cpu("ADD 0x%04X to 0x%04X\n", *(uint16_t*) dst, *(uint16_t*) src);
     bool half_carry = false, carry = false;
 
     uint8_t *dh = dst;
@@ -535,7 +546,7 @@ void CPU::add16(uint8_t *dst, const uint8_t *src)
     reg[F] = set_bit(reg[F], FH, half_carry == 1);
     reg[F] = set_bit(reg[F], FC, carry = 1);
 
-    debug("ADD r16\n");
+    debug_cpu("ADD r16\n");
 }
 
 void CPU::push()
@@ -566,7 +577,7 @@ void CPU::push()
     PC += 1;
     clock += 16;
 
-    debug("PUSH\n");
+    debug_cpu("PUSH\n");
 }
 
 void CPU::pop()
@@ -596,7 +607,7 @@ void CPU::pop()
     PC += 1;
     clock += 12;
 
-    debug("POP\n");
+    debug_cpu("POP\n");
 }
 
 void CPU::jp()
@@ -627,14 +638,14 @@ void CPU::jp()
 
     clock += ticks;
 
-    debug("JP %04X\n", address);
+    debug_cpu("JP %04X\n", address);
 }
 
 void CPU::jp_hl()
 {
     PC = mmu->get16(reg16(HL));
 
-    debug("JP (HL)\n");
+    debug_cpu("JP (HL)\n");
 
     clock += 4;
 }
@@ -675,7 +686,7 @@ void CPU::call()
 
     clock += ticks;
 
-    debug("CALL %04X\n", address);
+    debug_cpu("CALL %04X\n", address);
 }
 
 void CPU::ret()
@@ -714,7 +725,7 @@ void CPU::ret()
 
     clock += ticks;
 
-    debug("RET\n");
+    debug_cpu("RET\n");
 }
 
 // Invert reg A
@@ -728,7 +739,7 @@ void CPU::cpl()
     PC += 1;
     clock += 4;
 
-    debug("CPL\n");
+    debug_cpu("CPL\n");
 }
 
 // Switch carry flag
@@ -741,7 +752,7 @@ void CPU::ccf()
     PC += 1;
     clock += 4;
 
-    debug("CCF\n");
+    debug_cpu("CCF\n");
 }
 
 void CPU::daa()
@@ -757,7 +768,7 @@ void CPU::daa()
     PC += 1;
     clock += 4;
 
-    debug("DAA\n");
+    debug_cpu("DAA\n");
 }
 
 // Set carry flag
@@ -770,7 +781,7 @@ void CPU::scf()
     PC += 1;
     clock += 4;
 
-    debug("SCF\n");
+    debug_cpu("SCF\n");
 }
 
 void CPU::stop()
@@ -780,7 +791,7 @@ void CPU::stop()
     PC += 2;
     clock += 4;
 
-    debug("STOP\n");
+    debug_cpu("STOP\n");
 }
 
 void CPU::halt()
@@ -790,7 +801,7 @@ void CPU::halt()
     PC += 1;
     clock += 4;
 
-    debug("HALT\n");
+    debug_cpu("HALT\n");
 }
 
 void CPU::add()
@@ -889,7 +900,7 @@ void CPU::inc()
     PC += 1;
     clock += ticks;
 
-    debug("INC\n");
+    debug_cpu("INC\n");
 }
 
 void CPU::dec()
@@ -946,7 +957,7 @@ void CPU::dec()
     PC += 1;
     clock += ticks;
 
-    debug("DEC\n");
+    debug_cpu("DEC\n");
 }
 
 void CPU::jr()
@@ -994,7 +1005,7 @@ void CPU::jr()
     PC += increment;    // Jump
     clock += ticks;
 
-    debug("JR %d\n", increment);
+    debug_cpu("JR %d\n", increment);
 }
 
 void CPU::ld()
@@ -1211,7 +1222,7 @@ void CPU::rxa()
     PC += 1;
     clock += 4;
 
-    debug("RLCA\n");
+    debug_cpu("RLCA\n");
 }
 
 void CPU::nop()
@@ -1219,7 +1230,7 @@ void CPU::nop()
     PC += 1;
     clock += 4;
 
-    debug("NOP\n");
+    debug_cpu("NOP\n");
 }
 
 void CPU::prefix_CB()
@@ -1325,7 +1336,7 @@ void CPU::prefix_CB()
     PC += 2;
     clock += ticks;
 
-    debug("Prefix CB\n");
+    debug_cpu("Prefix CB\n");
 }
 
 void CPU::or_xor_and_cp()
@@ -1348,7 +1359,7 @@ void CPU::or_xor_and_cp()
     // OR/XOR/AND/CP with d8
     if (opcode > 0xC0) {
         target = (const uint8_t*) mmu->at(PC + 1);
-        //debug("Target value: 0x%02X\n", *target);
+        //debug_cpu("Target value: 0x%02X\n", *target);
         PC += 2;
         clock += 8;
     }
@@ -1371,7 +1382,7 @@ void CPU::or_xor_and_cp()
         reg[F] = set_bit(reg[F], FH, (reg[A] & 0x0F) < (*target & 0x0F));
         reg[F] = set_bit(reg[F], FC, !(result & 0x100));   // Underflow
 
-        debug("CP\n");
+        debug_cpu("CP\n");
     }
     // OR
     else if ((opcode >= 0xB0 && opcode < 0xB8) || opcode == 0xF6) {
@@ -1382,7 +1393,7 @@ void CPU::or_xor_and_cp()
         reg[F] = set_bit(reg[F], FH, 0);
         reg[F] = set_bit(reg[F], FC, 0);
 
-        debug("OR\n");
+        debug_cpu("OR\n");
     }
     // XOR
     else if ((opcode >= 0xA8 && opcode < 0xB0) || opcode == 0xEE) {
@@ -1393,7 +1404,7 @@ void CPU::or_xor_and_cp()
         reg[F] = set_bit(reg[F], FH, 0);
         reg[F] = set_bit(reg[F], FC, 0);
 
-        debug("XOR\n");
+        debug_cpu("XOR\n");
     }
     // AND
     else if ((opcode >= 0xA0 && opcode < 0xA8) || opcode == 0xE6) {
@@ -1404,7 +1415,7 @@ void CPU::or_xor_and_cp()
         reg[F] = set_bit(reg[F], FH, 1);
         reg[F] = set_bit(reg[F], FC, 0);
 
-        debug("AND\n");
+        debug_cpu("AND\n");
     }
 }
 
@@ -1458,9 +1469,9 @@ void CPU::sub()
 
         result -= value;
 
-        debug("SBC\n");
+        debug_cpu("SBC\n");
     } else {
-        debug("SUB\n");
+        debug_cpu("SUB\n");
     }
 
     reg[A] = (uint8_t) result;

@@ -63,6 +63,8 @@ public:
     void set_lcdc(uint8_t lcdc);
     void set_bgp(uint8_t bgp);
 
+    Uint32 get_window_id();
+
 private:
     MMU *mmu;
 

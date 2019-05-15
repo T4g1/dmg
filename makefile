@@ -8,7 +8,8 @@ SRCDIR   = src
 OBJDIR   = src
 
 SOURCES  := $(wildcard $(SRCDIR)/*.cpp) \
-            $(wildcard $(SRCDIR)/mbc/*.cpp)
+            $(wildcard $(SRCDIR)/mbc/*.cpp) \
+            $(wildcard $(SRCDIR)/gui/*.cpp)
 SOURCES  := $(filter-out $(SRCDIR)/main.cpp, $(SOURCES))
 SOURCES  := $(filter-out $(SRCDIR)/test.cpp, $(SOURCES))
 INCLUDES := $(wildcard $(SRCDIR)/*.h)

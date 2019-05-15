@@ -10,9 +10,16 @@
 #include <unistd.h>     // DEBUG
 
 
-int DMG::run(const char *path_bios, const char *path_rom)
+bool DMG::init(const char *path_bios, const char *path_rom)
 {
-    SDL_Event event;
+    running = false;
+
+    if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
+        error("Unable to initialize SDL\n");
+        return false;
+    }
+
+    atexit(SDL_Quit);
 
     cpu = new CPU(&mmu);
     ppu = new PPU(&mmu);
@@ -23,57 +30,88 @@ int DMG::run(const char *path_bios, const char *path_rom)
 
     // ROM loading
     if (!mmu.load(path_bios)) {
-        return EXIT_FAILURE;
+        return false;
     }
 
     if (!cart.load(path_rom)) {
-        return EXIT_FAILURE;
+        return false;
     }
 
     mmu.set_cartridge(&cart);
 
     // Graphic initialization
     if (!ppu->init()) {
-        return EXIT_FAILURE;
+        return false;
     }
+
+#ifdef DEBUG
+    cpu_gui = new CPUGui(cpu);
+    if (!cpu_gui->init()) {
+        return false;
+    }
+#endif
+
+    running = true;
+
+    return true;
+}
+
+
+int DMG::run()
+{
+    SDL_Event event;
 
     // Initial black screen
     ppu->draw();
 
-    bool running = true;
     while (running) {
-        //info("FRAME: %zu CPU: %zu PC: 0x%04X PPU: %zu\n", ppu->frame, cpu->clock, cpu->PC, ppu->clock);
-
         if (ppu->clock < cpu->clock) {
             ppu->draw();
         } else {
-            cpu->step();
+            if (!cpu->step()) {
+                error("CPU crash!\n");
+                running = false;
+                break;
+            }
         }
 
+#ifdef DEBUG
+        cpu_gui->update();
+#endif
+
         while (SDL_PollEvent(&event)) {
-            if (event.type == SDL_QUIT) {
-                running = false;
-            }
+            handle_event(&event);
         }
     }
 
     ppu->quit();
 
+#ifdef DEBUG
+    cpu_gui->quit();
+#endif
+
     return EXIT_SUCCESS;
 }
 
 
-/**
- * @brief      Give time to CPU while no frame should be draw
- * @return     true when a frame should be rendered
- */
-bool DMG::step_frame()
+void DMG::handle_event(SDL_Event *event)
 {
-    while (cpu->clock < FRAME_CYCLES) {
-        cpu->step();
+    if (event->type == SDL_QUIT) {
+        running = false;
+    } else if (event->type == SDL_WINDOWEVENT) {
+        switch(event->window.event) {
+        case SDL_WINDOWEVENT_CLOSE:
+            Uint32 window_id = event->window.windowID;
+
+#ifdef DEBUG
+            if (window_id == cpu_gui->get_window_id()) {
+                cpu_gui->quit();
+            }
+#endif
+            if (window_id == ppu->get_window_id()) {
+                running = false;
+            }
+            break;
+        }
     }
-
-    cpu->clock -= FRAME_CYCLES;
-
-    return true;
 }
