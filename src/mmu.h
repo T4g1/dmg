@@ -12,6 +12,12 @@
 #define BOOT_START      0x0000
 #define BOOT_END        0x00FF
 #define BOOT_ROM_ENABLE 0xFF50
+#define ECHO_START      0xE000
+#define ECHO_END        0xFDFF
+#define OAM_START       0xFE00
+#define OAM_END         0xFE9F
+#define CRASH_START     0xFEA0
+#define CRASH_END       0xFEFF
 
 #define TILE_ADDRESS_1      0x8000
 #define TILE_ADDRESS_2      0x8800
@@ -34,6 +40,8 @@ enum address_type {
     RAM,
     VRAM,
     OAM,
+    ECHO,
+    CRASH,
 };
 
 

@@ -40,6 +40,16 @@ address_type MMU::get_address_identity(uint16_t address)
         return ROM;
     }
 
+    // ECHO
+    if (address >= ECHO_START && address <= ECHO_END) {
+        return ECHO;
+    }
+
+    // CRASH
+    if (address >= CRASH_START && address <= CRASH_END) {
+        return CRASH;
+    }
+
     return RAM;
 }
 
@@ -69,6 +79,18 @@ bool MMU::set(uint16_t address, uint8_t value)
     else if (identity == ROM) {
         // TODO: return cart->set(address, value);
         return false;
+    }
+
+    // Writting to CRASH causes errors
+    else if (identity == CRASH) {
+        // TODO: Crash?
+        error("Trying to write to CRASH memory\n");
+        return false;
+    }
+
+    // ECHO memory
+    else if (identity == ECHO) {
+        address -= 0x2000;
     }
 
     ram[address] = value;
@@ -104,6 +126,11 @@ const void *MMU::at(uint16_t address)
         if (cart != nullptr) {
             return cart->at(address);
         }
+    }
+
+    // ECHO memory
+    else if (identity == ECHO) {
+        address -= 0x2000;
     }
 
     return ram + address;

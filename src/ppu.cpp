@@ -217,7 +217,7 @@ void PPU::set_lcdc(uint8_t lcdc)
  */
 void PPU::set_bgp(uint8_t bgp)
 {
-    info("Set BGP: 0x%02X\n", bgp);
+    debug("Set BGP: 0x%02X\n", bgp);
     bg_palette[0b00] = palette[(bgp & 0b00000011)     ];
     bg_palette[0b01] = palette[(bgp & 0b00001100) >> 2];
     bg_palette[0b10] = palette[(bgp & 0b00110000) >> 4];
