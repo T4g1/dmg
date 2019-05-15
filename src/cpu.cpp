@@ -347,12 +347,8 @@ bool CPU::step()
     uint8_t opcode = mmu->get(PC);
 
     // DEBUG
-    /*if (mmu->is_booted()) {
+    if (mmu->is_booted()) {
         info("PC: 0x%04X\tClock: %d\tOpcode: 0x%02X\n", PC, (int)clock, opcode);
-    }*/
-    if (PC == 0xE521) {
-        mmu->dump(0xCF00, 0xD0FF);
-        info("SP: 0x%04X\n", reg16(SP));
     }
 
     // Some instructions are not meant to do anything, crash the system
@@ -375,7 +371,7 @@ bool CPU::step()
 void CPU::display_registers()
 {
     info("---------------------------[ CPU ]---------------------------\n");
-    info("PC: %d\n", PC);
+    info("PC: 0x%04X\n", PC);
     info("-------------------------------------------------------------\n");
     info("A: 0x%02X F: 0x%02X\n", reg[A], reg[F]);
     info("B: 0x%02X C: 0x%02X\n", reg[B], reg[C]);
@@ -643,7 +639,7 @@ void CPU::jp()
 
     clock += ticks;
 
-    debug_cpu("JP %04X\n", address);
+    debug_cpu("JP 0x%04X\n", address);
 }
 
 void CPU::jp_hl()
