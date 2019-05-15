@@ -30,8 +30,10 @@ enum address_type {
     RAM,
     VRAM,
     OAM,
-    REG_BOOT_ROM_ENABLE,
 };
+
+
+class PPU;
 
 
 /**
@@ -40,12 +42,15 @@ enum address_type {
 class MMU {
     bool booted;
     Cartridge *cart;
+    PPU *ppu;
 
     uint8_t ram[RAM_SIZE];
     address_type get_address_identity(uint16_t address);
 
 public:
     MMU();
+
+    void set_ppu(PPU *ppu);
 
     bool set(uint16_t address, uint8_t value);
     const void *at(uint16_t address);
@@ -60,6 +65,8 @@ public:
     void dump(uint16_t start, uint16_t end);
 
     void set_cartridge(Cartridge *cart);
+
+    void set_boot_rom_enable(uint8_t value);
 };
 
 #endif /* MMU_H */

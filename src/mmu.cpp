@@ -3,13 +3,20 @@
 
 #include "utils.h"
 #include "log.h"
+#include "ppu.h"
 
 #include "mmu.h"
 
 
 MMU::MMU() : booted(false), cart(nullptr)
 {
+    ppu = nullptr;
+}
 
+
+void MMU::set_ppu(PPU *ppu)
+{
+    this->ppu = ppu;
 }
 
 
@@ -33,11 +40,6 @@ address_type MMU::get_address_identity(uint16_t address)
         return ROM;
     }
 
-    // BOOT ROM enable register
-    if (address == BOOT_ROM_ENABLE) {
-        return REG_BOOT_ROM_ENABLE;
-    }
-
     return RAM;
 }
 
@@ -53,18 +55,28 @@ bool MMU::set(uint16_t address, uint8_t value)
     address_type identity = get_address_identity(address);
     //debug("set 0x%04X 0x%02X\n", address, value);
 
-    if (identity == RAM) {
-        ram[address] = value;
-        return true;
-    } else if (identity == REG_BOOT_ROM_ENABLE) {
-        if (value & 0x01) {
-            booted = true;
-        } else {
-            booted = false;
-        }
+    // Cannot write over BOOT rom
+    if (identity == BOOT) {
+        return false;
     }
 
-    // TODO: Request WRITE to corresponding ROM to trigger bank switch for example
+    // Write to ROM are passed to cartridge
+    else if (identity == ROM) {
+        // TODO: return cart->set(address, value);
+        return false;
+    }
+
+    ram[address] = value;
+
+    if (address == BOOT_ROM_ENABLE) {
+        set_boot_rom_enable(value);
+    } else if (address == LCDC) {
+        if (ppu == nullptr) {
+            error("No PPU set in the MMU\n");
+        } else {
+            ppu->set_lcdc(value);
+        }
+    }
 
     return false;
 }
@@ -187,4 +199,18 @@ void MMU::dump(uint16_t start, uint16_t end)
 void MMU::set_cartridge(Cartridge *cart)
 {
     this->cart = cart;
+}
+
+
+/**
+ * @brief      Allows to control if BOOT tom is readable or not
+ * @param[in]  value  The value 0x01 indicate boot is no longer needed
+ */
+void MMU::set_boot_rom_enable(uint8_t value)
+{
+    if (value & 0x01) {
+        booted = true;
+    } else {
+        booted = false;
+    }
 }

@@ -13,7 +13,6 @@ PPU::PPU(MMU *mmu) : mmu(mmu)
     background_enabled = false;
 
     clock = 0;
-    frame = 0;
 }
 
 bool PPU::init()
@@ -61,37 +60,6 @@ bool PPU::init()
  */
 bool PPU::draw()
 {
-    uint8_t lcdc = mmu->get(LCDC);
-
-    lcd_enabled = get_bit(lcdc, BIT_LCD_ENABLED);
-
-    window_enabled = get_bit(lcdc, BIT_WINDOW_ENABLED);
-    sprites_enabled = get_bit(lcdc, BIT_SPRITES_ENABLED);
-    background_enabled = get_bit(lcdc, BIT_BACKGROUND_ENABLED);
-
-    // Where are the tiles for gackground and window
-    bg_window_tile_data_address = TILE_ADDRESS_2;
-    if (get_bit(lcdc, BIT_BG_WINDOW_TILE_DATA_SELECT)) {
-        bg_window_tile_data_address = TILE_ADDRESS_1;
-    }
-
-    // Where are the data for background
-    bg_map_address = MAP_ADDRESS_1;
-    if (get_bit(lcdc, BIT_BG_MAP_SELECT)) {
-        bg_map_address = MAP_ADDRESS_2;
-    }
-
-    // Where are the data for window
-    window_map_address = MAP_ADDRESS_1;
-    if (get_bit(lcdc, BIT_WINDOW_MAP_SELECT)) {
-        window_map_address = MAP_ADDRESS_2;
-    }
-
-    /*sprite_height = 8;
-    if (get_bit(lcdc, BIT_SPRITES_SIZE)) {
-        sprite_height = 16;
-    }*/
-
     if (lcd_enabled) {
         if (draw_line()) {
             return SDL_UpdateWindowSurface(sdl_window) == 0;
@@ -205,4 +173,37 @@ void PPU::fetch(uint8_t scx, uint8_t scy, size_t x, size_t ly)
 
 void PPU::quit()
 {
+}
+
+
+void PPU::set_lcdc(uint8_t lcdc)
+{
+    lcd_enabled = get_bit(lcdc, BIT_LCD_ENABLED);
+
+    window_enabled = get_bit(lcdc, BIT_WINDOW_ENABLED);
+    sprites_enabled = get_bit(lcdc, BIT_SPRITES_ENABLED);
+    background_enabled = get_bit(lcdc, BIT_BACKGROUND_ENABLED);
+
+    // Where are the tiles for gackground and window
+    bg_window_tile_data_address = TILE_ADDRESS_2;
+    if (get_bit(lcdc, BIT_BG_WINDOW_TILE_DATA_SELECT)) {
+        bg_window_tile_data_address = TILE_ADDRESS_1;
+    }
+
+    // Where are the data for background
+    bg_map_address = MAP_ADDRESS_1;
+    if (get_bit(lcdc, BIT_BG_MAP_SELECT)) {
+        bg_map_address = MAP_ADDRESS_2;
+    }
+
+    // Where are the data for window
+    window_map_address = MAP_ADDRESS_1;
+    if (get_bit(lcdc, BIT_WINDOW_MAP_SELECT)) {
+        window_map_address = MAP_ADDRESS_2;
+    }
+
+    /*sprite_height = 8;
+    if (get_bit(lcdc, BIT_SPRITES_SIZE)) {
+        sprite_height = 16;
+    }*/
 }

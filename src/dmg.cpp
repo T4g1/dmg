@@ -17,6 +17,8 @@ int DMG::run(const char *path_bios, const char *path_rom)
     cpu = new CPU(&mmu);
     ppu = new PPU(&mmu);
 
+    mmu.set_ppu(ppu);
+
     cpu->reset();
 
     // ROM loading

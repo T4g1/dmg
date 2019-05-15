@@ -3,10 +3,12 @@
 #include <initializer_list>
 
 #include "log.h"
+#include "ppu.h"
 #include "cpu.h"
 #include "mmu.h"
 
 MMU *mmu;
+PPU *ppu;
 CPU *cpu;
 
 /**
@@ -1217,6 +1219,9 @@ int main(void)
 {
     mmu = new MMU();
     cpu = new CPU(mmu);
+    ppu = new PPU(mmu);
+
+    mmu->set_ppu(ppu);
 
     fprintf(stdout, "DMG auto testing\n");
 

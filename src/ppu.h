@@ -60,8 +60,7 @@ public:
 
     size_t clock;
 
-    //DEBUG
-    size_t frame;
+    void set_lcdc(uint8_t lcdc);
 
 private:
     MMU *mmu;
