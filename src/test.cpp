@@ -574,6 +574,30 @@ bool test_CPU_CALL_RET()
     ASSERT(cpu->reg[A] == 0x4C);
     ASSERTV(cpu->PC == 3, "PC: 0x%02X\n", cpu->PC);
 
+    execute({ 0x31, 0xFF, 0xCF });
+    ASSERT(cpu->reg16(SP) == 0xCFFF);
+
+    init(0x00);
+
+    mmu->load(program, size);
+
+    //cpu->display_registers();
+    //mmu->dump(0xCF00, 0xCFFF);
+
+    cpu->step();
+    ASSERTV(cpu->PC == 10, "PC: 0x%02X\n", cpu->PC);
+
+    cpu->step();
+    ASSERTV(cpu->PC == 12, "PC: 0x%02X\n", cpu->PC);
+
+    cpu->step();
+
+    //cpu->display_registers();
+    //mmu->dump(0xFFF0, 0xFFFF);
+
+    ASSERT(cpu->reg[A] == 0x4C);
+    ASSERTV(cpu->PC == 3, "PC: 0x%02X\n", cpu->PC);
+
     return true;
 }
 

@@ -347,8 +347,12 @@ bool CPU::step()
     uint8_t opcode = mmu->get(PC);
 
     // DEBUG
-    if (mmu->is_booted()) {
+    /*if (mmu->is_booted()) {
         info("PC: 0x%04X\tClock: %d\tOpcode: 0x%02X\n", PC, (int)clock, opcode);
+    }*/
+    if (PC == 0xE521) {
+        mmu->dump(0xCF00, 0xD0FF);
+        info("SP: 0x%04X\n", reg16(SP));
     }
 
     // Some instructions are not meant to do anything, crash the system
@@ -711,6 +715,8 @@ void CPU::ret()
         do_ret = false;
     } else {
         ticks = 20;
+
+        debug_cpu("RET 0x%04X\n", mmu->get16(reg16(SP)));
     }
 
     /* RETI */
