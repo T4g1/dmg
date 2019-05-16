@@ -629,24 +629,62 @@ bool test_CPU_PUSH_POP()
 {
     init(0x00);
 
-    size_t size = 2;
+    cpu->reg[A] = 0x11;
+    cpu->reg[F] = 0x22;
+    cpu->reg[B] = 0x33;
+    cpu->reg[C] = 0x44;
+    cpu->reg[D] = 0x55;
+    cpu->reg[E] = 0x66;
+    cpu->reg[H] = 0x77;
+    cpu->reg[L] = 0x88;
+
+    size_t size = 8;
     uint8_t program[] = {
         0xC5,       // PUSH BC
-        0xC1        // POP BC
+        0xD5,       // PUSH DE
+        0xE5,       // PUSH HL
+        0xF5,       // PUSH AF
+
+        0xC1,       // POP BC
+        0xD1,       // POP DE
+        0xE1,       // POP HL
+        0xF1,       // POP AF
     };
     mmu->load(program, size);
 
-    cpu->reg[B] = 0x12;
-    cpu->reg[C] = 0x34;
-
+    cpu->step();
+    cpu->step();
+    cpu->step();
     cpu->step();
 
-    cpu->reg[B] = 0x00;
-    cpu->reg[C] = 0x00;
+    ASSERT(cpu->reg[B] == 0x33);
+    ASSERT(cpu->reg[C] == 0x44);
+
+    ASSERT(cpu->reg[D] == 0x55);
+    ASSERT(cpu->reg[E] == 0x66);
+
+    ASSERT(cpu->reg[H] == 0x77);
+    ASSERT(cpu->reg[L] == 0x88);
+
+    ASSERT(cpu->reg[A] = 0x11);
+    ASSERT(cpu->reg[F] = 0x22);
 
     cpu->step();
-    ASSERTV(cpu->reg[B] == 0x12, "B: 0x%02X\n", cpu->reg[B]);
-    ASSERTV(cpu->reg[C] == 0x34, "C: 0x%02X\n", cpu->reg[C]);
+    cpu->step();
+    cpu->step();
+    cpu->step();
+
+    ASSERTV(cpu->reg[B] == 0x11, "B: 0x%02X\n", cpu->reg[B]);
+    ASSERTV(cpu->reg[C] == 0x22, "C: 0x%02X\n", cpu->reg[C]);
+
+    ASSERT(cpu->reg[D] == 0x77);
+    ASSERT(cpu->reg[E] == 0x88);
+
+    ASSERT(cpu->reg[H] == 0x55);
+    ASSERT(cpu->reg[L] == 0x66);
+
+    ASSERT(cpu->reg[A] = 0x33);
+    ASSERT(cpu->reg[F] = 0x44);
 
     return true;
 }
