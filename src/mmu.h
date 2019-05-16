@@ -9,6 +9,7 @@
 #define RAM_SIZE        0xFFFF
 #define ROM_START       0x0000
 #define ROM_END         0x7FFF
+#define MBC0_END        0x3FFF
 #define BOOT_START      0x0000
 #define BOOT_END        0x00FF
 #define BOOT_ROM_ENABLE 0xFF50

@@ -84,3 +84,11 @@ const void *Cartridge::at(uint16_t address)
 {
     return mbc->at(address);
 }
+
+
+bool Cartridge::set(uint16_t address, uint8_t value)
+{
+    return mbc->set(address, value);
+}
+
+

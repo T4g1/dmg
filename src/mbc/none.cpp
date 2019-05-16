@@ -50,3 +50,9 @@ void NoMBC::dump(size_t /*mb_index*/, uint16_t start, uint16_t end)
     info("\n");
 }
 
+
+bool NoMBC::set(uint16_t /*address*/, uint8_t /*value*/)
+{
+    // Nothing to do, there is no MBC
+    return true;
+}

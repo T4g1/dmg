@@ -352,7 +352,7 @@ bool CPU::step()
 //    }
 
     // Some instructions are not meant to do anything, crash the system
-    if (l_callback[opcode] == NULL) {
+    if (l_callback[opcode] == nullptr) {
         error("Not Implemented PC: 0x%04X\tOpcode: 0x%02X\n", PC, opcode);
         PC += 1; // Just in case
 

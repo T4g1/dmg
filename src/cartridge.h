@@ -22,6 +22,7 @@ public:
 
     bool load(const char *path_rom);
     const void *at(uint16_t address);
+    bool set(uint16_t address, uint8_t value);
 };
 
 #endif /* CARTRIDGE_H */

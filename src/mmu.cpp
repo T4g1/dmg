@@ -77,8 +77,7 @@ bool MMU::set(uint16_t address, uint8_t value)
 
     // Write to ROM are passed to cartridge
     else if (identity == ROM) {
-        // TODO: return cart->set(address, value);
-        return false;
+        return cart->set(address, value);
     }
 
     // Writting to CRASH causes errors

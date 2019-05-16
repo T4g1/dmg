@@ -2,10 +2,11 @@
 
 #include <string.h>
 
+#include "../mmu.h"
 #include "../log.h"
 
 
-MBC1::MBC1() : selected_mbc(0)
+MBC1::MBC1() : selected_mbc(1)
 {
 
 }
@@ -18,7 +19,10 @@ MBC1::MBC1() : selected_mbc(0)
  */
 const void *MBC1::at(uint16_t address)
 {
-    //debug("MBC1 %zu 0x%04X : 0x%02X\n", selected_mbc, address, mbc[selected_mbc][address % MBC_SIZE]);
+    if (address <= MBC0_END) {
+        return &mbc[0][address % MBC_SIZE];
+    }
+
     return &mbc[selected_mbc][address % MBC_SIZE];
 }
 
@@ -65,4 +69,16 @@ void MBC1::dump(size_t mb_index, uint16_t start, uint16_t end)
         }
     }
     info("\n");
+}
+
+
+bool MBC1::set(uint16_t /*address*/, uint8_t value)
+{
+    // We add 1 because to select memory bank 1, we write 0
+    value = (value + 1) % MBC_COUNT;
+
+    info("Set MBC to 0x%02X\n", value);
+    selected_mbc = value;
+
+    return true;
 }
