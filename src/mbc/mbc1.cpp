@@ -77,7 +77,7 @@ bool MBC1::set(uint16_t /*address*/, uint8_t value)
     // We add 1 because to select memory bank 1, we write 0
     value = (value + 1) % MBC_COUNT;
 
-    info("Set MBC to 0x%02X\n", value);
+    debug("Set MBC to 0x%02X\n", value);
     selected_mbc = value;
 
     return true;

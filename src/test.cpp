@@ -1385,13 +1385,53 @@ bool test_CARTRIDGE_CPU_instrs()
     ASSERTV(cpu->PC == 0x0459, "PC: %04X\n", cpu->PC);
 
     int i =0;
-    while(cpu->PC != 0x021D) {
+    while(i < 32700 && cpu->PC != 0x021D) {
         cpu->step(); i++;
     }
 
     cpu->step();
 
     ASSERTV(cpu->PC == 0x0228, "i: %d PC: %04X\n", i, cpu->PC);
+
+    return true;
+}
+
+bool test_POP_AF()
+{
+    init(0x00);
+
+    size_t size = 19;
+    uint8_t program[] = {
+        0x00,
+        0x01, 0x00, 0x12,       // ld   bc,$1200        ; 0x01
+        0xC5,                   // push bc              ; 0x04
+        0xF1,                   // pop  af              ; 0x05
+        0xF5,                   // push af              ; 0x06
+        0xD1,                   // pop  de              ; 0x07
+        0x79,                   // ld   a,c             ; 0x08
+        0xE6, 0xF0,             // and  $F0             ; 0x09
+        0xBB,                   // cp   e               ; 0x0B
+        0xC2, 0x00, 0x00,       // jp   nz,test_failed  ; 0x0C
+        0x04,                   // inc  b               ; 0x0F
+        0x0C,                   // inc  c               ; 0x10
+        0x20, 0xF1,             // jr   nz,-            ; 0x11
+    };
+    mmu->load(program, size);
+
+    cpu->step();
+    ASSERT(cpu->PC == 0x01);
+
+    while (cpu->PC > 0x00 && cpu->PC < 0x13) {
+        cpu->display_registers();
+        mmu->dump(0xFF00, 0xFFFE);
+
+        cpu->step();
+    }
+
+    cpu->display_registers();
+    mmu->dump(0xFF00, 0xFFFE);
+
+    ASSERTV(cpu->PC == 0x13, "PC: %04X\n", cpu->PC);
 
     return true;
 }
@@ -1436,6 +1476,8 @@ int main(void)
     test("CPU: RLA/RLCA", &test_CPU_RLA_RLCA);
     test("CPU: INC/DEC", &test_CPU_INC_DEC);
     test("CPU: JP", &test_CPU_JP);
+
+    test("CPU: POP AF", &test_POP_AF);
 
     test("PROGRAM: Zero memory from $8000 to $9FFF", &test_zero_memory);
     test("PROGRAM: Init sound control registers", &test_audio_init);

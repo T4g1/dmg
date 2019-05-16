@@ -1385,7 +1385,10 @@ void CPU::or_xor_and_cp()
 
     // CP
     if ((opcode >= 0xB8 && opcode < 0xC0) || opcode == 0xFE) {
-        uint16_t result = reg[A] - *target;
+        // We add an extra 0x0100 so we can detect underflow if high byte is 0x00
+        // after the comparison
+        uint16_t result = 0x0100 + reg[A];
+        result -= *target;
 
         reg[F] = set_bit(reg[F], FZ, (result & 0x00FF) == 0);
         reg[F] = set_bit(reg[F], FN, 1);
