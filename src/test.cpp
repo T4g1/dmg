@@ -225,7 +225,7 @@ bool test_CPU_LD_16bit()
     uint8_t program[] = {
         0x01, 0x00, 0x11,   // LD BC, d16
         0x11, 0x22, 0x33,   // LD DE, d16
-        0x21, 0x44, 0x55,   // LD HL, d16
+        0x21, 0x44, 0xC5,   // LD HL, d16
         0x31, 0x66, 0x77,   // LD SP, d16
         0x08, 0x66, 0x77,   // LD (a16), SP
         0xF9,               // LD SP, HL
@@ -247,7 +247,7 @@ bool test_CPU_LD_16bit()
 
     ASSERT(cpu->reg16(BC) == 0x1100);
     ASSERT(cpu->reg16(DE) == 0x3322);
-    ASSERT(cpu->reg16(HL) == 0x5544);
+    ASSERT(cpu->reg16(HL) == 0xC544);
     ASSERTV(cpu->reg16(SP) == 0x7766, "SP=0x%04X", cpu->reg16(SP));
     ASSERT(mmu->get16(0x7766) == 0x7766);
 
@@ -256,8 +256,8 @@ bool test_CPU_LD_16bit()
     cpu->step();
     ASSERTV(cpu->PC == 18, "PC=0x%04X", cpu->PC);
 
-    ASSERTV(cpu->reg16(SP) == 0x5544, "SP=0x%04X", cpu->reg16(SP));
-    ASSERTV(cpu->reg16(HL) == 0x5544 + 0x14, "HL=0x%04X", cpu->reg16(HL));
+    ASSERTV(cpu->reg16(SP) == 0xC544, "SP=0x%04X", cpu->reg16(SP));
+    ASSERTV(cpu->reg16(HL) == 0xC544 + 0x14, "HL=0x%04X", cpu->reg16(HL));
 
     return true;
 }
@@ -387,7 +387,7 @@ bool test_CPU_ADD()
     ASSERT(cpu->reg[A] == 0x00);
 
     cpu->step();
-    ASSERTV(cpu->reg16(SP) == 0x10FE, "SP: 0x%04X\n", cpu->reg16(SP));
+    ASSERTV(cpu->reg16(SP) == 0x000F, "SP: 0x%04X\n", cpu->reg16(SP));
 
     return true;
 }
@@ -1396,7 +1396,7 @@ bool test_CARTRIDGE_CPU_instrs()
     return true;
 }
 
-bool test_POP_AF()
+bool test_CPU_POP_AF()
 {
     init(0x00);
 
@@ -1431,7 +1431,63 @@ bool test_POP_AF()
     //cpu->display_registers();
     //mmu->dump(0xFF00, 0xFFFE);
 
-    ASSERTV(cpu->PC == 0x13, "PC: %04X\n", cpu->PC);
+    ASSERTV(cpu->PC == 0x13, "PC: 0x%04X\n", cpu->PC);
+
+    return true;
+}
+
+bool test_CPU_DAA()
+{
+    init(0x00);
+
+    cpu->reg[A] = 10;
+    cpu->reg[F] = 0x00;
+
+    execute({ 0x27 });
+
+    ASSERTV(cpu->reg[A] == 0x10, "A: 0x%02X\n", cpu->reg[A]);
+
+    cpu->reg[A] = 0x9E;
+    cpu->reg[F] = 0x00;
+
+    execute({ 0x27 });
+
+    ASSERTV(cpu->reg[A] == 0x04, "A: 0x%02X\n", cpu->reg[A]);
+
+    cpu->reg[A] = 0x21;
+    cpu->reg[F] = 0b00100000;
+
+    execute({ 0x27 });
+
+    ASSERTV(cpu->reg[A] == 0x27, "A: 0x%02X\n", cpu->reg[A]);
+
+    return true;
+}
+
+bool test_CPU_Op_SP()
+{
+    init(0x00);
+
+    // ADD 2 to SP
+    execute({ 0x31, 0x00, 0x00 });
+    execute({ 0xE8, 0x02 });
+
+    ASSERTV(cpu->reg16(SP) == 0x02, "SP: 0x%04X\n", cpu->reg16(SP));
+
+    init(0x00);
+
+    // ADD -1 to SP
+    execute({ 0x31, 0x001, 0x00 });
+    execute({ 0xE8, 0xFF });
+
+    ASSERTV(cpu->reg16(SP) == 0x00, "SP: 0x%04X\n", cpu->reg16(SP));
+
+    // ADD HL, SP
+    execute({ 0x21, 0xEE, 0xCC });
+    execute({ 0x31, 0x11, 0x22 });
+    execute({ 0x39 });
+
+    ASSERTV(cpu->reg16(HL) == 0xEEFF, "HL: 0x%04X\n", cpu->reg16(HL));
 
     return true;
 }
@@ -1476,8 +1532,9 @@ int main(void)
     test("CPU: RLA/RLCA", &test_CPU_RLA_RLCA);
     test("CPU: INC/DEC", &test_CPU_INC_DEC);
     test("CPU: JP", &test_CPU_JP);
-
-    test("CPU: POP AF", &test_POP_AF);
+    test("CPU: POP AF", &test_CPU_POP_AF);
+    test("CPU: DAA", &test_CPU_DAA);
+    test("CPU: Op SP", &test_CPU_Op_SP);
 
     test("PROGRAM: Zero memory from $8000 to $9FFF", &test_zero_memory);
     test("PROGRAM: Init sound control registers", &test_audio_init);

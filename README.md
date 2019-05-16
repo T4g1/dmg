@@ -32,7 +32,7 @@ Test with `./test`
 # TODO
 
 * [-] Implement Z80 instruction set
-    * [ ] Implement DAA
+    * [x] Implement DAA
     * [ ] Implement HALT
     * [ ] Implement STOP
 * [ ] Implement interupts

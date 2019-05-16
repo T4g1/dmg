@@ -79,6 +79,7 @@ private:
 
     void add8();
     void add16(uint8_t *dst, const uint8_t *src);
+    void addr8(uint8_t *dst, int value);
 
     void prefix_CB();
     void CB_set();

@@ -564,6 +564,27 @@ void CPU::add16(uint8_t *dst, const uint8_t *src)
     debug_cpu("ADD r16\n");
 }
 
+void CPU::addr8(uint8_t *dst, int value)
+{
+    uint8_t high = *dst;
+    uint8_t low = *(dst + 1);
+
+    debug_cpu("ADD r8 %d to 0x%02X%02X\n", value, high, low);
+
+    // The leading 1 is used to carry for underflow
+    uint32_t result = 0x00010000 + (high << 8) + low;
+
+    result += value;
+
+    *dst = (result & 0x0000FF00) >> 8;
+    *(dst + 1) = result & 0x000000FF;
+
+    set_flag(FZ, 0);
+    set_flag(FN, 0);
+    set_flag(FH, high != *dst);
+    set_flag(FC, (result & 0xFFFF0000) != 0x00010000);
+}
+
 void CPU::push()
 {
     uint8_t opcode = mmu->get(PC);
@@ -779,16 +800,34 @@ void CPU::ccf()
 
 void CPU::daa()
 {
-    //bool carry;
+    uint16_t value = reg[A];
 
-    // TODO
+    // Lower digit
+    if (get_flag(FH) || (!get_flag(FN) && (value & 0x0F) > 9)) {
+        if (get_flag(FN)) {
+            value -= 0x06;
+        } else {
+            value += 0x06;
+        }
+    }
 
-    /*set_flag(FZ, == 0);
-    set_flag(FH, 0);
-    set_flag(FC, carry);*/
+    // Higher digit
+    if (get_flag(FC) || (!get_flag(FN) && (value & 0xF0) > 0x90)) {
+        if (get_flag(FN)) {
+            value -= 0x60;
+        } else {
+            value += 0x60;
+            set_flag(FC, 1);
+        }
+    }
+
+    reg[A] = value & 0x00FF;
 
     PC += 1;
     clock += 4;
+
+    set_flag(FZ, reg[A] == 0);
+    set_flag(FH, 0);
 
     debug_cpu("DAA\n");
 }
@@ -829,7 +868,6 @@ void CPU::halt()
 void CPU::add()
 {
     size_t ticks = 4;
-    uint16_t value;
 
     uint8_t opcode = mmu->get(PC);
     switch(opcode) {
@@ -851,10 +889,7 @@ void CPU::add()
         ticks = 8;
         break;
     case 0xE8:
-        value = mmu->get(PC + 1);
-        add16(&reg[SP], (uint8_t*) &value);
-
-        set_flag(FZ, 0);
+        addr8(&reg[SP], mmu->get_signed(PC + 1));
 
         ticks = 16;
         PC += 1;
@@ -1062,7 +1097,6 @@ void CPU::ld()
     }
 
     uint16_t address;
-    uint8_t value[2] = {0};
 
     /* Less generic cases */
     switch (opcode) {
@@ -1198,14 +1232,10 @@ void CPU::ld()
 
     case 0xF8:      // Loads SP+r8 to HL
         memcpy(&reg[HL], &reg[SP], sizeof(uint16_t));
-        value[0] = 0x00;
-        value[1] = mmu->get(PC+1);
-        add16(&reg[HL], value);
+        addr8((uint8_t*) &reg[HL], mmu->get_signed(PC + 1));
 
         PC += 2;
         clock += 12;
-
-        set_flag(FZ, 0);
         break;
 
     case 0xF9:      // Loads HL content to SP
