@@ -49,9 +49,11 @@ public:
 
     size_t clock;
 
+    // TODO: Force F flag to be always 0-3 at 0
     uint8_t reg[REGISTER_COUNT];
     uint16_t PC;                    //<! Program Counter
 
+    void set_flag(size_t flag, bool value);
     bool get_flag(size_t flag);
 
     uint16_t reg16(size_t i);

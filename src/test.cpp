@@ -1422,14 +1422,14 @@ bool test_POP_AF()
     ASSERT(cpu->PC == 0x01);
 
     while (cpu->PC > 0x00 && cpu->PC < 0x13) {
-        cpu->display_registers();
-        mmu->dump(0xFF00, 0xFFFE);
+        //cpu->display_registers();
+        //mmu->dump(0xFF00, 0xFFFE);
 
         cpu->step();
     }
 
-    cpu->display_registers();
-    mmu->dump(0xFF00, 0xFFFE);
+    //cpu->display_registers();
+    //mmu->dump(0xFF00, 0xFFFE);
 
     ASSERTV(cpu->PC == 0x13, "PC: %04X\n", cpu->PC);
 

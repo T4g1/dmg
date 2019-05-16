@@ -387,6 +387,18 @@ void CPU::display_registers()
     info("SP: 0x%04X\n", reg16(SP));
 }
 
+
+/**
+ * @brief      Set the Flag register value
+ * @param[in]  flag   The flag to set/unset
+ * @param[in]  value  The value of the flag
+ */
+void CPU::set_flag(size_t flag, bool value)
+{
+    reg[F] = set_bit(reg[F], flag, value) & 0xF0;
+}
+
+
 /**
  * @brief      Give the value of the desired flag
  * @param[in]  flag  The flag index
@@ -444,18 +456,18 @@ void CPU::inc8(uint8_t *address)
 {
     *address = *address + 1;
 
-    reg[F] = set_bit(reg[F], FZ, *address == 0);
-    reg[F] = set_bit(reg[F], FN, 0);
-    reg[F] = set_bit(reg[F], FH, (*address & 0x0F) == 0x00); // Went from 0xXF to 0xX0
+    set_flag(FZ, *address == 0);
+    set_flag(FN, 0);
+    set_flag(FH, (*address & 0x0F) == 0x00); // Went from 0xXF to 0xX0
 }
 
 void CPU::dec8(uint8_t *address)
 {
     *address = *address - 1;
 
-    reg[F] = set_bit(reg[F], FZ, *address == 0);
-    reg[F] = set_bit(reg[F], FN, 1);
-    reg[F] = set_bit(reg[F], FH, (*address & 0x0F) == 0x0F); // Went from 0xX0 to 0xXF
+    set_flag(FZ, *address == 0);
+    set_flag(FN, 1);
+    set_flag(FH, (*address & 0x0F) == 0x0F); // Went from 0xX0 to 0xXF
 }
 
 /**
@@ -513,10 +525,10 @@ void CPU::add8()
 
     reg[A] = (uint8_t) result;
 
-    reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
-    reg[F] = set_bit(reg[F], FN, 0);
-    reg[F] = set_bit(reg[F], FH, half_carry);
-    reg[F] = set_bit(reg[F], FC, result > 0x00FF);  // Overflow
+    set_flag(FZ, reg[A] == 0);
+    set_flag(FN, 0);
+    set_flag(FH, half_carry);
+    set_flag(FC, result > 0x00FF);  // Overflow
 }
 
 void CPU::add16(uint8_t *dst, const uint8_t *src)
@@ -545,9 +557,9 @@ void CPU::add16(uint8_t *dst, const uint8_t *src)
     }
     *dh = (uint8_t)(tmp & 0xFF);
 
-    reg[F] = set_bit(reg[F], FN, 0);
-    reg[F] = set_bit(reg[F], FH, half_carry == 1);
-    reg[F] = set_bit(reg[F], FC, carry = 1);
+    set_flag(FN, 0);
+    set_flag(FH, half_carry == 1);
+    set_flag(FC, carry = 1);
 
     debug_cpu("ADD r16\n");
 }
@@ -609,6 +621,11 @@ void CPU::pop()
 
     PC += 1;
     clock += 12;
+
+    // 4 lower bits of flag register must remain at 0
+    if (opcode == 0xF1) {
+        reg[F] &= 0xF0;
+    }
 
     debug_cpu("POP\n");
 }
@@ -738,8 +755,8 @@ void CPU::cpl()
 {
     reg[A] = ~reg[A];
 
-    reg[F] = set_bit(reg[F], FN, 1);
-    reg[F] = set_bit(reg[F], FH, 1);
+    set_flag(FN, 1);
+    set_flag(FH, 1);
 
     PC += 1;
     clock += 4;
@@ -750,9 +767,9 @@ void CPU::cpl()
 // Switch carry flag
 void CPU::ccf()
 {
-    reg[F] = set_bit(reg[F], FN, 0);
-    reg[F] = set_bit(reg[F], FH, 0);
-    reg[F] = set_bit(reg[F], FC, get_bit(reg[F], FC) == 0);
+    set_flag(FN, 0);
+    set_flag(FH, 0);
+    set_flag(FC, get_bit(reg[F], FC) == 0);
 
     PC += 1;
     clock += 4;
@@ -766,9 +783,9 @@ void CPU::daa()
 
     // TODO
 
-    /*reg[F] = set_bit(reg[F], FZ, == 0);
-    reg[F] = set_bit(reg[F], FH, 0);
-    reg[F] = set_bit(reg[F], FC, carry);*/
+    /*set_flag(FZ, == 0);
+    set_flag(FH, 0);
+    set_flag(FC, carry);*/
 
     PC += 1;
     clock += 4;
@@ -779,9 +796,9 @@ void CPU::daa()
 // Set carry flag
 void CPU::scf()
 {
-    reg[F] = set_bit(reg[F], FN, 0);
-    reg[F] = set_bit(reg[F], FH, 0);
-    reg[F] = set_bit(reg[F], FC, 1);
+    set_flag(FN, 0);
+    set_flag(FH, 0);
+    set_flag(FC, 1);
 
     PC += 1;
     clock += 4;
@@ -837,7 +854,7 @@ void CPU::add()
         value = mmu->get(PC + 1);
         add16(&reg[SP], (uint8_t*) &value);
 
-        reg[F] = set_bit(reg[F], FZ, 0);
+        set_flag(FZ, 0);
 
         ticks = 16;
         PC += 1;
@@ -1188,7 +1205,7 @@ void CPU::ld()
         PC += 2;
         clock += 12;
 
-        reg[F] = set_bit(reg[F], FZ, 0);
+        set_flag(FZ, 0);
         break;
 
     case 0xF9:      // Loads HL content to SP
@@ -1224,10 +1241,10 @@ void CPU::rxa()
         reg[A] = set_bit(reg[A], 7, new_value);
     }
 
-    reg[F] = set_bit(reg[F], FZ, 0);
-    reg[F] = set_bit(reg[F], FN, 0);
-    reg[F] = set_bit(reg[F], FH, 0);
-    reg[F] = set_bit(reg[F], FC, carry);
+    set_flag(FZ, 0);
+    set_flag(FN, 0);
+    set_flag(FH, 0);
+    set_flag(FC, carry);
 
     PC += 1;
     clock += 4;
@@ -1281,19 +1298,19 @@ void CPU::prefix_CB()
             *address = set_bit(*address, 7, new_value);
         }
 
-        reg[F] = set_bit(reg[F], FZ, *address == 0);
-        reg[F] = set_bit(reg[F], FN, 0);
-        reg[F] = set_bit(reg[F], FH, 0);
-        reg[F] = set_bit(reg[F], FC, carry);
+        set_flag(FZ, *address == 0);
+        set_flag(FN, 0);
+        set_flag(FH, 0);
+        set_flag(FC, carry);
     }
     /* Shitf Left (SLA) */
     else if (opcode < 0x28) {
         *address = shift(*address, true, &carry);
 
-        reg[F] = set_bit(reg[F], FZ, *address == 0);
-        reg[F] = set_bit(reg[F], FN, 0);
-        reg[F] = set_bit(reg[F], FH, 0);
-        reg[F] = set_bit(reg[F], FC, carry);
+        set_flag(FZ, *address == 0);
+        set_flag(FN, 0);
+        set_flag(FH, 0);
+        set_flag(FC, carry);
     }
     /* Shitf Right, keep b7 (SRA) */
     else if (opcode < 0x30) {
@@ -1303,34 +1320,34 @@ void CPU::prefix_CB()
 
         *address = set_bit(*address, 7, b7);
 
-        reg[F] = set_bit(reg[F], FZ, *address == 0);
-        reg[F] = set_bit(reg[F], FN, 0);
-        reg[F] = set_bit(reg[F], FH, 0);
-        reg[F] = set_bit(reg[F], FC, 0);
+        set_flag(FZ, *address == 0);
+        set_flag(FN, 0);
+        set_flag(FH, 0);
+        set_flag(FC, 0);
     }
     /* Swap */
     else if (opcode < 0x38) {
         *address = swap(*address);
 
-        reg[F] = set_bit(reg[F], FZ, *address == 0);
-        reg[F] = set_bit(reg[F], FN, 0);
-        reg[F] = set_bit(reg[F], FH, 0);
-        reg[F] = set_bit(reg[F], FC, 0);
+        set_flag(FZ, *address == 0);
+        set_flag(FN, 0);
+        set_flag(FH, 0);
+        set_flag(FC, 0);
     }
     /* Shitf Right Logical (SRL) */
     else if (opcode < 0x40) {
         *address = shift(*address, false, &carry);
 
-        reg[F] = set_bit(reg[F], FZ, *address == 0);
-        reg[F] = set_bit(reg[F], FN, 0);
-        reg[F] = set_bit(reg[F], FH, 0);
-        reg[F] = set_bit(reg[F], FC, carry);
+        set_flag(FZ, *address == 0);
+        set_flag(FN, 0);
+        set_flag(FH, 0);
+        set_flag(FC, carry);
     }
     /* Get Bit */
     else if (opcode < 0x80) {
-        reg[F] = set_bit(reg[F], FZ, get_bit(*address, offset) == 0);
-        reg[F] = set_bit(reg[F], FN, 0);
-        reg[F] = set_bit(reg[F], FH, 1);
+        set_flag(FZ, get_bit(*address, offset) == 0);
+        set_flag(FN, 0);
+        set_flag(FH, 1);
     }
     /* Set and Reset */
     else {
@@ -1390,10 +1407,10 @@ void CPU::or_xor_and_cp()
         uint16_t result = 0x0100 + reg[A];
         result -= *target;
 
-        reg[F] = set_bit(reg[F], FZ, (result & 0x00FF) == 0);
-        reg[F] = set_bit(reg[F], FN, 1);
-        reg[F] = set_bit(reg[F], FH, (reg[A] & 0x0F) < (*target & 0x0F));
-        reg[F] = set_bit(reg[F], FC, !(result & 0x100));   // Underflow
+        set_flag(FZ, (result & 0x00FF) == 0);
+        set_flag(FN, 1);
+        set_flag(FH, (reg[A] & 0x0F) < (*target & 0x0F));
+        set_flag(FC, !(result & 0x100));   // Underflow
 
         debug_cpu("CP\n");
     }
@@ -1401,10 +1418,10 @@ void CPU::or_xor_and_cp()
     else if ((opcode >= 0xB0 && opcode < 0xB8) || opcode == 0xF6) {
         reg[A] |= *target;
 
-        reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
-        reg[F] = set_bit(reg[F], FN, 0);
-        reg[F] = set_bit(reg[F], FH, 0);
-        reg[F] = set_bit(reg[F], FC, 0);
+        set_flag(FZ, reg[A] == 0);
+        set_flag(FN, 0);
+        set_flag(FH, 0);
+        set_flag(FC, 0);
 
         debug_cpu("OR\n");
     }
@@ -1412,10 +1429,10 @@ void CPU::or_xor_and_cp()
     else if ((opcode >= 0xA8 && opcode < 0xB0) || opcode == 0xEE) {
         reg[A] ^= *target;
 
-        reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
-        reg[F] = set_bit(reg[F], FN, 0);
-        reg[F] = set_bit(reg[F], FH, 0);
-        reg[F] = set_bit(reg[F], FC, 0);
+        set_flag(FZ, reg[A] == 0);
+        set_flag(FN, 0);
+        set_flag(FH, 0);
+        set_flag(FC, 0);
 
         debug_cpu("XOR\n");
     }
@@ -1423,10 +1440,10 @@ void CPU::or_xor_and_cp()
     else if ((opcode >= 0xA0 && opcode < 0xA8) || opcode == 0xE6) {
         reg[A] &= *target;
 
-        reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
-        reg[F] = set_bit(reg[F], FN, 0);
-        reg[F] = set_bit(reg[F], FH, 1);
-        reg[F] = set_bit(reg[F], FC, 0);
+        set_flag(FZ, reg[A] == 0);
+        set_flag(FN, 0);
+        set_flag(FH, 1);
+        set_flag(FC, 0);
 
         debug_cpu("AND\n");
     }
@@ -1489,10 +1506,10 @@ void CPU::sub()
 
     reg[A] = (uint8_t) result;
 
-    reg[F] = set_bit(reg[F], FZ, reg[A] == 0);
-    reg[F] = set_bit(reg[F], FN, 1);
-    reg[F] = set_bit(reg[F], FH, half_carry);
-    reg[F] = set_bit(reg[F], FC, !(result & 0x100));   // Underflow
+    set_flag(FZ, reg[A] == 0);
+    set_flag(FN, 1);
+    set_flag(FH, half_carry);
+    set_flag(FC, !(result & 0x100));   // Underflow
 }
 
 void CPU::ei()
