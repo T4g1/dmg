@@ -246,8 +246,7 @@ void MMU::set_cartridge(Cartridge *cart)
 void MMU::set_boot_rom_enable(uint8_t value)
 {
     if (value & 0x01) {
-        // DEBUG
-        info("BOOT sequence over\n");
+        debug("BOOT sequence over\n");
         booted = true;
     } else {
         booted = false;

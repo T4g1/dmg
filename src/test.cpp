@@ -680,6 +680,62 @@ bool test_CPU_RLA_RLCA()
     return true;
 }
 
+bool test_CPU_INC_DEC()
+{
+    init(0xF0);
+
+    execute({ 0x04 });      // INC B
+    ASSERT(cpu->reg[B] == 0xF1);
+
+    init(0xFF);
+
+    execute({ 0x04 });      // INC B
+    ASSERT(cpu->reg[B] == 0x00);
+
+    init(0xF0);
+
+    execute({ 0x05 });      // DEC B
+    ASSERT(cpu->reg[B] == 0xEF);
+
+    init(0x00);
+
+    execute({ 0x05 });      // DEC B
+    ASSERT(cpu->reg[B] == 0xFF);
+
+    init(0x01);
+
+    execute({ 0x05 });      // DEC B
+    ASSERT(cpu->reg[B] == 0x00);
+    ASSERT(cpu->get_flag(FZ));
+
+    execute({ 0x3D });      // DEC A
+    ASSERT(cpu->reg[A] == 0x00);
+    ASSERT(cpu->get_flag(FZ));
+    ASSERT(!cpu->get_flag(FH));
+
+    return true;
+}
+
+bool test_CPU_JP()
+{
+    init(0x00);
+
+    size_t size = 1;
+    uint8_t program[] = {
+        0xE9,       // JP (HL)
+    };
+    mmu->load(program, size);
+
+    cpu->reg[H] = 0x0B;
+    cpu->reg[L] = 0x8D;
+
+    cpu->step();
+
+    ASSERTV(cpu->PC == 0x0B8D, "B: 0x%04X\n", cpu->PC);
+
+    return true;
+}
+
 bool test_BIN_RLC()
 {
     init(0xF0);
@@ -710,37 +766,6 @@ bool test_BIN_RLC()
     init(0x00);
     execute({ 0xCB, 0x08 });
     ASSERT(cpu->reg[F] == 0b10000000);
-
-    return true;
-}
-
-bool test_CPU_INC_DEC()
-{
-    init(0xF0);
-
-    execute({ 0x04 });      // INC B
-    ASSERT(cpu->reg[B] == 0xF1);
-
-    init(0xFF);
-
-    execute({ 0x04 });      // INC B
-    ASSERT(cpu->reg[B] == 0x00);
-
-    init(0xF0);
-
-    execute({ 0x05 });      // DEC B
-    ASSERT(cpu->reg[B] == 0xEF);
-
-    init(0x00);
-
-    execute({ 0x05 });      // DEC B
-    ASSERT(cpu->reg[B] == 0xFF);
-
-    init(0x01);
-
-    execute({ 0x05 });      // DEC B
-    ASSERT(cpu->reg[B] == 0x00);
-    ASSERT(cpu->get_flag(FZ));
 
     return true;
 }
@@ -1321,6 +1346,15 @@ bool test_CARTRIDGE_CPU_instrs()
 
     ASSERTV(cpu->PC == 0x0459, "PC: %04X\n", cpu->PC);
 
+    int i =0;
+    while(cpu->PC != 0x021D) {
+        cpu->step(); i++;
+    }
+
+    cpu->step();
+
+    ASSERTV(cpu->PC == 0x0228, "i: %d PC: %04X\n", i, cpu->PC);
+
     return true;
 }
 
@@ -1333,7 +1367,7 @@ int main(void)
     mmu->set_ppu(ppu);
 
     fprintf(stdout, "DMG auto testing\n");
-/*
+
     test("MMU: RAM check", &test_MMU_ram);
 
     test("Binary Operations: RLC", &test_BIN_RLC);
@@ -1363,13 +1397,14 @@ int main(void)
     test("CPU: PUSH/POP", &test_CPU_PUSH_POP);
     test("CPU: RLA/RLCA", &test_CPU_RLA_RLCA);
     test("CPU: INC/DEC", &test_CPU_INC_DEC);
+    test("CPU: JP", &test_CPU_JP);
 
     test("PROGRAM: Zero memory from $8000 to $9FFF", &test_zero_memory);
     test("PROGRAM: Init sound control registers", &test_audio_init);
     test("PROGRAM: Boot graphic routine", &test_graphic_routine);
 
     test("CARTRIDGE: Post boot", &test_CARTRIDGE_post_boot);
-    test("CARTRIDGE: Read from MBC1", &test_CARTRIDGE_read_MBC1);*/
+    test("CARTRIDGE: Read from MBC1", &test_CARTRIDGE_read_MBC1);
     test("CARTRIDGE: CPU Instrs", &test_CARTRIDGE_CPU_instrs);
 
     return EXIT_SUCCESS;

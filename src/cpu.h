@@ -58,6 +58,8 @@ public:
 
     void display_registers();
 
+    uint16_t previous_PC;       // DEBUG
+
 private:
     MMU *mmu;
 

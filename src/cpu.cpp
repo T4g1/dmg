@@ -347,9 +347,9 @@ bool CPU::step()
     uint8_t opcode = mmu->get(PC);
 
     // DEBUG
-    if (mmu->is_booted()) {
-        info("PC: 0x%04X\tClock: %d\tOpcode: 0x%02X\n", PC, (int)clock, opcode);
-    }
+//    if (mmu->is_booted()) {
+//        info("PC: 0x%04X\tClock: %d\tOpcode: 0x%02X\n", PC, (int)clock, opcode);
+//    }
 
     // Some instructions are not meant to do anything, crash the system
     if (l_callback[opcode] == NULL) {
@@ -359,6 +359,8 @@ bool CPU::step()
         // TODO: Crash?
         return false;
     }
+
+    previous_PC = PC;       // DEBUG
 
     (*this.*l_callback[opcode])();
 
@@ -644,9 +646,9 @@ void CPU::jp()
 
 void CPU::jp_hl()
 {
-    PC = mmu->get16(reg16(HL));
+    PC = reg16(HL);
 
-    debug_cpu("JP (HL)\n");
+    debug_cpu("JP (HL) to 0x%04X\n", reg16(HL));
 
     clock += 4;
 }
