@@ -805,6 +805,7 @@ void CPU::ccf()
 void CPU::daa()
 {
     uint16_t value = reg[A];
+    bool carry = false;
 
     // Lower digit
     if (get_flag(FH) || (!get_flag(FN) && (value & 0x0F) > 9)) {
@@ -821,7 +822,7 @@ void CPU::daa()
             value -= 0x60;
         } else {
             value += 0x60;
-            set_flag(FC, 1);
+            carry = true;
         }
     }
 
@@ -832,6 +833,7 @@ void CPU::daa()
 
     set_flag(FZ, reg[A] == 0);
     set_flag(FH, 0);
+    set_flag(FC, carry);
 
     debug_cpu("DAA\n");
 }
