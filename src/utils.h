@@ -7,6 +7,9 @@
 
 #include <SDL2/SDL.h>
 
+#define UTIL_LEFT       true
+#define UTIL_RIGHT      false
+
 bool get_bit(uint8_t byte, size_t offset);
 uint8_t set_bit(uint8_t byte, size_t offset, bool value);
 uint8_t rotate(uint8_t byte, bool left, bool *carry);

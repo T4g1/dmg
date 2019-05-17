@@ -1311,12 +1311,12 @@ void CPU::prefix_CB()
     uint8_t *address = l_address[opcode % 8];
 
     size_t offset = (opcode / 8) % 8;
-    bool left = (opcode % 16) < 8;
+    bool is_left = (opcode % 16) < 8;
     bool carry, old_carry = get_bit(reg[F], FC);
 
     /* Rotate */
     if (opcode < 0x20) {
-        *address = rotate(*address, left, &carry);
+        *address = rotate(*address, is_left, &carry);
 
         /* Opcode to 0x10 set new byte to the shifted one */
         bool new_value = carry;
@@ -1326,7 +1326,7 @@ void CPU::prefix_CB()
             new_value = old_carry;
         }
 
-        if (left) {
+        if (is_left) {
             *address = set_bit(*address, 0, new_value);
         } else {
             *address = set_bit(*address, 7, new_value);
@@ -1339,7 +1339,7 @@ void CPU::prefix_CB()
     }
     /* Shitf Left (SLA) */
     else if (opcode < 0x28) {
-        *address = shift(*address, true, &carry);
+        *address = shift(*address, UTIL_LEFT, &carry);
 
         set_flag(FZ, *address == 0);
         set_flag(FN, 0);
@@ -1348,16 +1348,17 @@ void CPU::prefix_CB()
     }
     /* Shitf Right, keep b7 (SRA) */
     else if (opcode < 0x30) {
+        bool b0 = get_bit(*address, 0);
         bool b7 = get_bit(*address, 7);
 
-        *address = shift(*address, false, &carry);
+        *address = shift(*address, UTIL_RIGHT, &carry);
 
         *address = set_bit(*address, 7, b7);
 
         set_flag(FZ, *address == 0);
         set_flag(FN, 0);
         set_flag(FH, 0);
-        set_flag(FC, 0);
+        set_flag(FC, b0);
     }
     /* Swap */
     else if (opcode < 0x38) {
@@ -1370,7 +1371,7 @@ void CPU::prefix_CB()
     }
     /* Shitf Right Logical (SRL) */
     else if (opcode < 0x40) {
-        *address = shift(*address, false, &carry);
+        *address = shift(*address, UTIL_RIGHT, &carry);
 
         set_flag(FZ, *address == 0);
         set_flag(FN, 0);
