@@ -1489,6 +1489,55 @@ bool test_CPU_Op_SP()
 
     ASSERTV(cpu->reg16(HL) == 0xEEFF, "HL: 0x%04X\n", cpu->reg16(HL));
 
+    // Loop HL values to 0x02FF
+    uint8_t h = 0;
+    uint8_t l = 0;
+    do {
+        // Loop all SP values
+        uint8_t s = 0;
+        uint8_t p = 0;
+        do {
+            cpu->PC = 0;
+
+            execute({ 0x21, l, h });        // LD HL, d16
+            execute({ 0x31, p, s });        // LD SP, d16
+
+            uint16_t hl = (h << 8) + l;
+            uint16_t sp = (s << 8) + p;
+
+            ASSERT_QUIET_SUCCESS(
+                cpu->reg16(HL) == hl,
+                "HL is 0x%04X instead of 0x%04X\n",
+                cpu->reg16(HL), hl
+            );
+
+            ASSERT_QUIET_SUCCESS(
+                cpu->reg16(SP) == sp,
+                "SP is 0x%04X instead of 0x%04X\n",
+                cpu->reg16(SP), sp
+            );
+
+            execute({ 0x39 });        // ADD HL,SP
+
+            uint16_t result = hl + sp;
+            ASSERT_QUIET_SUCCESS(
+                cpu->reg16(HL) == result ,
+                "HL is 0x%04X instead of 0x%04X\n",
+                cpu->reg16(HL), result
+            );
+
+            p++;
+            if (p == 0x00) {
+                s++;
+            }
+        } while (s != 0xFF || p != 0xFF);
+
+        l++;
+        if (l == 0x00) {
+            h++;
+        }
+    } while (h != 0x02 || l != 0xFF);
+
     return true;
 }
 

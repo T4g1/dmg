@@ -533,35 +533,42 @@ void CPU::add8()
 
 void CPU::add16(uint8_t *dst, const uint8_t *src)
 {
-    debug_cpu("ADD 0x%04X to 0x%04X\n", *(uint16_t*) dst, *(uint16_t*) src);
-    bool half_carry = false, carry = false;
+    bool carry = false;
 
     uint8_t *dh = dst;
     const uint8_t *sh = src;
     uint8_t *dl = dst + 1;
     const uint8_t *sl = src + 1;
 
-    int idl = (int)*dl;
-    int isl = (int)*sl;
-    int tmp = idl + isl;
+    uint16_t dst16 = (*dh << 8) + *dl;
+    uint16_t src16 = (*sh << 8) + *sl;
+
+    int tmp = *dl + *sl;
     if (tmp > 255) {
-        half_carry = true;
+        carry = true;
     }
     *dl = (uint8_t)(tmp & 0xFF);
 
-    int idh = (int)*dh;
-    int ish = (int)*sh;
-    tmp = idh + ish + half_carry;
+    tmp = *dh + *sh + carry;
     if (tmp > 255) {
         carry = true;
     }
     *dh = (uint8_t)(tmp & 0xFF);
 
-    set_flag(FN, 0);
-    set_flag(FH, half_carry == 1);
-    set_flag(FC, carry = 1);
+    uint16_t result = (*dh << 8) + *dl;
 
-    debug_cpu("ADD r16\n");
+    // Is the sum of upper byte only the same as result?
+    bool half_carry = (((dst16 & 0xF0) + (src16 & 0xF0)) & 0xF0) != (result & 0xF0);
+
+    //set_flag(FZ, *(uint16_t*) dst == 0x0000);
+    set_flag(FN, 0);
+    set_flag(FH, half_carry);
+    set_flag(FC, carry);
+
+    info(
+        "ADD r16: 0x%04X + 0x%04X = 0x%04X (F:0x%02X)\n",
+         dst16, src16, result, reg[F]
+     );
 }
 
 void CPU::addr8(uint8_t *dst, int value)
@@ -569,20 +576,28 @@ void CPU::addr8(uint8_t *dst, int value)
     uint8_t high = *dst;
     uint8_t low = *(dst + 1);
 
-    debug_cpu("ADD r8 %d to 0x%02X%02X\n", value, high, low);
+    uint16_t dst16 = (high << 8) + low;
 
     // The leading 1 is used to carry for underflow
-    uint32_t result = 0x00010000 + (high << 8) + low;
+    uint32_t result = 0x00010000 + dst16;
 
     result += value;
 
     *dst = (result & 0x0000FF00) >> 8;
     *(dst + 1) = result & 0x000000FF;
 
+    // Is the sum of upper byte only the same as result?
+    //bool half_carry = (((dst16 & 0xF000) + (src16 & 0xF000)) & 0xF000) != (result & 0xF000);
+
     set_flag(FZ, 0);
     set_flag(FN, 0);
     set_flag(FH, high != *dst);
     set_flag(FC, (result & 0xFFFF0000) != 0x00010000);
+
+    info(
+        "ADD r8: 0x%04X + (%d) = 0x%04X (F:0x%02X)\n",
+         dst16, value, result & 0x0000FFFF, reg[F]
+     );
 }
 
 void CPU::push()
