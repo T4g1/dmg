@@ -583,7 +583,7 @@ void CPU::addr8(uint8_t *dst, int value)
     *dst = (result & 0x0000FF00) >> 8;
     *(dst + 1) = result;
 
-    info(
+    debug_cpu(
         "ADD r8: 0x%04X + (%d) = 0x%04X (F:0x%02X)\n",
          dst16, value, result & 0x0000FFFF, reg[F]
      );
