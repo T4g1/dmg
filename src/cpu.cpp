@@ -533,8 +533,6 @@ void CPU::add8()
 
 void CPU::add16(uint8_t *dst, const uint8_t *src)
 {
-    bool carry = false;
-
     uint8_t *dh = dst;
     const uint8_t *sh = src;
     uint8_t *dl = dst + 1;
@@ -543,29 +541,20 @@ void CPU::add16(uint8_t *dst, const uint8_t *src)
     uint16_t dst16 = (*dh << 8) + *dl;
     uint16_t src16 = (*sh << 8) + *sl;
 
-    int tmp = *dl + *sl;
-    if (tmp > 255) {
-        carry = true;
-    }
-    *dl = (uint8_t)(tmp & 0xFF);
+    uint16_t result = dst16 + src16;
 
-    tmp = *dh + *sh + carry;
-    if (tmp > 255) {
-        carry = true;
-    }
-    *dh = (uint8_t)(tmp & 0xFF);
-
-    uint16_t result = (*dh << 8) + *dl;
+    *dh = result >> 8;
+    *dl = result;
 
     // Is the sum of upper byte only the same as result?
-    bool half_carry = (((dst16 & 0xF0) + (src16 & 0xF0)) & 0xF0) != (result & 0xF0);
+    bool half_carry = (((dst16 & 0xF000) + (src16 & 0xF000)) & 0xF000) != (result & 0xF000);
 
     //set_flag(FZ, *(uint16_t*) dst == 0x0000);
     set_flag(FN, 0);
     set_flag(FH, half_carry);
-    set_flag(FC, carry);
+    set_flag(FC, result < dst16);
 
-    info(
+    debug_cpu(
         "ADD r16: 0x%04X + 0x%04X = 0x%04X (F:0x%02X)\n",
          dst16, src16, result, reg[F]
      );
