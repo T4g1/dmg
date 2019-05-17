@@ -415,8 +415,8 @@ bool CPU::get_flag(size_t flag)
  */
 uint16_t CPU::reg16(size_t i)
 {
-    uint16_t high = (uint16_t)reg[i];
-    uint16_t low = (uint16_t)reg[i + 1];
+    uint8_t high = reg[i];
+    uint8_t low = reg[i + 1];
 
     return (high << 8) + low;
 }
@@ -1568,11 +1568,18 @@ void CPU::rst()
 
     PC += 1;
 
-    uint8_t high = (uint8_t)((PC & 0xFF00) >> 4);
-    uint8_t low = (uint8_t)(PC & 0x00FF);
+    uint8_t high = PC >> 8;
+    uint8_t low = PC;
 
-    mmu->set(SP - 1, high);
-    mmu->set(SP - 2, low);
+    uint16_t sp = reg16(SP);
+
+    mmu->set(sp - 1, high);
+    mmu->set(sp - 2, low);
+
+    sp -= 2;
+
+    reg[SP] = sp >> 8;
+    reg[SP + 1] = sp;
 
     switch(opcode) {
     case 0xC7:
