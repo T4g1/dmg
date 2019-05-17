@@ -572,16 +572,16 @@ void CPU::addr8(uint8_t *dst, int value)
 
     result += value;
 
-    *dst = (result & 0x0000FF00) >> 8;
-    *(dst + 1) = result & 0x000000FF;
-
     // Is the sum of upper byte only the same as result?
     //bool half_carry = (((dst16 & 0xF000) + (src16 & 0xF000)) & 0xF000) != (result & 0xF000);
 
     set_flag(FZ, 0);
     set_flag(FN, 0);
-    set_flag(FH, high != *dst);
-    set_flag(FC, (result & 0xFFFF0000) != 0x00010000);
+    set_flag(FH, (result & 0x0F) < (dst16 & 0x0F));
+    set_flag(FC, (result & 0xFF) < (dst16 & 0xFF));
+
+    *dst = (result & 0x0000FF00) >> 8;
+    *(dst + 1) = result;
 
     info(
         "ADD r8: 0x%04X + (%d) = 0x%04X (F:0x%02X)\n",
