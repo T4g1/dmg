@@ -2,6 +2,7 @@
 #define CPU_GUI_H
 
 #include <SDL2/SDL.h>
+#include "imgui.h"
 
 #define CPUGUI_WIDTH        800
 #define CPUGUI_HEIGHT       600
@@ -17,7 +18,8 @@ public:
 
     bool init();
     void update();
-    void quit();
+    void handle_event(SDL_Event *event);
+    void close();
 
     Uint32 get_window_id();
 
@@ -29,6 +31,7 @@ private:
     SDL_Window *sdl_window;
     SDL_Surface *sdl_screen;
     SDL_PixelFormat *pixel_format;
+    SDL_GLContext gl_context;
 
     Uint32 last_refresh;
 

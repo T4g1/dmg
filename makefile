@@ -1,9 +1,8 @@
 CC        = g++
-CXXFLAGS  = -std=c++11 -Wall -Wextra -I. -ggdb `sdl2-config --cflags`
-CFLAGS    = $(CXXFLAGS)
+CXXFLAGS  = -std=c++11 -Wall -Wextra -I. -g -ggdb
 
 LINKER    = g++
-LFLAGS    = -Wall -I. -lm -lSDL2 -lGL -ldl `sdl2-config --libs`
+LFLAGS    = -Wall -I. -lm -lSDL2 -lGL -ldl
 
 SRCDIR    = src
 OBJDIR    = src
@@ -13,32 +12,22 @@ SOURCES  := $(wildcard $(SRCDIR)/*.cpp) \
             $(wildcard $(SRCDIR)/gui/*.cpp) \
             $(wildcard lib/imgui/*.cpp) \
             lib/imgui/examples/imgui_impl_sdl.cpp \
-            lib/imgui/examples/imgui_impl_opengl2.cpp
+            lib/imgui/examples/imgui_impl_opengl3.cpp
 SOURCES  := $(filter-out $(SRCDIR)/lib/imgui//imgui_demo.cpp, $(SOURCES))
 SOURCES  := $(filter-out $(SRCDIR)/main.cpp, $(SOURCES))
 SOURCES  := $(filter-out $(SRCDIR)/test.cpp, $(SOURCES))
 
 INCLUDES := -Ilib/imgui \
             -Ilib/imgui/examples \
+            -Ilib/imgui/examples/libs/gl3w \
             -I/usr/include/SDL2
 
-CXXFLAGS := $(INCLUDES)
-CFLAGS   := -Ilib/imgui/examples/libs/gl3w
+CXXFLAGS += $(INCLUDES)
 
 OBJECTS       := $(patsubst %.cpp, %.o, $(SOURCES))
 OBJECTS_C     := lib/imgui/examples/libs/gl3w/GL/gl3w.o
 DMG_OBJECTS   := $(OBJECTS) $(OBJECTS_C) $(OBJDIR)/main.o
 TEST_OBJECTS  := $(OBJECTS) $(OBJECTS_C) $(OBJDIR)/test.o
-
-BUILD := rel
-ifeq ($(BUILD),devel)
-CXXFLAGS += -DDEBUG
-endif
-
-TEST := no
-ifeq ($(BUILD),yes)
-CXXFLAGS += -DTEST
-endif
 
 all: dmg test
 
@@ -57,13 +46,14 @@ $(OBJECTS): %.o : %.cpp
 	@echo "Compiled "$<" successfully!"
 
 $(OBJECTS_C): %.o : %.c
-	$(CC) $(CFLAGS) -c $< -o $@
+	$(CC) $(CXXFLAGS) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
 
 .PHONY: clean
 clean:
 ifneq (,$(wildcard $(OBJDIR)/*.o))
 	@rm $(OBJDIR)/*.o
+	@rm $(OBJDIR)/gui/*.o
 	@rm $(OBJDIR)/mbc/*.o
 endif
 	@echo "Cleanup complete!"

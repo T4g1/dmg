@@ -6,7 +6,11 @@
 #include "cartridge.h"
 #include "gui/cpu_gui.h"
 
+#define GLSL_VERSION        "#version 130"
 #define FRAME_CYCLES        70244  //<! Amount of CPU cycle between each frame
+
+
+void quit();
 
 
 /**
@@ -26,6 +30,7 @@ public:
     bool init(const char *path_bios, const char *path_rom);
     int run();
     void handle_event(SDL_Event *event);
+
     void set_palette(char palette_index);
 };
 
