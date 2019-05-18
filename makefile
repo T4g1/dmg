@@ -1,21 +1,34 @@
-CC       = g++
-CXXFLAGS = -std=c++11 -Wall -Wextra -I. -ggdb
+CC        = g++
+CXXFLAGS  = -std=c++11 -Wall -Wextra -I. -ggdb `sdl2-config --cflags`
+CFLAGS    = $(CXXFLAGS)
 
-LINKER   = g++
-LFLAGS   = -Wall -I. -lm -lSDL2
+LINKER    = g++
+LFLAGS    = -Wall -I. -lm -lSDL2 -lGL -ldl `sdl2-config --libs`
 
-SRCDIR   = src
-OBJDIR   = src
+SRCDIR    = src
+OBJDIR    = src
 
 SOURCES  := $(wildcard $(SRCDIR)/*.cpp) \
             $(wildcard $(SRCDIR)/mbc/*.cpp) \
-            $(wildcard $(SRCDIR)/gui/*.cpp)
+            $(wildcard $(SRCDIR)/gui/*.cpp) \
+            $(wildcard lib/imgui/*.cpp) \
+            lib/imgui/examples/imgui_impl_sdl.cpp \
+            lib/imgui/examples/imgui_impl_opengl2.cpp
+SOURCES  := $(filter-out $(SRCDIR)/lib/imgui//imgui_demo.cpp, $(SOURCES))
 SOURCES  := $(filter-out $(SRCDIR)/main.cpp, $(SOURCES))
 SOURCES  := $(filter-out $(SRCDIR)/test.cpp, $(SOURCES))
-INCLUDES := $(wildcard $(SRCDIR)/*.h)
-OBJECTS  := $(patsubst %.cpp, %.o, $(SOURCES))
-DMG_OBJECTS  := $(OBJECTS) $(OBJDIR)/main.o
-TEST_OBJECTS  := $(OBJECTS) $(OBJDIR)/test.o
+
+INCLUDES := -Ilib/imgui \
+            -Ilib/imgui/examples \
+            -I/usr/include/SDL2
+
+CXXFLAGS := $(INCLUDES)
+CFLAGS   := -Ilib/imgui/examples/libs/gl3w
+
+OBJECTS       := $(patsubst %.cpp, %.o, $(SOURCES))
+OBJECTS_C     := lib/imgui/examples/libs/gl3w/GL/gl3w.o
+DMG_OBJECTS   := $(OBJECTS) $(OBJECTS_C) $(OBJDIR)/main.o
+TEST_OBJECTS  := $(OBJECTS) $(OBJECTS_C) $(OBJDIR)/test.o
 
 BUILD := rel
 ifeq ($(BUILD),devel)
@@ -41,6 +54,10 @@ test: $(TEST_OBJECTS)
 
 $(OBJECTS): %.o : %.cpp
 	$(CC) $(CXXFLAGS) -c $< -o $@
+	@echo "Compiled "$<" successfully!"
+
+$(OBJECTS_C): %.o : %.c
+	$(CC) $(CFLAGS) -c $< -o $@
 	@echo "Compiled "$<" successfully!"
 
 .PHONY: clean
