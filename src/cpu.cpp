@@ -804,51 +804,52 @@ void CPU::ccf()
 
 void CPU::daa()
 {
-    uint8_t value = reg[A];
-    bool carry = false;
-
-    uint8_t flag = reg[F];
+    uint16_t value = reg[A];
 
     // Substraction
     if (get_flag(FN)) {
+        // Lower digit
+        if (get_flag(FH)) {
+            value = (value - 0x06) & 0xFF;
+        }
+
         // Higher digit
         if (get_flag(FC)) {
             value -= 0x60;
-        }
-
-        // Lower digit
-        if (get_flag(FH)) {
-            value -= 0x06;
         }
     }
 
     // Addition
     else {
-        // Higher digit
-        if (get_flag(FC) || value > 0x99) {
-            value += 0x60;
-            carry = true;
-        }
-
         // Lower digit
         if (get_flag(FH) || (value & 0xF) > 0x09) {
             value += 0x06;
         }
+
+        // Higher digit
+        if (get_flag(FC) || value > 0x9F) {
+            value += 0x60;
+        }
     }
 
-    PC += 1;
-    clock += 4;
+    // DO NOT RESET C even if this is false!
+    if (value & 0x100) {
+        set_flag(FC, true);
+    }
+
+    value &= 0xFF;
+    reg[A] = value;
 
     set_flag(FZ, value == 0);
     set_flag(FH, 0);
-    set_flag(FC, carry);
 
-    info(
-        "DAA 0x%02X (F:0x%02X) to 0x%02X (F:0x%02X)\n",
-        reg[A], flag, value & 0x00FF, reg[F]
+    debug_cpu(
+        "DAA 0x%02X to 0x%02X (F:0x%02X)\n",
+        reg[A], value & 0x00FF, reg[F]
     );
 
-    reg[A] = value;
+    PC += 1;
+    clock += 4;
 }
 
 // Set carry flag

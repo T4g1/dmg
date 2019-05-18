@@ -15,27 +15,37 @@ Personal attempt at creating a simple DMG GameBoy emulator from scratch.
 
 # Compilation
 
-Release:
-
 ```
 make clean; make
 ```
 
-Debug:
-
-```
-make clean; make BUILD=devel
-```
-
 Test with `./test`
+
+# Tests
+
+Blarggs Cpu Instruction Tests:
+
+|# |name               |state             |
+|- |-                  |-                 |
+|01|special            |:heavy_check_mark:|
+|02|interrupts         |:x:               |
+|03|op sp,hl           |:heavy_check_mark:|
+|04|op r,imm           |:heavy_check_mark:|
+|05|op rp              |:heavy_check_mark:|
+|06|ld r,r             |:heavy_check_mark:|
+|07|jr,jp,call,ret,rst |:heavy_check_mark:|
+|08|misc instrs        |:heavy_check_mark:|
+|09|op r,r             |:heavy_check_mark:|
+|10|bit ops            |:heavy_check_mark:|
+|11|op a,(hl)          |:heavy_check_mark:|
 
 # TODO
 
-* [-] Implement Z80 instruction set
-    * [x] Implement DAA
-    * [ ] Implement HALT
-    * [ ] Implement STOP
+* [x] Implement Z80 instruction set
 * [ ] Implement interupts
-* [X] Implement MMU
-* [ ] Implement PPU
+* [x] Implement MMU
+* [-] Implement PPU
+    * [x] Draw background
+    * [x] Draw window
+    * [ ] Draw sprites
 * [ ] Sound!

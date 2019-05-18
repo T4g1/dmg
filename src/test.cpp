@@ -1438,15 +1438,6 @@ bool test_CPU_POP_AF()
 
 bool test_CPU_DAA()
 {
-    init(0x00);
-
-    cpu->reg[A] = 0xE5;
-    cpu->reg[F] = 0x40;
-
-    execute({ 0x27 });  // DAA
-
-    ASSERTV(cpu->reg[A] == 0x79, "DAA 0xE5 to 0x%02X expected 0x79\n", cpu->reg[A]);
-
     // Addition
     for (size_t a=0; a<99; a++) {
         for (size_t b=0; b<99; b++) {
@@ -1464,13 +1455,16 @@ bool test_CPU_DAA()
             execute({ 0x80 });  // ADD A,B
             execute({ 0x27 });  // DAA
 
-            ASSERTV(
+            ASSERT_QUIET_SUCCESS(
                 cpu->reg[A] == result_bcd,
                 "0x%02X + 0x%02X = 0x%02X expected 0x%02X\n",
                 a_bcd, b_bcd, cpu->reg[A], result_bcd
             );
         }
     }
+
+    // Addition OK
+    ASSERT(true);
 
     // Substraction
     for (size_t a=0; a<99; a++) {
@@ -1489,13 +1483,16 @@ bool test_CPU_DAA()
             execute({ 0x90 });  // SUB B
             execute({ 0x27 });  // DAA
 
-            ASSERTV(
+            ASSERT_QUIET_SUCCESS(
                 cpu->reg[A] == result_bcd,
                 "0x%02X - 0x%02X = 0x%02X expected 0x%02X\n",
                 a_bcd, b_bcd, cpu->reg[A], result_bcd
             );
         }
     }
+
+    // Substraction OK
+    ASSERT(true);
 
     return true;
 }
