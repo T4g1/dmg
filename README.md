@@ -23,7 +23,7 @@ Test with `./test`
 
 # Tests
 
-Blarggs Cpu Instruction Tests:
+## Blarggs Cpu Instruction
 
 |# |name               |state             |
 |- |-                  |-                 |
