@@ -1,4 +1,4 @@
-#include "cpu_gui.h"
+#include "debugger.h"
 
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
@@ -8,9 +8,10 @@
 #include "../dmg.h"
 #include "../log.h"
 #include "../cpu.h"
+#include "../mmu.h"
 
 
-CPUGui::CPUGui(CPU *cpu) : cpu(cpu)
+Debugger::Debugger(CPU *cpu, MMU *mmu) : cpu(cpu), mmu(mmu)
 {
     running = false;
 
@@ -18,7 +19,7 @@ CPUGui::CPUGui(CPU *cpu) : cpu(cpu)
 }
 
 
-bool CPUGui::init()
+bool Debugger::init()
 {
     // GL 3.0 + GLSL 130
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
@@ -31,11 +32,11 @@ bool CPUGui::init()
     SDL_GL_SetAttribute(SDL_GL_DEPTH_SIZE, 24);
     SDL_GL_SetAttribute(SDL_GL_STENCIL_SIZE, 8);
     sdl_window = SDL_CreateWindow(
-        "DMG - CPU GUI",
+        "DMG - Debugger",
         SDL_WINDOWPOS_CENTERED,
         SDL_WINDOWPOS_CENTERED,
-        CPUGUI_WIDTH,
-        CPUGUI_HEIGHT,
+        DEBUGGER_WIDTH,
+        DEBUGGER_HEIGHT,
         SDL_WINDOW_OPENGL | SDL_WINDOW_RESIZABLE | SDL_WINDOW_ALLOW_HIGHDPI
     );
     if(sdl_window == NULL) {
@@ -79,12 +80,8 @@ bool CPUGui::init()
 }
 
 
-void CPUGui::update()
+void Debugger::update()
 {
-    if (!running) {
-        return;
-    }
-
     // Display
     Uint32 current_ticks = SDL_GetTicks();
     if (current_ticks < last_refresh + 50) {
@@ -97,12 +94,8 @@ void CPUGui::update()
 }
 
 
-void CPUGui::refresh_window()
+void Debugger::refresh_window()
 {
-    if (!running) {
-        return;
-    }
-
     ImGuiIO& io = ImGui::GetIO();
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -110,8 +103,7 @@ void CPUGui::refresh_window()
     ImGui_ImplSDL2_NewFrame(sdl_window);
     ImGui::NewFrame();
 
-    bool show_demo_window = true;
-    ImGui::ShowDemoWindow(&show_demo_window);
+    display_memory();
 
     // Rendering
     ImGui::Render();
@@ -124,25 +116,23 @@ void CPUGui::refresh_window()
 }
 
 
-void CPUGui::handle_event(SDL_Event *event)
+void Debugger::handle_event(SDL_Event *event)
 {
-    if (!running) {
-        return;
-    }
-
     ImGui_ImplSDL2_ProcessEvent(event);
+}
+
+
+void Debugger::close()
+{
+    SDL_HideWindow(sdl_window);
 }
 
 
 /**
  * @brief      Cleanup
  */
-void CPUGui::close()
+void Debugger::quit()
 {
-    if (!running) {
-        return;
-    }
-
     ImGui_ImplOpenGL3_Shutdown();
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
@@ -155,7 +145,42 @@ void CPUGui::close()
 }
 
 
-Uint32 CPUGui::get_window_id()
+Uint32 Debugger::get_window_id()
 {
     return SDL_GetWindowID(sdl_window);
+}
+
+
+/**
+ * @brief      Shows memory explorer
+ */
+void Debugger::display_memory()
+{
+    const char *title = "Memory";
+
+    if (ImGui::Begin(title)) {
+        ImGui::BeginChild("mem");
+
+        uint32_t address = 0x0000;
+        do {
+            ImGui::Text(
+                "0x%04X: 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X 0x%02X",
+                address,
+                mmu->get(address),
+                mmu->get(address + 1),
+                mmu->get(address + 2),
+                mmu->get(address + 3),
+                mmu->get(address + 4),
+                mmu->get(address + 5),
+                mmu->get(address + 6),
+                mmu->get(address + 7)
+            );
+
+            address += 0x0008;
+        } while (address < 0xFFFF);
+
+        ImGui::EndChild();
+    }
+
+    ImGui::End();
 }

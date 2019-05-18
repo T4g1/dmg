@@ -1,25 +1,27 @@
-#ifndef CPU_GUI_H
-#define CPU_GUI_H
+#ifndef DEBUGGER_H
+#define DEBUGGER_H
 
 #include <SDL2/SDL.h>
 #include "imgui.h"
 
-#define CPUGUI_WIDTH        800
-#define CPUGUI_HEIGHT       600
+#define DEBUGGER_WIDTH        800
+#define DEBUGGER_HEIGHT       600
 
 class CPU;
+class MMU;
 
 /**
- * @brief      Displays what the CPU is up to
+ * @brief      Displays emulator informations/status
  */
-class CPUGui {
+class Debugger {
 public:
-    CPUGui(CPU *cpu);
+    Debugger(CPU *cpu, MMU *mmu);
 
     bool init();
     void update();
     void handle_event(SDL_Event *event);
     void close();
+    void quit();
 
     Uint32 get_window_id();
 
@@ -27,6 +29,7 @@ private:
     bool running;
 
     CPU *cpu;
+    MMU *mmu;
 
     SDL_Window *sdl_window;
     SDL_Surface *sdl_screen;
@@ -36,6 +39,7 @@ private:
     Uint32 last_refresh;
 
     void refresh_window();
+    void display_memory();
 };
 
-#endif /* CPU_GUI_H */
+#endif /* DEBUGGER_H */

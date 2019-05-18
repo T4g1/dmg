@@ -6,7 +6,7 @@
 #include <cstddef>
 
 #include "mmu.h"
-#include "gui/cpu_gui.h"
+#include "gui/debugger.h"
 
 #define MAX_OPCODES         256
 #define REGISTER_COUNT  10  //<! 8x8-bit for standard registers + 2x8-bit for SP (16-bit)
@@ -109,7 +109,7 @@ private:
     void di();
     void rst();
 
-    friend class CPUGui;
+    friend class Debugger;
 };
 
 #endif /* CPU_H */

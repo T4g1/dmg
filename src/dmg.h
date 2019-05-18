@@ -4,7 +4,7 @@
 #include "ppu.h"
 #include "cpu.h"
 #include "cartridge.h"
-#include "gui/cpu_gui.h"
+#include "gui/debugger.h"
 
 #define GLSL_VERSION        "#version 130"
 #define FRAME_CYCLES        70244  //<! Amount of CPU cycle between each frame
@@ -22,7 +22,7 @@ class DMG {
     CPU *cpu;
     PPU *ppu;
 
-    CPUGui *cpu_gui;
+    Debugger *debugger;
 
     bool running;
 
