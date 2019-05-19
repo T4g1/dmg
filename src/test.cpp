@@ -1551,6 +1551,40 @@ bool test_CARTRIDGE_CPU_instrs()
     return true;
 }
 
+bool test_blargg_cpu_instrs()
+{
+    // Blargg cpu instrs
+    const size_t blargg_count = 12;
+    const char *cpu_instrs[] = {
+        "tests/blargg/01-special.gb",
+        "tests/blargg/02-interrupts.gb",
+        "tests/blargg/03-op sp,hl.gb",
+        "tests/blargg/04-op r,imm.gb",
+        "tests/blargg/05-op rp.gb",
+        "tests/blargg/06-ld r,r.gb",
+        "tests/blargg/07-jr,jp,call,ret,rst.gb",
+        "tests/blargg/08-misc instrs.gb",
+        "tests/blargg/09-op r,r.gb",
+        "tests/blargg/10-bit ops.gb",
+        "tests/blargg/11-op a,(hl).gb",
+        "tests/blargg/cpu_instrs.gb",
+    };
+
+    for (size_t test_id=0; test_id<blargg_count; test_id++) {
+        const char *path_rom = cpu_instrs[test_id];
+        fprintf(stdout, "BLARGG: %s: ", path_rom);
+
+        DMG dmg;
+        dmg.init(nullptr, cpu_instrs[test_id]);
+        dmg.set_palette('1');
+        dmg.run();
+
+        fprintf(stdout, "\n");
+    }
+
+    return true;
+}
+
 int main(void)
 {
     mmu = new MMU();
@@ -1603,29 +1637,11 @@ int main(void)
     test("CARTRIDGE: Read from MBC1", &test_CARTRIDGE_read_MBC1);
     test("CARTRIDGE: CPU Instrs", &test_CARTRIDGE_CPU_instrs);
 
-    // Blargg cpu instrs
-    const size_t blargg_count = 11;
-    const char *cpu_instrs[] = {
-        "tests/blargg/01-special.gb",
-        "tests/blargg/02-interrupts.gb",
-        "tests/blargg/03-op sp,hl.gb",
-        "tests/blargg/04-op r,imm.gb",
-        "tests/blargg/05-op rp.gb",
-        "tests/blargg/06-ld r,r.gb",
-        "tests/blargg/07-jr,jp,call,ret,rst.gb",
-        "tests/blargg/08-misc instrs.gb",
-        "tests/blargg/09-op r,r.gb",
-        "tests/blargg/10-bit ops.gb",
-        "tests/blargg/11-op a,(hl).gb",
-    };
-    for (size_t test_id=0; test_id<blargg_count; test_id++) {
-        fprintf(stdout, "BLARGG: %s\n", cpu_instrs[test_id]);
+    delete(mmu);
+    delete(ppu);
+    delete(cpu);
 
-        DMG dmg;
-        dmg.init(nullptr, cpu_instrs[test_id]);
-        dmg.set_palette('1');
-        dmg.run();
-    }
+    test_blargg_cpu_instrs();
 
     return EXIT_SUCCESS;
 }

@@ -25,7 +25,7 @@ bool Cartridge::load(const char *path_rom)
 
     FILE *f = fopen(path_rom, "rb");
     if (f == NULL) {
-        error("Unable to read provided boot ROM file\n");
+        error("Unable to read provided cartridge ROM file\n");
         return false;
     }
 
