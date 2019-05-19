@@ -36,6 +36,8 @@
 #define BGP                 0xFF47      // BG Palette data
 #define WY                  0xFF4A      // Window Y position
 #define WX                  0xFF4B      // Window X position
+#define IF_ADDRESS          0xFF0F      // Interrupt Flag
+#define IE_ADDRESS          0xFFFF      // Interrupt Enable
 
 enum address_type {
     BOOT,

@@ -345,6 +345,8 @@ void CPU::reset()
  */
 bool CPU::step()
 {
+    handle_interrupts();
+
     if (halted) {
         clock += 4;
         return true;
@@ -680,9 +682,6 @@ void CPU::call(uint8_t opcode)
 
     PC += 3;
 
-    uint8_t high = (uint8_t)((PC & 0xFF00) >> 8);
-    uint8_t low = (uint8_t)(PC & 0x00FF);
-
     bool do_call = true;
     /* Call if not Z */
     if ((opcode == 0xC4 && get_bit(reg[F], FZ) == 1) ||
@@ -697,12 +696,7 @@ void CPU::call(uint8_t opcode)
     }
 
     if (do_call) {
-        dec16(&reg[SP]);
-        mmu->set(reg16(SP), high);
-        dec16(&reg[SP]);
-        mmu->set(reg16(SP), low);
-
-        PC = address;
+        _call(address);
     }
 
     clock += ticks;
@@ -1351,4 +1345,58 @@ void CPU::rst(uint8_t opcode)
 
     PC = (opcode - 0xC7);
     clock += 16;
+}
+
+
+/**
+ * @brief      Call that does not affect clock
+ * @param[in]  address  The address
+ */
+void CPU::_call(uint16_t address)
+{
+    dec16(&reg[SP]);
+    mmu->set(reg16(SP), PC >> 8);
+    dec16(&reg[SP]);
+    mmu->set(reg16(SP), PC);
+
+    PC = address;
+}
+
+
+void CPU::handle_interrupts()
+{
+    // Disabled interruption
+    if (!IME) {
+        return;
+    }
+
+    uint8_t _ie = mmu->get(IE_ADDRESS);
+    uint8_t _if = mmu->get(IF_ADDRESS);
+
+    const size_t interrupt_count = 5;
+    uint8_t interrupt_masks[] = {
+        V_BLANK_MASK,
+        LCD_STAT_MASK,
+        TIMER_MASK,
+        SERIAL_MASK,
+        JOYPAD_MASK
+    };
+
+    bool interrupted = false;
+    for (size_t i=0; i<interrupt_count; i++) {
+        uint8_t mask = interrupt_masks[i];
+
+        if (_ie & mask && _if & mask) {
+            _call(0x0040 + (i * 0x0008));
+            interrupted = true;
+        }
+
+        // Discard the interrupt
+        mmu->set(IF_ADDRESS, _if ^ mask);
+
+        // Serve only one interrupt at a time
+        if (interrupted) {
+            break;
+        }
+    }
 }

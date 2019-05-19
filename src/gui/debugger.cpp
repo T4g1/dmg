@@ -109,9 +109,6 @@ void Debugger::draw()
     ImGui_ImplSDL2_NewFrame(sdl_window);
     ImGui::NewFrame();
 
-    bool a = true;
-    ImGui::ShowDemoWindow(&a);
-
     display_memory();
     display_registers();
     display_execution();
@@ -263,13 +260,13 @@ void Debugger::display_execution()
 
             ImGui::NextColumn();
 
-            if (increment == 1) {
+            if (increment == 2) {
                 ImGui::Text(
                     "%02X %02X",
                     *(mmu->ram + address),
                     *(mmu->ram + address + 1)
                 );
-            } else if (increment == 2) {
+            } else if (increment == 3) {
                 ImGui::Text(
                     "%02X %02X %02X",
                     *(mmu->ram + address),
@@ -561,5 +558,5 @@ uint16_t Debugger::translate(char buffer[], size_t size, uint16_t address)
     case 0xFF: TRANSLATION(1, "RST $38");
     }
 
-    return address + 1;
+    TRANSLATION(1, " ");
 }
