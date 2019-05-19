@@ -42,7 +42,7 @@ Test with `./test`
 # TODO
 
 * [x] Implement Z80 instruction set
-* [ ] Implement interupts
+* [-] Implement interupts
     * [x] V-Blank
     * [ ] LCD Stat
     * [ ] Timer
