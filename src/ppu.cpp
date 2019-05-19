@@ -161,6 +161,11 @@ bool PPU::draw_line()
     }
     // V-Blank
     else if (ly < MAX_LY) {
+        // V-Blank interrupt
+        if (ly == LINE_Y_COUNT) {
+            mmu->set(IF_ADDRESS, mmu->get(IF_ADDRESS) | INT_V_BLANK_MASK);
+        }
+
         clock += CLOCK_V_BLANK;
 
         ly += 1;

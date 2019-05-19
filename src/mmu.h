@@ -6,6 +6,7 @@
 
 #include "cartridge.h"
 
+// Memory locations addresses
 #define RAM_SIZE            0xFFFF
 #define ROM_START           0x0000
 #define ROM_END             0x7FFF
@@ -27,6 +28,7 @@
 #define MAP_ADDRESS_1       0x9800
 #define MAP_ADDRESS_2       0x9C00
 
+// Registers addresses
 #define LCDC                0xFF40      // LCD Control register
 #define LCD_STATUS          0xFF41      // Status of the LCD
 #define SCY                 0xFF42      // Viewport Y position

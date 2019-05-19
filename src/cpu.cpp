@@ -1386,19 +1386,22 @@ void CPU::handle_interrupts()
     for (size_t i=0; i<interrupt_count; i++) {
         uint8_t mask = interrupt_masks[i];
 
-        if (_ie & mask && _if & mask) {
-            IME = false;
+        if (_if & mask) {
+            if (_ie & mask) {
+                IME = false;
+                halted = false;
 
-            _call(0x0040 + (i * 0x0008));
-            interrupted = true;
-        }
+                _call(0x0040 + (i * 0x0008));
+                interrupted = true;
+            }
 
-        // Discard the interrupt
-        mmu->set(IF_ADDRESS, _if ^ mask);
+            // Discard the interrupt
+            mmu->set(IF_ADDRESS, _if ^ mask);
 
-        // Serve only one interrupt at a time
-        if (interrupted) {
-            break;
+            // Serve only one interrupt at a time
+            if (interrupted) {
+                break;
+            }
         }
     }
 }

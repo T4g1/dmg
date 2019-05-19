@@ -43,12 +43,17 @@ Test with `./test`
 
 * [x] Implement Z80 instruction set
 * [ ] Implement interupts
+    * [x] V-Blank
+    * [ ] LCD Stat
+    * [ ] Timer
+    * [ ] Serial
+    * [x] Joypad
 * [x] Implement MMU
 * [-] Implement PPU
     * [x] Draw background
     * [x] Draw window
     * [ ] Draw sprites
-* [ ] Implement I/O
+* [*] Implement inputs
 * [ ] Sound!
 
 # Screenshots

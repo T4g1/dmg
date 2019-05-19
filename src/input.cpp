@@ -44,7 +44,7 @@ void Input::update()
 
     // Set joypad interrupt
     if (interrupt_request) {
-        mmu->set(IF_ADDRESS, mmu->get(IF_ADDRESS) | JOYPAD_MASK);
+        mmu->set(IF_ADDRESS, mmu->get(IF_ADDRESS) | INT_JOYPAD_MASK);
     }
 }
 
