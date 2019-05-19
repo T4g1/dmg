@@ -29,6 +29,7 @@ void init(uint8_t value)
     cpu->reg[L] = value;
     cpu->reg[A] = value;
 
+    mmu->set_cartridge(nullptr);
     mmu->set(BOOT_ROM_ENABLE, 0x00);
 }
 
@@ -1570,7 +1571,7 @@ bool test_blargg_cpu_instrs()
         "tests/blargg/cpu_instrs.gb",
     };
 
-    for (size_t test_id=11; test_id<blargg_count; test_id++) {
+    for (size_t test_id=0; test_id<blargg_count; test_id++) {
         const char *path_rom = cpu_instrs[test_id];
         fprintf(stdout, "BLARGG: %s: ", path_rom);
 

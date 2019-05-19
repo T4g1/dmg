@@ -8,9 +8,9 @@
 #include "mmu.h"
 
 
-MMU::MMU() : booted(false), cart(nullptr)
+MMU::MMU() : booted(false), cart(nullptr), ppu(nullptr)
 {
-    ppu = nullptr;
+
 }
 
 
