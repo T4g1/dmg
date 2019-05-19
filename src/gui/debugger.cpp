@@ -84,7 +84,7 @@ void Debugger::update()
 {
     // Display
     Uint32 current_ticks = SDL_GetTicks();
-    if (current_ticks < last_refresh + 50) {
+    if (current_ticks < last_refresh + (1000 / FPS)) {
         return;
     }
 

@@ -6,6 +6,7 @@
 #include "cartridge.h"
 #include "gui/debugger.h"
 
+#define FPS                 30
 #define GLSL_VERSION        "#version 130"
 #define FRAME_CYCLES        70244  //<! Amount of CPU cycle between each frame
 
