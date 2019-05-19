@@ -53,7 +53,7 @@ Test with `./test`
     * [x] Draw background
     * [x] Draw window
     * [ ] Draw sprites
-* [*] Implement inputs
+* [x] Implement inputs
 * [ ] Sound!
 
 # Screenshots
