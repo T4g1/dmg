@@ -2,3 +2,6 @@
 	path = lib/imgui
 	url = https://github.com/ocornut/imgui
 	ignore = dirty
+[submodule "lib/imgui_club"]
+	path = lib/imgui_club
+	url = git@github.com:ocornut/imgui_club.git

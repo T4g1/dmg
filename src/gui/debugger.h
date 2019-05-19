@@ -7,6 +7,9 @@
 #define DEBUGGER_WIDTH        800
 #define DEBUGGER_HEIGHT       600
 
+#define TRANSLATION(increment, fmt, ...) \
+    snprintf(buffer, size, fmt, ##__VA_ARGS__); return address + increment;
+
 class CPU;
 class MMU;
 
@@ -38,9 +41,12 @@ private:
 
     Uint32 last_refresh;
 
+    uint16_t translate(char buffer[], size_t size, uint16_t address);
+
     void refresh_window();
     void display_memory();
     void display_registers();
+    void display_execution();
 };
 
 #endif /* DEBUGGER_H */
