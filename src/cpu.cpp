@@ -346,11 +346,6 @@ bool CPU::step()
 {
     uint8_t opcode = mmu->get(PC);
 
-    // DEBUG
-//    if (mmu->is_booted()) {
-//        info("PC: 0x%04X\tClock: %d\tOpcode: 0x%02X\n", PC, (int)clock, opcode);
-//    }
-
     // Some instructions are not meant to do anything, crash the system
     if (l_callback[opcode] == nullptr) {
         error("Not Implemented PC: 0x%04X\tOpcode: 0x%02X\n", PC, opcode);
@@ -360,31 +355,9 @@ bool CPU::step()
         return false;
     }
 
-    previous_PC = PC;       // DEBUG
-
     (*this.*l_callback[opcode])();
 
     return true;
-}
-
-/**
- * @brief      Displays register values
- */
-void CPU::display_registers()
-{
-    info("---------------------------[ CPU ]---------------------------\n");
-    info("PC: 0x%04X\n", PC);
-    info("-------------------------------------------------------------\n");
-    info("A: 0x%02X F: 0x%02X\n", reg[A], reg[F]);
-    info("B: 0x%02X C: 0x%02X\n", reg[B], reg[C]);
-    info("D: 0x%02X E: 0x%02X\n", reg[D], reg[E]);
-    info("H: 0x%02X L: 0x%02X\n", reg[H], reg[L]);
-    info("-------------------------------------------------------------\n");
-    info("AF: 0x%04X\n", reg16(AF));
-    info("BC: 0x%04X\n", reg16(BC));
-    info("DE: 0x%04X\n", reg16(DE));
-    info("HL: 0x%04X\n", reg16(HL));
-    info("SP: 0x%04X\n", reg16(SP));
 }
 
 
@@ -1473,8 +1446,6 @@ void CPU::or_xor_and_cp()
         set_flag(FN, 0);
         set_flag(FH, 0);
         set_flag(FC, 0);
-
-        debug_cpu("OR\n");
     }
     // XOR
     else if ((opcode >= 0xA8 && opcode < 0xB0) || opcode == 0xEE) {
@@ -1484,8 +1455,6 @@ void CPU::or_xor_and_cp()
         set_flag(FN, 0);
         set_flag(FH, 0);
         set_flag(FC, 0);
-
-        debug_cpu("XOR\n");
     }
     // AND
     else if ((opcode >= 0xA0 && opcode < 0xA8) || opcode == 0xE6) {
@@ -1495,8 +1464,6 @@ void CPU::or_xor_and_cp()
         set_flag(FN, 0);
         set_flag(FH, 1);
         set_flag(FC, 0);
-
-        debug_cpu("AND\n");
     }
 }
 
@@ -1549,10 +1516,6 @@ void CPU::sub()
         half_carry |= (result & 0x0F) < (value & 0x0F);
 
         result -= value;
-
-        debug_cpu("SBC\n");
-    } else {
-        debug_cpu("SUB\n");
     }
 
     reg[A] = (uint8_t) result;
@@ -1598,32 +1561,6 @@ void CPU::rst()
     reg[SP] = sp >> 8;
     reg[SP + 1] = sp;
 
-    switch(opcode) {
-    case 0xC7:
-        PC = 0x00;
-        break;
-    case 0xCF:
-        PC = 0x08;
-        break;
-    case 0xD7:
-        PC = 0x10;
-        break;
-    case 0xDF:
-        PC = 0x18;
-        break;
-    case 0xE7:
-        PC = 0x20;
-        break;
-    case 0xEF:
-        PC = 0x28;
-        break;
-    case 0xF7:
-        PC = 0x30;
-        break;
-    case 0xFF:
-        PC = 0x38;
-        break;
-    }
-
+    PC += (opcode - 0xC7);
     clock += 16;
 }

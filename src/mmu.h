@@ -75,8 +75,6 @@ public:
     bool load(uint8_t *program, size_t size, uint16_t dst);
     bool load(uint8_t *program, size_t size);
 
-    void dump(uint16_t start, uint16_t end);
-
     void set_cartridge(Cartridge *cart);
 
     void set_boot_rom_enable(uint8_t value);

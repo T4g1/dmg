@@ -40,6 +40,7 @@ private:
 
     void refresh_window();
     void display_memory();
+    void display_registers();
 };
 
 #endif /* DEBUGGER_H */

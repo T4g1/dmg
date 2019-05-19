@@ -104,6 +104,7 @@ void Debugger::refresh_window()
     ImGui::NewFrame();
 
     display_memory();
+    display_registers();
 
     // Rendering
     ImGui::Render();
@@ -159,7 +160,7 @@ void Debugger::display_memory()
     const char *title = "Memory";
 
     if (ImGui::Begin(title)) {
-        ImGui::BeginChild("mem");
+        ImGui::BeginChild("memory");
 
         uint32_t address = 0x0000;
         do {
@@ -178,6 +179,36 @@ void Debugger::display_memory()
 
             address += 0x0008;
         } while (address < 0xFFFF);
+
+        ImGui::EndChild();
+    }
+
+    ImGui::End();
+}
+
+
+/**
+ * @brief      Displays register values
+ */
+void Debugger::display_registers()
+{
+    const char *title = "Registers";
+
+    if (ImGui::Begin(title)) {
+        ImGui::BeginChild("registers");
+
+        ImGui::Text("PC: 0x%04X\n", cpu->PC);
+        ImGui::Separator();
+        ImGui::Text("A: 0x%02X F: 0x%02X\n", cpu->reg[A], cpu->reg[F]);
+        ImGui::Text("B: 0x%02X C: 0x%02X\n", cpu->reg[B], cpu->reg[C]);
+        ImGui::Text("D: 0x%02X E: 0x%02X\n", cpu->reg[D], cpu->reg[E]);
+        ImGui::Text("H: 0x%02X L: 0x%02X\n", cpu->reg[H], cpu->reg[L]);
+        ImGui::Separator();
+        ImGui::Text("AF: 0x%04X\n", cpu->reg16(AF));
+        ImGui::Text("BC: 0x%04X\n", cpu->reg16(BC));
+        ImGui::Text("DE: 0x%04X\n", cpu->reg16(DE));
+        ImGui::Text("HL: 0x%04X\n", cpu->reg16(HL));
+        ImGui::Text("SP: 0x%04X\n", cpu->reg16(SP));
 
         ImGui::EndChild();
     }
