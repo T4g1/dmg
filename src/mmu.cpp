@@ -77,7 +77,8 @@ bool MMU::set(uint16_t address, uint8_t value)
 
     // Write to ROM are passed to cartridge
     else if (identity == ROM) {
-        return cart->set(address, value);
+        cart->set(address, value);
+        update_ram();
     }
 
     // Writting to CRASH causes errors
@@ -121,14 +122,9 @@ bool MMU::set(uint16_t address, uint8_t value)
 const void *MMU::at(uint16_t address)
 {
     address_type identity = get_address_identity(address);
-    if (identity == ROM) {
-        if (cart != nullptr) {
-            return cart->at(address);
-        }
-    }
 
     // ECHO memory
-    else if (identity == ECHO) {
+    if (identity == ECHO) {
         address -= 0x2000;
     }
 
@@ -164,7 +160,7 @@ int8_t MMU::get_signed(uint16_t address)
  */
 bool MMU::load(const char *path_rom)
 {
-    debug("Loading boot ROM: %s\n", path_rom);
+    info("Loading boot ROM: %s\n", path_rom);
 
     FILE *f = fopen(path_rom, "rb");
     if (f == NULL) {
@@ -175,7 +171,10 @@ bool MMU::load(const char *path_rom)
     uint8_t byte;
     uint16_t dst = BOOT_START;
     while (fread(&byte, sizeof(uint8_t), 1, f) == 1) {
-        ram[dst++] = byte;
+        boot[dst] = byte;
+        ram[dst] = byte;
+
+        dst++;
     }
 
     // Failure of reading not EOF related
@@ -188,6 +187,9 @@ bool MMU::load(const char *path_rom)
 }
 
 
+/**
+ * @brief      Loads arbitrary program
+ */
 bool MMU::load(uint8_t *program, size_t size, uint16_t dst)
 {
     for (size_t i=0; i<size; i++) {
@@ -198,6 +200,9 @@ bool MMU::load(uint8_t *program, size_t size, uint16_t dst)
 }
 
 
+/**
+ * @brief      Shortcut for load
+ */
 bool MMU::load(uint8_t *program, size_t size)
 {
     return load(program, size, 0x0000);
@@ -211,6 +216,8 @@ bool MMU::load(uint8_t *program, size_t size)
 void MMU::set_cartridge(Cartridge *cart)
 {
     this->cart = cart;
+
+    update_ram();
 }
 
 
@@ -221,6 +228,29 @@ void MMU::set_cartridge(Cartridge *cart)
 void MMU::set_boot_rom_enable(uint8_t value)
 {
     booted = value & 0x01;
+
+    update_ram();
+}
+
+
+/**
+ * @brief      Set RAM content based on cartridge presence and BOOT status
+ */
+void MMU::update_ram()
+{
+    // Put ROM in RAM
+    if (cart) {
+        memcpy(ram, cart->mbc->memory, MBC_SIZE);
+
+        for (uint16_t i=MBC_SIZE; i<MBC_SIZE * 2; i++) {
+            ram[i] = *(uint8_t*) cart->at(i);
+        }
+    }
+
+    // Put BOOT in RAM
+    if (!booted) {
+        memcpy(ram, boot, BOOT_SIZE);
+    }
 }
 
 

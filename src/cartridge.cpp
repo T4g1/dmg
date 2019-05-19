@@ -40,7 +40,6 @@ bool Cartridge::load(const char *path_rom)
         // First memory bank: We need the type of MBC to use
         if (mb_index == 0) {
             uint8_t cartridge_type = memory_bank[CARTRIDGE_TYPE_ADDRESS];
-            //debug("Cartridge type: 0x%02X\n", cartridge_type);
 
             if (cartridge_type == CART_TYPE_ROM_ONLY) {
                 mbc = new NoMBC();
@@ -54,6 +53,8 @@ bool Cartridge::load(const char *path_rom)
                 error("Unable to allocate space for the MBC\n");
                 return false;
             }
+
+            mbc->init();
         }
 
         if (!mbc->load(mb_index, memory_bank)) {

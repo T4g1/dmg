@@ -12,6 +12,12 @@ MBC1::MBC1() : selected_mbc(1)
 }
 
 
+void MBC1::init()
+{
+    memory = new uint8_t[MBC_COUNT * MBC_SIZE];
+}
+
+
 /**
  * @brief      Give access to the requested address in the correct memory bank
  * @param[in]  address  Requested address
@@ -20,10 +26,10 @@ MBC1::MBC1() : selected_mbc(1)
 const void *MBC1::at(uint16_t address)
 {
     if (address <= MBC0_END) {
-        return &mbc[0][address % MBC_SIZE];
+        return &memory[address % MBC_SIZE];
     }
 
-    return &mbc[selected_mbc][address % MBC_SIZE];
+    return &memory[(selected_mbc * MBC_SIZE) + (address % MBC_SIZE)];
 }
 
 
@@ -40,35 +46,9 @@ bool MBC1::load(size_t mb_index, const uint8_t *rom)
         return false;
     }
 
-    memcpy(mbc[mb_index], rom, MBC_SIZE);
-
-    //dump(mb_index, 0x0000, MBC_SIZE);
+    memcpy(memory + (mb_index * MBC_SIZE), rom, MBC_SIZE);
 
     return true;
-}
-
-
-/**
- * @brief      Display memory status from given address ranges
- * @param[in]  start  Starting point of the dump
- * @param[in]  end    End point of the dump
- */
-void MBC1::dump(size_t mb_index, uint16_t start, uint16_t end)
-{
-    info("-------------------------[ MBC1 %02zu ]-------------------------\n", mb_index);
-    size_t width = 16;
-
-    for (size_t i=start; i<=end; i++) {
-        if (i % width == 0) {
-            info("0x%04X-0x%04X ", (int)i, (int)(i + width - 1));
-        }
-        info("%02X ", mbc[mb_index][i % MBC_SIZE]);
-
-        if (i % width == width - 1) {
-            info("\n");
-        }
-    }
-    info("\n");
 }
 
 

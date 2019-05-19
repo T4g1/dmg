@@ -15,9 +15,9 @@
  * @brief      DMG Emulator
  */
 class Cartridge {
+public:
     MBC *mbc;
 
-public:
     Cartridge();
 
     bool load(const char *path_rom);

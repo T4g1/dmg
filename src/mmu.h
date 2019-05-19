@@ -6,19 +6,21 @@
 
 #include "cartridge.h"
 
-#define RAM_SIZE        0xFFFF
-#define ROM_START       0x0000
-#define ROM_END         0x7FFF
-#define MBC0_END        0x3FFF
-#define BOOT_START      0x0000
-#define BOOT_END        0x00FF
-#define BOOT_ROM_ENABLE 0xFF50
-#define ECHO_START      0xE000
-#define ECHO_END        0xFDFF
-#define OAM_START       0xFE00
-#define OAM_END         0xFE9F
-#define CRASH_START     0xFEA0
-#define CRASH_END       0xFEFF
+#define RAM_SIZE            0xFFFF
+#define ROM_START           0x0000
+#define ROM_END             0x7FFF
+#define MBC0_END            0x3FFF
+#define ROM_SWITCH_START    0x4000
+#define BOOT_START          0x0000
+#define BOOT_END            0x00FF
+#define BOOT_SIZE           0x0100
+#define BOOT_ROM_ENABLE     0xFF50
+#define ECHO_START          0xE000
+#define ECHO_END            0xFDFF
+#define OAM_START           0xFE00
+#define OAM_END             0xFE9F
+#define CRASH_START         0xFEA0
+#define CRASH_END           0xFEFF
 
 #define TILE_ADDRESS_1      0x8000
 #define TILE_ADDRESS_2      0x8800
@@ -57,10 +59,11 @@ class MMU {
     Cartridge *cart;
     PPU *ppu;
 
-    uint8_t ram[RAM_SIZE];
     address_type get_address_identity(uint16_t address);
 
 public:
+    uint8_t boot[BOOT_SIZE];
+    uint8_t ram[RAM_SIZE];
     MMU();
 
     void set_ppu(PPU *ppu);
@@ -76,9 +79,11 @@ public:
     bool load(uint8_t *program, size_t size);
 
     void set_cartridge(Cartridge *cart);
-
     void set_boot_rom_enable(uint8_t value);
+
     bool is_booted();
+
+    void update_ram();
 };
 
 #endif /* MMU_H */
