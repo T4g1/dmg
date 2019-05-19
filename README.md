@@ -48,4 +48,9 @@ Test with `./test`
     * [x] Draw background
     * [x] Draw window
     * [ ] Draw sprites
+* [ ] Implement I/O
 * [ ] Sound!
+
+# Screenshots
+
+![Debugger](img/debugger.png)

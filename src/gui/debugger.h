@@ -8,7 +8,7 @@
 #define DEBUGGER_HEIGHT       600
 
 #define TRANSLATION(increment, fmt, ...) \
-    snprintf(buffer, size, fmt, ##__VA_ARGS__); return address + increment;
+    snprintf(buffer, size, fmt, ##__VA_ARGS__); return increment;
 
 class CPU;
 class MMU;

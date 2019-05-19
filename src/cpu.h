@@ -62,6 +62,7 @@ private:
     MMU *mmu;
 
     bool IME;       // Interrupts are enabled when this is at true
+    bool halted;    // Waits for an interuption or not
 
     cpu_callback l_callback[MAX_OPCODES];
 

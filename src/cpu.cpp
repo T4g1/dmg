@@ -336,6 +336,7 @@ void CPU::reset()
     mmu->set(0xFFFF, 0x00);     //<! IE
 
     IME = true;
+    halted = false;
 }
 
 /**
@@ -344,6 +345,11 @@ void CPU::reset()
  */
 bool CPU::step()
 {
+    if (halted) {
+        clock += 4;
+        return true;
+    }
+
     uint8_t opcode = mmu->get(PC);
 
     // Some instructions are not meant to do anything, crash the system
@@ -823,7 +829,7 @@ void CPU::stop(uint8_t /*opcode*/)
 
 void CPU::halt(uint8_t /*opcode*/)
 {
-    // TODO
+    halted = true;
 
     PC += 1;
     clock += 4;
