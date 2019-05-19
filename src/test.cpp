@@ -75,6 +75,13 @@ bool test_MMU_ram()
     return true;
 }
 
+
+/****************************************************************
+ *
+ *      TEST CPU OPERATIONS
+ *
+ ****************************************************************/
+
 bool test_CPU_NOP()
 {
     init(0x00);
@@ -774,6 +781,142 @@ bool test_CPU_JP()
     return true;
 }
 
+bool test_CPU_POP_AF()
+{
+    init(0x00);
+
+    size_t size = 19;
+    uint8_t program[] = {
+        0x00,
+        0x01, 0x00, 0x12,       // ld   bc,$1200        ; 0x01
+        0xC5,                   // push bc              ; 0x04
+        0xF1,                   // pop  af              ; 0x05
+        0xF5,                   // push af              ; 0x06
+        0xD1,                   // pop  de              ; 0x07
+        0x79,                   // ld   a,c             ; 0x08
+        0xE6, 0xF0,             // and  $F0             ; 0x09
+        0xBB,                   // cp   e               ; 0x0B
+        0xC2, 0x00, 0x00,       // jp   nz,test_failed  ; 0x0C
+        0x04,                   // inc  b               ; 0x0F
+        0x0C,                   // inc  c               ; 0x10
+        0x20, 0xF1,             // jr   nz,-            ; 0x11
+    };
+    mmu->load(program, size);
+
+    cpu->step();
+    ASSERT(cpu->PC == 0x01);
+
+    while (cpu->PC > 0x00 && cpu->PC < 0x13) {
+        //cpu->display_registers();
+        //mmu->dump(0xFF00, 0xFFFE);
+
+        cpu->step();
+    }
+
+    //cpu->display_registers();
+    //mmu->dump(0xFF00, 0xFFFE);
+
+    ASSERTV(cpu->PC == 0x13, "PC: 0x%04X\n", cpu->PC);
+
+    return true;
+}
+
+bool test_CPU_DAA()
+{
+    // Addition
+    for (size_t a=0; a<99; a++) {
+        for (size_t b=0; b<99; b++) {
+            init(0x00);
+
+            size_t result = a + b;
+
+            uint8_t a_bcd = ((a / 10) << 4) + (a % 10);
+            uint8_t b_bcd = ((b / 10) << 4) + (b % 10);
+            uint8_t result_bcd = (((result / 10) % 10) << 4) + (result % 10);
+
+            cpu->reg[A] = a_bcd;
+            cpu->reg[B] = b_bcd;
+
+            execute({ 0x80 });  // ADD A,B
+            execute({ 0x27 });  // DAA
+
+            ASSERT_QUIET_SUCCESS(
+                cpu->reg[A] == result_bcd,
+                "0x%02X + 0x%02X = 0x%02X expected 0x%02X\n",
+                a_bcd, b_bcd, cpu->reg[A], result_bcd
+            );
+        }
+    }
+
+    // Addition OK
+    ASSERT(true);
+
+    // Substraction
+    for (size_t a=0; a<99; a++) {
+        for (size_t b=0; b<99; b++) {
+            init(0x00);
+
+            size_t result = ((100 + a) - b);
+
+            uint8_t a_bcd = ((a / 10) << 4) + (a % 10);
+            uint8_t b_bcd = ((b / 10) << 4) + (b % 10);
+            uint8_t result_bcd = (((result / 10) % 10) << 4) + (result % 10);
+
+            cpu->reg[A] = a_bcd;
+            cpu->reg[B] = b_bcd;
+
+            execute({ 0x90 });  // SUB B
+            execute({ 0x27 });  // DAA
+
+            ASSERT_QUIET_SUCCESS(
+                cpu->reg[A] == result_bcd,
+                "0x%02X - 0x%02X = 0x%02X expected 0x%02X\n",
+                a_bcd, b_bcd, cpu->reg[A], result_bcd
+            );
+        }
+    }
+
+    // Substraction OK
+    ASSERT(true);
+
+    return true;
+}
+
+bool test_CPU_Op_SP()
+{
+    init(0x00);
+
+    // ADD 2 to SP
+    execute({ 0x31, 0x00, 0x00 });
+    execute({ 0xE8, 0x02 });
+
+    ASSERTV(cpu->reg16(SP) == 0x02, "SP: 0x%04X\n", cpu->reg16(SP));
+
+    init(0x00);
+
+    // ADD -1 to SP
+    execute({ 0x31, 0x001, 0x00 });
+    execute({ 0xE8, 0xFF });
+
+    ASSERTV(cpu->reg16(SP) == 0x00, "SP: 0x%04X\n", cpu->reg16(SP));
+
+    // ADD HL, SP
+    execute({ 0x21, 0xEE, 0xCC });
+    execute({ 0x31, 0x11, 0x22 });
+    execute({ 0x39 });
+
+    ASSERTV(cpu->reg16(HL) == 0xEEFF, "HL: 0x%04X\n", cpu->reg16(HL));
+
+    return true;
+}
+
+
+/****************************************************************
+ *
+ *      TEST BITWISE OPERATIONS
+ *
+ ****************************************************************/
+
 bool test_BIN_RLC()
 {
     init(0xF0);
@@ -1127,6 +1270,13 @@ bool test_BIN_SET()
     return true;
 }
 
+
+/****************************************************************
+ *
+ *      TEST BOOT OPERATIONS
+ *
+ ****************************************************************/
+
 /**
  * @brief      Zero the memory from $8000-$9FFF (VRAM)
  */
@@ -1287,6 +1437,13 @@ bool test_graphic_routine()
     return true;
 }
 
+
+/****************************************************************
+ *
+ *      TEST CARTRIDGE OPERATIONS
+ *
+ ****************************************************************/
+
 bool test_CARTRIDGE_post_boot()
 {
     init(0x00);
@@ -1392,135 +1549,6 @@ bool test_CARTRIDGE_CPU_instrs()
     cpu->step();
 
     ASSERTV(cpu->PC == 0x0228, "i: %d PC: %04X\n", i, cpu->PC);
-
-    return true;
-}
-
-bool test_CPU_POP_AF()
-{
-    init(0x00);
-
-    size_t size = 19;
-    uint8_t program[] = {
-        0x00,
-        0x01, 0x00, 0x12,       // ld   bc,$1200        ; 0x01
-        0xC5,                   // push bc              ; 0x04
-        0xF1,                   // pop  af              ; 0x05
-        0xF5,                   // push af              ; 0x06
-        0xD1,                   // pop  de              ; 0x07
-        0x79,                   // ld   a,c             ; 0x08
-        0xE6, 0xF0,             // and  $F0             ; 0x09
-        0xBB,                   // cp   e               ; 0x0B
-        0xC2, 0x00, 0x00,       // jp   nz,test_failed  ; 0x0C
-        0x04,                   // inc  b               ; 0x0F
-        0x0C,                   // inc  c               ; 0x10
-        0x20, 0xF1,             // jr   nz,-            ; 0x11
-    };
-    mmu->load(program, size);
-
-    cpu->step();
-    ASSERT(cpu->PC == 0x01);
-
-    while (cpu->PC > 0x00 && cpu->PC < 0x13) {
-        //cpu->display_registers();
-        //mmu->dump(0xFF00, 0xFFFE);
-
-        cpu->step();
-    }
-
-    //cpu->display_registers();
-    //mmu->dump(0xFF00, 0xFFFE);
-
-    ASSERTV(cpu->PC == 0x13, "PC: 0x%04X\n", cpu->PC);
-
-    return true;
-}
-
-bool test_CPU_DAA()
-{
-    // Addition
-    for (size_t a=0; a<99; a++) {
-        for (size_t b=0; b<99; b++) {
-            init(0x00);
-
-            size_t result = a + b;
-
-            uint8_t a_bcd = ((a / 10) << 4) + (a % 10);
-            uint8_t b_bcd = ((b / 10) << 4) + (b % 10);
-            uint8_t result_bcd = (((result / 10) % 10) << 4) + (result % 10);
-
-            cpu->reg[A] = a_bcd;
-            cpu->reg[B] = b_bcd;
-
-            execute({ 0x80 });  // ADD A,B
-            execute({ 0x27 });  // DAA
-
-            ASSERT_QUIET_SUCCESS(
-                cpu->reg[A] == result_bcd,
-                "0x%02X + 0x%02X = 0x%02X expected 0x%02X\n",
-                a_bcd, b_bcd, cpu->reg[A], result_bcd
-            );
-        }
-    }
-
-    // Addition OK
-    ASSERT(true);
-
-    // Substraction
-    for (size_t a=0; a<99; a++) {
-        for (size_t b=0; b<99; b++) {
-            init(0x00);
-
-            size_t result = ((100 + a) - b);
-
-            uint8_t a_bcd = ((a / 10) << 4) + (a % 10);
-            uint8_t b_bcd = ((b / 10) << 4) + (b % 10);
-            uint8_t result_bcd = (((result / 10) % 10) << 4) + (result % 10);
-
-            cpu->reg[A] = a_bcd;
-            cpu->reg[B] = b_bcd;
-
-            execute({ 0x90 });  // SUB B
-            execute({ 0x27 });  // DAA
-
-            ASSERT_QUIET_SUCCESS(
-                cpu->reg[A] == result_bcd,
-                "0x%02X - 0x%02X = 0x%02X expected 0x%02X\n",
-                a_bcd, b_bcd, cpu->reg[A], result_bcd
-            );
-        }
-    }
-
-    // Substraction OK
-    ASSERT(true);
-
-    return true;
-}
-
-bool test_CPU_Op_SP()
-{
-    init(0x00);
-
-    // ADD 2 to SP
-    execute({ 0x31, 0x00, 0x00 });
-    execute({ 0xE8, 0x02 });
-
-    ASSERTV(cpu->reg16(SP) == 0x02, "SP: 0x%04X\n", cpu->reg16(SP));
-
-    init(0x00);
-
-    // ADD -1 to SP
-    execute({ 0x31, 0x001, 0x00 });
-    execute({ 0xE8, 0xFF });
-
-    ASSERTV(cpu->reg16(SP) == 0x00, "SP: 0x%04X\n", cpu->reg16(SP));
-
-    // ADD HL, SP
-    execute({ 0x21, 0xEE, 0xCC });
-    execute({ 0x31, 0x11, 0x22 });
-    execute({ 0x39 });
-
-    ASSERTV(cpu->reg16(HL) == 0xEEFF, "HL: 0x%04X\n", cpu->reg16(HL));
 
     return true;
 }
