@@ -355,7 +355,7 @@ bool CPU::step()
         return false;
     }
 
-    (*this.*l_callback[opcode])();
+    (*this.*l_callback[opcode])(opcode);
 
     return true;
 }
@@ -394,13 +394,56 @@ uint16_t CPU::reg16(size_t i)
     return (high << 8) + low;
 }
 
+/**
+ * @brief      Gives a target operand based on the given index
+ *
+ *             Most opcodes operates on the same targets. First DEC in the
+ *             opcodes will always be B, same for ADD, and so on. This function
+ *             uses this order to simplify targets identification.
+ * @param[in]  index  The index
+ * @return     The target address.
+ */
+uint8_t *CPU::get_target(size_t index)
+{
+    uint8_t *l_address[] = {
+        &reg[B],
+        &reg[C],
+        &reg[D],
+        &reg[E],
+        &reg[H],
+        &reg[L],
+        // WARNING: We ignore some memory cannot be written!
+        (uint8_t*) mmu->at(reg16(HL)),
+        &reg[A]
+    };
+
+    return l_address[index];
+}
+
+
+/**
+ * @brief      Same as get_target but for 16bit registers
+ * @param[in]  index  The index
+ * @return     The target 16.
+ */
+uint8_t *CPU::get_target16(size_t index)
+{
+    uint8_t *l_address[] = {
+        &reg[BC],
+        &reg[DE],
+        &reg[HL],
+        &reg[SP]
+    };
+
+    return l_address[index];
+}
+
+// TODO: Simplify
 void CPU::ld8_mmu(uint16_t address, const uint8_t* src, size_t size, size_t ticks)
 {
     mmu->set(address, *(uint8_t*) src);
     PC += size;
     clock += ticks;
-
-    debug_cpu("LD reg\n");
 }
 
 void CPU::ld8(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
@@ -408,8 +451,6 @@ void CPU::ld8(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
     memcpy(dst, src, sizeof(uint8_t));
     PC += size;
     clock += ticks;
-
-    debug_cpu("LD reg\n");
 }
 
 /**
@@ -446,22 +487,10 @@ void CPU::dec8(uint8_t *address)
 /**
  * @brief      Handles ADD and ADC
  */
-void CPU::add8()
+void CPU::add8(uint8_t opcode)
 {
-    const uint8_t *l_address[] = {
-        &reg[B],
-        &reg[C],
-        &reg[D],
-        &reg[E],
-        &reg[H],
-        &reg[L],
-        (const uint8_t*) mmu->at(reg16(HL)),
-        &reg[A]
-    };
-
-    uint8_t opcode = mmu->get(PC);
     size_t target_index = opcode % 8;
-    const uint8_t *target = l_address[target_index];
+    const uint8_t *target = get_target(target_index);
 
     // ADD/ADC d8
     if (opcode > 0xC0) {
@@ -483,10 +512,6 @@ void CPU::add8()
     // ADC
     if (opcode >= 0x88 && opcode != 0xC6) {
         value += get_bit(reg[F], FC);
-
-        debug_cpu("ADC\n");
-    } else {
-        debug_cpu("ADD\n");
     }
 
     uint16_t result = reg[A] + value;
@@ -526,11 +551,6 @@ void CPU::add16(uint8_t *dst, const uint8_t *src)
     set_flag(FN, 0);
     set_flag(FH, half_carry);
     set_flag(FC, result < dst16);
-
-    debug_cpu(
-        "ADD r16: 0x%04X + 0x%04X = 0x%04X (F:0x%02X)\n",
-         dst16, src16, result, reg[F]
-     );
 }
 
 void CPU::addr8(uint8_t *dst, int value)
@@ -545,9 +565,6 @@ void CPU::addr8(uint8_t *dst, int value)
 
     result += value;
 
-    // Is the sum of upper byte only the same as result?
-    //bool half_carry = (((dst16 & 0xF000) + (src16 & 0xF000)) & 0xF000) != (result & 0xF000);
-
     set_flag(FZ, 0);
     set_flag(FN, 0);
     set_flag(FH, (result & 0x0F) < (dst16 & 0x0F));
@@ -555,16 +572,10 @@ void CPU::addr8(uint8_t *dst, int value)
 
     *dst = (result & 0x0000FF00) >> 8;
     *(dst + 1) = result;
-
-    debug_cpu(
-        "ADD r8: 0x%04X + (%d) = 0x%04X (F:0x%02X)\n",
-         dst16, value, result & 0x0000FFFF, reg[F]
-     );
 }
 
-void CPU::push()
+void CPU::push(uint8_t opcode)
 {
-    uint8_t opcode = mmu->get(PC);
     uint16_t value;
     if (opcode == 0xC5) {
         value = reg16(BC);
@@ -589,13 +600,10 @@ void CPU::push()
 
     PC += 1;
     clock += 16;
-
-    debug_cpu("PUSH\n");
 }
 
-void CPU::pop()
+void CPU::pop(uint8_t opcode)
 {
-    uint8_t opcode = mmu->get(PC);
     uint8_t *high;
     if (opcode == 0xC1) {
         high = &reg[BC];
@@ -624,15 +632,11 @@ void CPU::pop()
     if (opcode == 0xF1) {
         reg[F] &= 0xF0;
     }
-
-    debug_cpu("POP\n");
 }
 
-void CPU::jp()
+void CPU::jp(uint8_t opcode)
 {
     uint8_t ticks = 16;
-
-    uint8_t opcode = mmu->get(PC);
     uint16_t address = mmu->get16(PC + 1);
 
     bool jump = true;
@@ -655,24 +659,17 @@ void CPU::jp()
     }
 
     clock += ticks;
-
-    debug_cpu("JP 0x%04X\n", address);
 }
 
-void CPU::jp_hl()
+void CPU::jp_hl(uint8_t /*opcode*/)
 {
     PC = reg16(HL);
-
-    debug_cpu("JP (HL) to 0x%04X\n", reg16(HL));
-
     clock += 4;
 }
 
-void CPU::call()
+void CPU::call(uint8_t opcode)
 {
     uint8_t ticks = 24;
-
-    uint8_t opcode = mmu->get(PC);
     uint16_t address = mmu->get16(PC + 1);
 
     PC += 3;
@@ -703,16 +700,11 @@ void CPU::call()
     }
 
     clock += ticks;
-
-    debug_cpu("CALL %04X\n", address);
 }
 
-void CPU::ret()
+void CPU::ret(uint8_t opcode)
 {
     uint8_t ticks = 16;
-
-    uint8_t opcode = mmu->get(PC);
-
     PC += 1;
 
     bool do_ret = true;
@@ -728,8 +720,6 @@ void CPU::ret()
         do_ret = false;
     } else {
         ticks = 20;
-
-        debug_cpu("RET 0x%04X\n", mmu->get16(reg16(SP)));
     }
 
     /* RETI */
@@ -744,12 +734,10 @@ void CPU::ret()
     }
 
     clock += ticks;
-
-    debug_cpu("RET\n");
 }
 
 // Invert reg A
-void CPU::cpl()
+void CPU::cpl(uint8_t /*opcode*/)
 {
     reg[A] = ~reg[A];
 
@@ -758,12 +746,10 @@ void CPU::cpl()
 
     PC += 1;
     clock += 4;
-
-    debug_cpu("CPL\n");
 }
 
 // Switch carry flag
-void CPU::ccf()
+void CPU::ccf(uint8_t /*opcode*/)
 {
     set_flag(FN, 0);
     set_flag(FH, 0);
@@ -771,11 +757,9 @@ void CPU::ccf()
 
     PC += 1;
     clock += 4;
-
-    debug_cpu("CCF\n");
 }
 
-void CPU::daa()
+void CPU::daa(uint8_t /*opcode*/)
 {
     uint16_t value = reg[A];
 
@@ -816,17 +800,12 @@ void CPU::daa()
     set_flag(FZ, value == 0);
     set_flag(FH, 0);
 
-    debug_cpu(
-        "DAA 0x%02X to 0x%02X (F:0x%02X)\n",
-        reg[A], value & 0x00FF, reg[F]
-    );
-
     PC += 1;
     clock += 4;
 }
 
 // Set carry flag
-void CPU::scf()
+void CPU::scf(uint8_t /*opcode*/)
 {
     set_flag(FN, 0);
     set_flag(FH, 0);
@@ -834,188 +813,101 @@ void CPU::scf()
 
     PC += 1;
     clock += 4;
-
-    debug_cpu("SCF\n");
 }
 
-void CPU::stop()
+void CPU::stop(uint8_t /*opcode*/)
 {
     // TODO
 
     PC += 2;
     clock += 4;
-
-    debug_cpu("STOP\n");
 }
 
-void CPU::halt()
+void CPU::halt(uint8_t /*opcode*/)
 {
     // TODO
 
     PC += 1;
     clock += 4;
-
-    debug_cpu("HALT\n");
 }
 
-void CPU::add()
+void CPU::add(uint8_t opcode)
 {
-    size_t ticks = 4;
-
-    uint8_t opcode = mmu->get(PC);
     switch(opcode) {
-    /* Add 16-bit registers to HL */
     case 0x09:
-        add16(&reg[HL], &reg[BC]);
-        ticks = 8;
-        break;
     case 0x19:
-        add16(&reg[HL], &reg[DE]);
-        ticks = 8;
-        break;
     case 0x29:
-        add16(&reg[HL], &reg[HL]);
-        ticks = 8;
-        break;
     case 0x39:
-        add16(&reg[HL], &reg[SP]);
-        ticks = 8;
-        break;
+        PC += 1;
+        clock += 8;
+        return add16(&reg[HL], get_target16(opcode >> 4));
     case 0xE8:
         addr8(&reg[SP], mmu->get_signed(PC + 1));
-
-        ticks = 16;
-        PC += 1;
-        break;
-    default:
-        add8();
+        PC += 2;
+        clock += 16;
         return;
+    default:
+        return add8(opcode);
     }
-
-    PC += 1;
-    clock += ticks;
 }
 
-void CPU::inc()
+void CPU::inc(uint8_t opcode)
 {
-    size_t ticks = 4;
+    PC += 1;
 
-    uint8_t opcode = mmu->get(PC);
     switch(opcode) {
     /* Inc 16-bit registers */
     case 0x03:
-        inc16(&reg[BC]);
-        ticks = 8;
-        break;
     case 0x13:
-        inc16(&reg[DE]);
-        ticks = 8;
-        break;
     case 0x23:
-        inc16(&reg[HL]);
-        ticks = 8;
-        break;
     case 0x33:
-        inc16(&reg[SP]);
-        ticks = 8;
-        break;
-
+        clock += 8;
+        return inc16(get_target16(opcode >> 4));
     /* Inc 8-bit registers */
     case 0x04:
-        inc8(&reg[B]);
-        break;
-    case 0x14:
-        inc8(&reg[D]);
-        break;
-    case 0x24:
-        inc8(&reg[H]);
-        break;
-    case 0x34:
-        inc8((uint8_t*)mmu->at(reg16(HL)));
-        break;
     case 0x0C:
-        inc8(&reg[C]);
-        break;
+    case 0x14:
     case 0x1C:
-        inc8(&reg[E]);
-        break;
+    case 0x24:
     case 0x2C:
-        inc8(&reg[L]);
-        break;
+    case 0x34:
     case 0x3C:
-        inc8(&reg[A]);
-        break;
+        clock += 4;
+        return inc8(get_target((opcode - 0x04) / 0x08));
     }
-
-    PC += 1;
-    clock += ticks;
-
-    debug_cpu("INC\n");
 }
 
-void CPU::dec()
+void CPU::dec(uint8_t opcode)
 {
-    size_t ticks = 4;
+    PC += 1;
 
-    uint8_t opcode = mmu->get(PC);
     switch(opcode) {
     /* Dec 16-bit registers */
     case 0x0B:
-        dec16(&reg[BC]);
-        ticks = 8;
-        break;
     case 0x1B:
-        dec16(&reg[DE]);
-        ticks = 8;
-        break;
     case 0x2B:
-        dec16(&reg[HL]);
-        ticks = 8;
-        break;
     case 0x3B:
-        dec16(&reg[SP]);
-        ticks = 8;
-        break;
-
+        clock += 8;
+        return dec16(get_target16(opcode >> 4));
     /* Dec 8-bit registers */
     case 0x05:
-        dec8(&reg[B]);
-        break;
-    case 0x15:
-        dec8(&reg[D]);
-        break;
-    case 0x25:
-        dec8(&reg[H]);
-        break;
-    case 0x35:
-        dec8((uint8_t*)mmu->at(reg16(HL)));
-        break;
     case 0x0D:
-        dec8(&reg[C]);
-        break;
+    case 0x15:
     case 0x1D:
-        dec8(&reg[E]);
-        break;
+    case 0x25:
     case 0x2D:
-        dec8(&reg[L]);
-        break;
+    case 0x35:
     case 0x3D:
-        dec8(&reg[A]);
-        break;
+        clock += 4;
+        return dec8(get_target((opcode - 0x05) / 0x08));
     }
-
-    PC += 1;
-    clock += ticks;
-
-    debug_cpu("DEC\n");
 }
 
-void CPU::jr()
+void CPU::jr(uint8_t opcode)
 {
     int increment = 0;
     size_t ticks = 8;
 
-    uint8_t opcode = mmu->get(PC);
     switch(opcode) {
     case 0x20:      // Jump if flag Z is not set
         if (get_bit(reg[F], FZ) == 0) {
@@ -1058,28 +950,15 @@ void CPU::jr()
     debug_cpu("JR %d\n", increment);
 }
 
-void CPU::ld()
+void CPU::ld(uint8_t opcode)
 {
-    uint8_t opcode = mmu->get(PC);
-
     /* Generic cases */
     if (opcode >= 0x40 && opcode < 0x80) {
-        uint8_t *l_address[] = {
-            &reg[B],
-            &reg[C],
-            &reg[D],
-            &reg[E],
-            &reg[H],
-            &reg[L],
-            (uint8_t*) mmu->at(reg16(HL)),
-            &reg[A]
-        };
-
         size_t dst_index = (opcode - 0x40) / 8;
         size_t src_index = (opcode - 0x40) % 8;
 
-        uint8_t *dst = l_address[dst_index];
-        uint8_t *src = l_address[src_index];
+        uint8_t *dst = get_target(dst_index);
+        uint8_t *src = get_target(src_index);
 
         size_t ticks = 4;
         if (src_index == 6 || dst_index == 6) {
@@ -1240,9 +1119,8 @@ void CPU::ld()
     }
 }
 
-void CPU::rxa()
+void CPU::rxa(uint8_t opcode)
 {
-    uint8_t opcode = mmu->get(PC);
     bool is_left = true;
     if (opcode == 0x0F || opcode == 0x1F) {
         is_left = false;
@@ -1271,33 +1149,18 @@ void CPU::rxa()
 
     PC += 1;
     clock += 4;
-
-    debug_cpu("RLCA\n");
 }
 
-void CPU::nop()
+void CPU::nop(uint8_t /*opcode*/)
 {
     PC += 1;
     clock += 4;
-
-    debug_cpu("NOP\n");
 }
 
-void CPU::prefix_CB()
+void CPU::prefix_CB(uint8_t opcode)
 {
-    uint8_t *l_address[] = {
-        &reg[B],
-        &reg[C],
-        &reg[D],
-        &reg[E],
-        &reg[H],
-        &reg[L],
-        (uint8_t*) mmu->at(reg16(HL)),
-        &reg[A]
-    };
-
-    uint8_t opcode = mmu->get(PC + 1);
-    uint8_t *address = l_address[opcode % 8];
+    opcode = mmu->get(PC + 1);
+    uint8_t *address = get_target(opcode % 8);
 
     size_t offset = (opcode / 8) % 8;
     bool is_left = (opcode % 16) < 8;
@@ -1390,27 +1253,14 @@ void CPU::prefix_CB()
     debug_cpu("Prefix CB\n");
 }
 
-void CPU::or_xor_and_cp()
+void CPU::or_xor_and_cp(uint8_t opcode)
 {
-    const uint8_t *l_address[] = {
-        &reg[B],
-        &reg[C],
-        &reg[D],
-        &reg[E],
-        &reg[H],
-        &reg[L],
-        (const uint8_t*) mmu->at(reg16(HL)),
-        &reg[A]
-    };
-
-    uint8_t opcode = mmu->get(PC);
     size_t target_index = opcode % 8;
-    const uint8_t *target = l_address[target_index];
+    const uint8_t *target = get_target(target_index);
 
     // OR/XOR/AND/CP with d8
     if (opcode > 0xC0) {
         target = (const uint8_t*) mmu->at(PC + 1);
-        //debug_cpu("Target value: 0x%02X\n", *target);
         PC += 2;
         clock += 8;
     }
@@ -1435,8 +1285,6 @@ void CPU::or_xor_and_cp()
         set_flag(FN, 1);
         set_flag(FH, (reg[A] & 0x0F) < (*target & 0x0F));
         set_flag(FC, !(result & 0x100));   // Underflow
-
-        debug_cpu("CP\n");
     }
     // OR
     else if ((opcode >= 0xB0 && opcode < 0xB8) || opcode == 0xF6) {
@@ -1470,22 +1318,10 @@ void CPU::or_xor_and_cp()
 /**
  * @brief      Handles SUB and SBC
  */
-void CPU::sub()
+void CPU::sub(uint8_t opcode)
 {
-    const uint8_t *l_address[] = {
-        &reg[B],
-        &reg[C],
-        &reg[D],
-        &reg[E],
-        &reg[H],
-        &reg[L],
-        (const uint8_t*) mmu->at(reg16(HL)),
-        &reg[A]
-    };
-
-    uint8_t opcode = mmu->get(PC);
     size_t target_index = opcode % 8;
-    const uint8_t *target = l_address[target_index];
+    const uint8_t *target = get_target(target_index);
 
     // SUB/SBC d8
     if (opcode > 0xD0) {
@@ -1526,7 +1362,7 @@ void CPU::sub()
     set_flag(FC, !(result & 0x100));   // Underflow
 }
 
-void CPU::ei()
+void CPU::ei(uint8_t /*opcode*/)
 {
     IME = true;
 
@@ -1534,7 +1370,7 @@ void CPU::ei()
     clock += 4;
 }
 
-void CPU::di()
+void CPU::di(uint8_t /*opcode*/)
 {
     IME = false;
 
@@ -1542,10 +1378,8 @@ void CPU::di()
     clock += 4;
 }
 
-void CPU::rst()
+void CPU::rst(uint8_t opcode)
 {
-    uint8_t opcode = mmu->get(PC);
-
     PC += 1;
 
     uint8_t high = PC >> 8;
@@ -1561,6 +1395,6 @@ void CPU::rst()
     reg[SP] = sp >> 8;
     reg[SP + 1] = sp;
 
-    PC += (opcode - 0xC7);
+    PC = (opcode - 0xC7);
     clock += 16;
 }
