@@ -61,7 +61,8 @@ public:
     PPU(MMU *mmu);
 
     bool init();
-    bool draw();
+    void step();
+    void draw();
     void quit();
 
     size_t clock;
@@ -83,6 +84,8 @@ private:
     Uint32 color_ldc_disabled;
     Uint32 palette[PALETTE_SIZE];
     Uint32 bg_palette[PALETTE_SIZE];
+
+    Uint32 last_refresh;
 
     bool lcd_enabled;
     bool window_enabled;

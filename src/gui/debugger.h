@@ -21,7 +21,8 @@ public:
     Debugger(CPU *cpu, MMU *mmu);
 
     bool init();
-    void update();
+    bool update();
+    void draw();
     void handle_event(SDL_Event *event);
     void close();
     void quit();
@@ -43,7 +44,6 @@ private:
 
     uint16_t translate(char buffer[], size_t size, uint16_t address);
 
-    void refresh_window();
     void display_memory();
     void display_registers();
     void display_execution();

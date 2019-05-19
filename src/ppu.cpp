@@ -2,6 +2,7 @@
 
 #include <SDL2/SDL.h>
 
+#include "dmg.h"
 #include "log.h"
 #include "utils.h"
 
@@ -13,6 +14,8 @@ PPU::PPU(MMU *mmu) : mmu(mmu)
     background_enabled = false;
 
     clock = 0;
+
+    last_refresh = 0;
 }
 
 bool PPU::init()
@@ -43,26 +46,37 @@ bool PPU::init()
     return true;
 }
 
+
 /**
- * @brief      Refresh the screen
+ * @brief      Emulates the PPU
  */
-bool PPU::draw()
+void PPU::step()
 {
     if (lcd_enabled) {
-        if (draw_line()) {
-            return SDL_UpdateWindowSurface(sdl_window) == 0;
-        }
+        draw_line();
     } else {
         SDL_FillRect(sdl_screen, NULL, color_ldc_disabled);
 
         // TODO: Handle LCD control register so PPU gets CPU clock time when LCD is on
         // DEBUG: Arbitrary increase wiating for display to be active
         clock += CLOCK_H_BLANK;
+    }
+}
 
-        return SDL_UpdateWindowSurface(sdl_window) == 0;
+/**
+ * @brief      Refresh the screen
+ */
+void PPU::draw()
+{
+    // Display
+    Uint32 current_ticks = SDL_GetTicks();
+    if (current_ticks < last_refresh + (1000 / FPS)) {
+        return;
     }
 
-    return true;
+    SDL_UpdateWindowSurface(sdl_window);
+
+    last_refresh = current_ticks;
 }
 
 

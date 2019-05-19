@@ -66,22 +66,25 @@ int DMG::run()
 {
     SDL_Event event;
 
-    // Initial black screen
-    ppu->draw();
-
     while (running) {
-        if (ppu->clock < cpu->clock) {
-            ppu->draw();
-        } else {
-            if (!cpu->step()) {
-                error("CPU crash!\n");
-                running = false;
-                break;
+        // Process
+        if (!debugger->update()) {
+            if (ppu->clock < cpu->clock) {
+                ppu->step();
+            } else {
+                if (!cpu->step()) {
+                    error("CPU crash!\n");
+                    running = false;
+                    break;
+                }
             }
         }
 
-        debugger->update();
+        // Display
+        debugger->draw();
+        ppu->draw();
 
+        // Event
         while (SDL_PollEvent(&event)) {
             handle_event(&event);
         }

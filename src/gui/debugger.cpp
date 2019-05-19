@@ -83,7 +83,17 @@ bool Debugger::init()
 }
 
 
-void Debugger::update()
+/**
+ * @brief      Update the debugger
+ * @return     true if execution shall stops
+ */
+bool Debugger::update()
+{
+    return false;
+}
+
+
+void Debugger::draw()
 {
     // Display
     Uint32 current_ticks = SDL_GetTicks();
@@ -91,14 +101,6 @@ void Debugger::update()
         return;
     }
 
-    refresh_window();
-
-    last_refresh = current_ticks;
-}
-
-
-void Debugger::refresh_window()
-{
     ImGuiIO& io = ImGui::GetIO();
     ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
@@ -118,6 +120,8 @@ void Debugger::refresh_window()
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(sdl_window);
+
+    last_refresh = current_ticks;
 }
 
 
@@ -214,25 +218,18 @@ void Debugger::display_execution()
     if (ImGui::Begin(title)) {
         ImGui::BeginChild("execution");
 
-        uint32_t address = 0x0000;
-        do {
-            char indicator = ' ';
-            if (cpu->PC == address) {
-                indicator = '>';
-            }
+        uint32_t address = cpu->PC;
+        char indicator = '>';
 
-            uint32_t new_address = translate(buffer, buffer_size, address);
+        translate(buffer, buffer_size, address);
 
-            ImGui::Text(
-                "%c 0x%04X: %02X %s",
-                indicator,
-                address,
-                *(mmu->ram + address),
-                buffer
-            );
-
-            address = new_address;
-        } while (address < 0x0FFF);
+        ImGui::Text(
+            "%c 0x%04X: %02X %s",
+            indicator,
+            address,
+            *(mmu->ram + address),
+            buffer
+        );
 
         ImGui::EndChild();
     }
