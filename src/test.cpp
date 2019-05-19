@@ -1622,7 +1622,7 @@ int main(void)
         fprintf(stdout, "BLARGG: %s\n", cpu_instrs[test_id]);
 
         DMG dmg;
-        dmg.init("bios/dmg_boot.bin", cpu_instrs[test_id]);
+        dmg.init(nullptr, cpu_instrs[test_id]);
         dmg.set_palette('1');
         dmg.run();
     }

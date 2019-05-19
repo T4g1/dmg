@@ -29,7 +29,10 @@ bool DMG::init(const char *path_bios, const char *path_rom)
     cpu->reset();
 
     // ROM loading
-    if (!mmu.load(path_bios)) {
+    if (path_bios == nullptr) {
+        cpu->PC = 0x0100;
+        mmu.set_boot_rom_enable(0x01);
+    } else if (!mmu.load(path_bios)) {
         return false;
     }
 
