@@ -274,7 +274,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xF0] = &CPU::ld;
     l_callback[0xF1] = &CPU::pop;
     l_callback[0xF2] = &CPU::ld;
-    l_callback[0xF3] = &CPU::di;
+    l_callback[0xF3] = &CPU::ei_di;
     l_callback[0xF4] = NULL;
     l_callback[0xF5] = &CPU::push;
     l_callback[0xF6] = &CPU::or_xor_and_cp;
@@ -282,7 +282,7 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xF8] = &CPU::ld;
     l_callback[0xF9] = &CPU::ld;
     l_callback[0xFA] = &CPU::ld;
-    l_callback[0xFB] = &CPU::ei;
+    l_callback[0xFB] = &CPU::ei_di;
     l_callback[0xFC] = NULL;
     l_callback[0xFD] = NULL;
     l_callback[0xFE] = &CPU::or_xor_and_cp;
@@ -704,36 +704,34 @@ void CPU::call(uint8_t opcode)
 
 void CPU::ret(uint8_t opcode)
 {
-    uint8_t ticks = 16;
     PC += 1;
-
-    bool do_ret = true;
-    /* Ret if not Z */
-    if ((opcode == 0xC0 && get_bit(reg[F], FZ) == 1) ||
-    /* Ret if not C */
-        (opcode == 0xD0 && get_bit(reg[F], FC) == 1) ||
-    /* Ret if Z */
-        (opcode == 0xC8 && get_bit(reg[F], FZ) == 0) ||
-    /* Ret if C */
-        (opcode == 0xD8 && get_bit(reg[F], FC) == 0)) {
-        ticks = 8;
-        do_ret = false;
-    } else {
-        ticks = 20;
-    }
 
     /* RETI */
     if (opcode == 0xD9) {
         IME = true;
+        clock += 16;
     }
 
-    if (do_ret) {
-        PC = mmu->get16(reg16(SP));
-        inc16(&reg[SP]);
-        inc16(&reg[SP]);
+    else if (opcode == 0xC9) {
+        clock += 16;
+    }
+    /* Ret if not Z */
+    else if ((opcode == 0xC0 && get_bit(reg[F], FZ)) ||
+    /* Ret if not C */
+        (opcode == 0xD0 && get_bit(reg[F], FC)) ||
+    /* Ret if Z */
+        (opcode == 0xC8 && get_bit(reg[F], FZ) == 0) ||
+    /* Ret if C */
+        (opcode == 0xD8 && get_bit(reg[F], FC) == 0)) {
+        clock += 8;
+        return;
+    } else {
+        clock += 20;
     }
 
-    clock += ticks;
+    PC = mmu->get16(reg16(SP));
+    inc16(&reg[SP]);
+    inc16(&reg[SP]);
 }
 
 // Invert reg A
@@ -905,49 +903,21 @@ void CPU::dec(uint8_t opcode)
 
 void CPU::jr(uint8_t opcode)
 {
-    int increment = 0;
-    size_t ticks = 8;
-
-    switch(opcode) {
-    case 0x20:      // Jump if flag Z is not set
-        if (get_bit(reg[F], FZ) == 0) {
-            increment = mmu->get_signed(PC + 1);
-            ticks = 12;
-        }
-        break;
-
-    case 0x30:      // Jump if flag C is not set
-        if (get_bit(reg[F], FC) == 0) {
-            increment = mmu->get_signed(PC + 1);
-            ticks = 12;
-        }
-        break;
-
-    case 0x28:      // Jump if flag Z is set
-        if (get_bit(reg[F], FZ) == 1) {
-            increment = mmu->get_signed(PC + 1);
-            ticks = 12;
-        }
-        break;
-
-    case 0x38:      // Jump if flag C is set
-        if (get_bit(reg[F], FC) == 1) {
-            increment = mmu->get_signed(PC + 1);
-            ticks = 12;
-        }
-        break;
-
-    case 0x18:
-        increment = mmu->get_signed(PC + 1);
-        ticks = 12;
-        break;
+    // Jump if flag Z is not set
+    if ((opcode == 0x20 && get_bit(reg[F], FZ) == 0) ||
+    // Jump if flag C is not set
+        (opcode == 0x30 && get_bit(reg[F], FC) == 0) ||
+    // Jump if flag Z is set
+        (opcode == 0x28 && get_bit(reg[F], FZ)) ||
+    // Jump if flag C is not set
+        (opcode == 0x38 && get_bit(reg[F], FC)) ||
+        (opcode == 0x18)) {
+        PC += mmu->get_signed(PC + 1);
+        clock += 4;
     }
 
-    PC += 2;            // Instruction we just read
-    PC += increment;    // Jump
-    clock += ticks;
-
-    debug_cpu("JR %d\n", increment);
+    PC += 2;
+    clock += 8;
 }
 
 void CPU::ld(uint8_t opcode)
@@ -974,23 +944,10 @@ void CPU::ld(uint8_t opcode)
     switch (opcode) {
     /* Load 16-bit immediate to r16 */
     case 0x01:    // Loads 16-bit immediate to BC
-        debug_cpu("LD BC,0x%02X%02X\n", mmu->get(PC + 2), mmu->get(PC + 3));
-        ld16(&reg[BC], (uint8_t*)mmu->at(PC + 1), 3, 12);
-        break;
-
     case 0x11:    // Loads 16-bit immediate to DE
-        debug_cpu("LD DE,0x%02X%02X\n", mmu->get(PC + 2), mmu->get(PC + 3));
-        ld16(&reg[DE], (uint8_t*)mmu->at(PC + 1), 3, 12);
-        break;
-
     case 0x21:    // Loads 16-bit immediate to HL
-        debug_cpu("LD HL,0x%02X%02X\n", mmu->get(PC + 2), mmu->get(PC + 3));
-        ld16(&reg[HL], (uint8_t*)mmu->at(PC + 1), 3, 12);
-        break;
-
     case 0x31:    // Loads 16-bit immediate to SP
-        debug_cpu("LD SP,0x%02X%02X\n", mmu->get(PC + 2), mmu->get(PC + 3));
-        ld16(&reg[SP], (uint8_t*)mmu->at(PC + 1), 3, 12);
+        ld16(get_target16(opcode >> 4), (uint8_t*)mmu->at(PC + 1), 3, 12);
         break;
 
     /* Load reg A into pointed address */
@@ -1014,7 +971,6 @@ void CPU::ld(uint8_t opcode)
 
     /* Load 16-bit Sp to (immediate 16-bit) */
     case 0x08:
-        debug_cpu("LD 0x%02X%02X,SP\n", mmu->get(PC + 2), mmu->get(PC + 3));
         address = mmu->get16(PC + 1);
         ld16((uint8_t*)mmu->at(address), &reg[SP], 3, 20);
         break;
@@ -1362,17 +1318,9 @@ void CPU::sub(uint8_t opcode)
     set_flag(FC, !(result & 0x100));   // Underflow
 }
 
-void CPU::ei(uint8_t /*opcode*/)
+void CPU::ei_di(uint8_t opcode)
 {
-    IME = true;
-
-    PC += 1;
-    clock += 4;
-}
-
-void CPU::di(uint8_t /*opcode*/)
-{
-    IME = false;
+    IME = opcode == 0xFB;
 
     PC += 1;
     clock += 4;

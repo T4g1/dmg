@@ -104,8 +104,7 @@ private:
     void sub(uint8_t opcode);
     void jp(uint8_t opcode);
     void jp_hl(uint8_t opcode);
-    void ei(uint8_t opcode);
-    void di(uint8_t opcode);
+    void ei_di(uint8_t opcode);
     void rst(uint8_t opcode);
 
     friend class Debugger;
