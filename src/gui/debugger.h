@@ -32,6 +32,8 @@ public:
 private:
     bool running;
 
+    bool suspend_dmg;
+
     CPU *cpu;
     MMU *mmu;
 
