@@ -251,9 +251,24 @@ void Debugger::display_execution()
 
         ImGui::Columns(3, "code", false);
 
+        size_t operations = 0;
         uint16_t address = cpu->PC;
         char indicator = '>';
-        while (address < cpu->PC + 0xFF && address < 0xFF00) {
+        while (operations < 0xFF) {
+            operations += 1;
+
+            // Out of bound
+            if (address >= 0xFF00) {
+                ImGui::Text(" ");
+                ImGui::NextColumn();
+                ImGui::Text(" ");
+                ImGui::NextColumn();
+                ImGui::Text(" ");
+                ImGui::NextColumn();
+
+                continue;
+            }
+
             size_t increment = translate(buffer, buffer_size, address);
 
             ImGui::Text("%c %04X", indicator, address);

@@ -35,11 +35,11 @@
 #define FC               4  //<! Carry Flag
 
 // Interrupts
-#define V_BLANK_MASK     0b00000001
-#define LCD_STAT_MASK    0b00000010
-#define TIMER_MASK       0b00000100
-#define SERIAL_MASK      0b00001000
-#define JOYPAD_MASK      0b00010000
+#define INT_V_BLANK_MASK     0b00000001
+#define INT_LCD_STAT_MASK    0b00000010
+#define INT_TIMER_MASK       0b00000100
+#define INT_SERIAL_MASK      0b00001000
+#define INT_JOYPAD_MASK      0b00010000
 
 class CPU;
 typedef void (CPU::*cpu_callback)(uint8_t opcode);

@@ -3,6 +3,7 @@
 
 #include "ppu.h"
 #include "cpu.h"
+#include "input.h"
 #include "cartridge.h"
 #include "gui/debugger.h"
 
@@ -22,6 +23,7 @@ class DMG {
     MMU mmu;
     CPU *cpu;
     PPU *ppu;
+    Input *input;
 
     Debugger *debugger;
 

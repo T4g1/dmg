@@ -23,6 +23,7 @@ bool DMG::init(const char *path_bios, const char *path_rom)
 
     cpu = new CPU(&mmu);
     ppu = new PPU(&mmu);
+    input = new Input(&mmu);
 
     mmu.set_ppu(ppu);
 
@@ -68,7 +69,11 @@ int DMG::run()
 
     while (running) {
         // Process
-        if (!debugger->update()) {
+        bool suspended = debugger->update();
+
+        if (!suspended) {
+            input->update();
+
             if (ppu->clock < cpu->clock) {
                 ppu->step();
             } else {
@@ -100,6 +105,7 @@ int DMG::run()
 void DMG::handle_event(SDL_Event *event)
 {
     debugger->handle_event(event);
+    input->handle(event);
 
     if (event->type == SDL_QUIT) {
         running = false;

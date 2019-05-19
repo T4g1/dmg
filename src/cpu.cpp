@@ -1375,11 +1375,11 @@ void CPU::handle_interrupts()
 
     const size_t interrupt_count = 5;
     uint8_t interrupt_masks[] = {
-        V_BLANK_MASK,
-        LCD_STAT_MASK,
-        TIMER_MASK,
-        SERIAL_MASK,
-        JOYPAD_MASK
+        INT_V_BLANK_MASK,
+        INT_LCD_STAT_MASK,
+        INT_TIMER_MASK,
+        INT_SERIAL_MASK,
+        INT_JOYPAD_MASK
     };
 
     bool interrupted = false;
@@ -1387,6 +1387,8 @@ void CPU::handle_interrupts()
         uint8_t mask = interrupt_masks[i];
 
         if (_ie & mask && _if & mask) {
+            IME = false;
+
             _call(0x0040 + (i * 0x0008));
             interrupted = true;
         }
