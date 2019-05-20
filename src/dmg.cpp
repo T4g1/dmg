@@ -166,7 +166,7 @@ void DMG::no_boot()
 {
     cpu->PC = 0x0100;
 
-    mmu->set_boot_rom_enable(0x01);
+    mmu->set_booted(true);
 }
 
 

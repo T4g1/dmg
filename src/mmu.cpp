@@ -9,7 +9,7 @@
 #include "timer.h"
 
 
-MMU::MMU() : booted(false), cart(nullptr), ppu(nullptr), timer(nullptr)
+MMU::MMU() : cart(nullptr), ppu(nullptr), timer(nullptr)
 {
 
 }
@@ -32,6 +32,8 @@ bool MMU::init(const char *path_bios, Cartridge *cartridge)
             return false;
         }
     }
+
+    booted = false;
 
     set_cartridge(cartridge);
 
@@ -259,6 +261,8 @@ bool MMU::load(const char *path_rom)
         return false;
     }
 
+    update_ram();
+
     return true;
 }
 
@@ -298,17 +302,15 @@ void MMU::set_cartridge(Cartridge *cart)
 
 
 /**
- * @brief      Allows to control if BOOT tom is readable or not
+ * @brief      Allows to control if BOOT is readable or not
  * @param[in]  value  The value 0x01 indicate boot is no longer needed
  */
 void MMU::set_boot_rom_enable(uint8_t value)
 {
     // Cannot restore boot once it is booted
     if (!booted) {
-        booted = value & 0x01;
+        set_booted(value & 0x01);
     }
-
-    update_ram();
 }
 
 
@@ -330,6 +332,14 @@ void MMU::update_ram()
     if (!booted) {
         memcpy(ram, boot, BOOT_SIZE);
     }
+}
+
+
+void MMU::set_booted(bool value)
+{
+    booted = value;
+
+    update_ram();
 }
 
 

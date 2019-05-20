@@ -94,6 +94,7 @@ public:
     void set_cartridge(Cartridge *cart);
     void set_boot_rom_enable(uint8_t value);
 
+    void set_booted(bool value);
     bool is_booted();
 
     void update_ram();

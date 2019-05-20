@@ -313,8 +313,9 @@ void CPU::reset()
     reg[SP] = 0xFF;
     reg[SP+1] = 0xFE;
 
-    IME = true;
+    IME = false;
     halted = false;
+    halt_bug = false;
 }
 
 /**
@@ -811,9 +812,6 @@ void CPU::halt(uint8_t /*opcode*/)
 {
     if (IME) {
         halted = true;
-
-        PC += 1;
-        clock += 4;
     } else {
         uint8_t IF_val = mmu->get(IF_ADDRESS);
         uint8_t IE_val = mmu->get(IE_ADDRESS);
@@ -826,6 +824,9 @@ void CPU::halt(uint8_t /*opcode*/)
         // Abort HALT
         halt_aborted = true;
     }
+
+    PC += 1;
+    clock += 4;
 }
 
 void CPU::add(uint8_t opcode)
