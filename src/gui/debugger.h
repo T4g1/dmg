@@ -12,6 +12,7 @@
 
 class CPU;
 class MMU;
+class DMG;
 
 /**
  * @brief      Displays emulator informations/status
@@ -33,12 +34,15 @@ public:
 
     void set_cpu(CPU *cpu);
     void set_mmu(MMU *mmu);
+    void set_dmg(DMG *dmg);
 
 private:
     bool running;
+    int execution_speed;
 
     CPU *cpu;
     MMU *mmu;
+    DMG *dmg;
 
     SDL_Window *sdl_window;
     SDL_Surface *sdl_screen;

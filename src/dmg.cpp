@@ -36,6 +36,7 @@ bool DMG::init(const char *path_bios, const char *path_rom)
     input->set_mmu(mmu);
     debugger->set_cpu(cpu);
     debugger->set_mmu(mmu);
+    debugger->set_dmg(this);
 
     running  = cart.load(path_rom);
     running &= mmu->init(path_bios, &cart);

@@ -14,12 +14,14 @@
 static MemoryEditor memoryViewer;
 
 
-Debugger::Debugger() : cpu(nullptr), mmu(nullptr)
+Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr)
 {
     running = false;
     suspend_dmg = false;
 
     sdl_window = nullptr;
+
+    execution_speed = DEFAULT_SPEED;
 }
 
 
@@ -32,6 +34,11 @@ bool Debugger::init()
 
     if (mmu == nullptr) {
         error("No MMU linked with Debugger\n");
+        return false;
+    }
+
+    if (dmg == nullptr) {
+        error("No DMG linked with Debugger\n");
         return false;
     }
 
@@ -101,6 +108,8 @@ bool Debugger::init()
  */
 bool Debugger::update()
 {
+    dmg->set_speed(execution_speed);
+
     return suspend_dmg;
 }
 
@@ -259,6 +268,7 @@ void Debugger::display_execution()
         ImGui::BeginChild("execution");
 
         ImGui::Checkbox("Suspend execution", &suspend_dmg);
+        ImGui::DragInt("Execution speed", &execution_speed, 0.25f, 1, 5000, "%d");
 
         ImGui::Columns(3, "code", false);
 
@@ -597,4 +607,10 @@ void Debugger::set_cpu(CPU *cpu)
 void Debugger::set_mmu(MMU *mmu)
 {
     this->mmu = mmu;
+}
+
+
+void Debugger::set_dmg(DMG *dmg)
+{
+    this->dmg = dmg;
 }
