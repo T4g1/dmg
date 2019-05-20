@@ -24,10 +24,7 @@ bool DMG::init(const char *path_bios, const char *path_rom)
     cpu = new CPU(&mmu);
     ppu = new PPU(&mmu);
     input = new Input(&mmu);
-
-    mmu.set_ppu(ppu);
-
-    cpu->reset();
+    debugger = new Debugger(cpu, &mmu);
 
     // ROM loading
     if (path_bios == nullptr) {
@@ -37,25 +34,16 @@ bool DMG::init(const char *path_bios, const char *path_rom)
         return false;
     }
 
-    if (!cart.load(path_rom)) {
-        return false;
-    }
+    running  = cart.load(path_rom);
+    running &= ppu->init();
+    running &= debugger->init();
 
+    mmu.set_ppu(ppu);
     mmu.set_cartridge(&cart);
 
-    // Graphic initialization
-    if (!ppu->init()) {
-        return false;
-    }
+    cpu->reset();
 
-    debugger = new Debugger(cpu, &mmu);
-    if (!debugger->init()) {
-        return false;
-    }
-
-    running = true;
-
-    return true;
+    return running;
 }
 
 
