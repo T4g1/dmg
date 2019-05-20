@@ -65,7 +65,7 @@ int DMG::run()
 {
     while (running) {
         if (!debugger->update()) {
-            for (size_t i=0; i<speed; i++) {
+            for (size_t i=0; i<debugger->get_speed(); i++) {
                 process();
             }
         }
@@ -187,5 +187,5 @@ void DMG::set_palette(char palette_index)
 
 void DMG::set_speed(size_t speed)
 {
-    this->speed = speed;
+    debugger->set_speed(speed);
 }

@@ -598,6 +598,18 @@ uint16_t Debugger::translate(char buffer[], size_t size, uint16_t address)
 }
 
 
+size_t Debugger::get_speed()
+{
+    return execution_speed;
+}
+
+
+void Debugger::set_speed(size_t speed)
+{
+    execution_speed = speed;
+}
+
+
 void Debugger::set_cpu(CPU *cpu)
 {
     this->cpu = cpu;

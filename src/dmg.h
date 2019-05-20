@@ -33,7 +33,6 @@ class DMG {
     bool running;
 
     size_t system_clock;
-    size_t speed;
 
 public:
     bool init(const char *path_bios, const char *path_rom);

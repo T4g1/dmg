@@ -301,6 +301,8 @@ bool CPU::init()
 
 void CPU::reset()
 {
+    PC = 0;
+
     reg[A] = 0x01;
     reg[F] = 0xB0;
     reg[B] = 0x00;

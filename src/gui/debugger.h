@@ -32,6 +32,9 @@ public:
 
     Uint32 get_window_id();
 
+    size_t get_speed();
+    void set_speed(size_t speed);
+
     void set_cpu(CPU *cpu);
     void set_mmu(MMU *mmu);
     void set_dmg(DMG *dmg);
