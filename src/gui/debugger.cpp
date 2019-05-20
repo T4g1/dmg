@@ -14,16 +14,27 @@
 static MemoryEditor memoryViewer;
 
 
-Debugger::Debugger(CPU *cpu, MMU *mmu) : cpu(cpu), mmu(mmu)
+Debugger::Debugger() : cpu(nullptr), mmu(nullptr)
 {
     running = false;
     suspend_dmg = false;
+
     sdl_window = nullptr;
 }
 
 
 bool Debugger::init()
 {
+    if (cpu == nullptr) {
+        error("No CPU linked with Debugger\n");
+        return false;
+    }
+
+    if (mmu == nullptr) {
+        error("No MMU linked with Debugger\n");
+        return false;
+    }
+
     // GL 3.0 + GLSL 130
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_FLAGS, 0);
     SDL_GL_SetAttribute(SDL_GL_CONTEXT_PROFILE_MASK, SDL_GL_CONTEXT_PROFILE_CORE);
@@ -574,4 +585,16 @@ uint16_t Debugger::translate(char buffer[], size_t size, uint16_t address)
     }
 
     TRANSLATION(1, " ");
+}
+
+
+void Debugger::set_cpu(CPU *cpu)
+{
+    this->cpu = cpu;
+}
+
+
+void Debugger::set_mmu(MMU *mmu)
+{
+    this->mmu = mmu;
 }

@@ -2,10 +2,22 @@
 
 #include "cpu.h"
 #include "utils.h"
+#include "log.h"
 
 
-Input::Input(MMU *mmu) : mmu(mmu)
+Input::Input() : mmu(nullptr)
 {
+
+}
+
+
+bool Input::init()
+{
+    if (mmu == nullptr) {
+        error("No MMU linked with Input\n");
+        return false;
+    }
+
     a_pressed = false;
     b_pressed = false;
     start_pressed = false;
@@ -15,6 +27,8 @@ Input::Input(MMU *mmu) : mmu(mmu)
     down_pressed = false;
     right_pressed = false;
     left_pressed = false;
+
+    return true;
 }
 
 
@@ -90,4 +104,10 @@ void Input::handle(SDL_Event *event)
         }
         break;
     }
+}
+
+
+void Input::set_mmu(MMU *mmu)
+{
+    this->mmu = mmu;
 }

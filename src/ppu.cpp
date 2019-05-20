@@ -6,20 +6,21 @@
 #include "log.h"
 #include "utils.h"
 
-PPU::PPU(MMU *mmu) : mmu(mmu)
+PPU::PPU() : mmu(nullptr)
 {
-    lcd_enabled = false;
-    window_enabled = false;
-    sprites_enabled = false;
-    background_enabled = false;
-
-    clock = 0;
-
-    last_refresh = 0;
+    sdl_screen = nullptr;
+    sdl_window = nullptr;
 }
 
 bool PPU::init()
 {
+    if (mmu == nullptr) {
+        error("No MMU linked with PPU\n");
+        return false;
+    }
+
+    quit();
+
     sdl_window = SDL_CreateWindow(
         "DMG - Emulator",
         SDL_WINDOWPOS_UNDEFINED,
@@ -41,6 +42,15 @@ bool PPU::init()
 
     pixel_format = sdl_screen->format;
 
+    lcd_enabled = false;
+    window_enabled = false;
+    sprites_enabled = false;
+    background_enabled = false;
+
+    clock = 0;
+
+    last_refresh = 0;
+
     set_palette(0);
 
     return true;
@@ -58,7 +68,7 @@ void PPU::step()
         SDL_FillRect(sdl_screen, NULL, color_ldc_disabled);
 
         // TODO: Handle LCD control register so PPU gets CPU clock time when LCD is on
-        // DEBUG: Arbitrary increase wiating for display to be active
+        // DEBUG: Arbitrary increase waiting for display to be active
         clock += CLOCK_H_BLANK;
     }
 }
@@ -283,8 +293,16 @@ void PPU::fetch_at(
 
 void PPU::quit()
 {
-    SDL_FreeSurface(sdl_screen);
-    SDL_DestroyWindow(sdl_window);
+    if (sdl_screen) {
+        SDL_FreeSurface(sdl_screen);
+    }
+
+    if (sdl_window) {
+        SDL_DestroyWindow(sdl_window);
+    }
+
+    sdl_screen = nullptr;
+    sdl_window = nullptr;
 }
 
 
@@ -361,4 +379,10 @@ void PPU::set_palette(size_t palette_index)
         palette[0b10] = SDL_MapRGB(pixel_format,  60,  90,  85);
         palette[0b11] = SDL_MapRGB(pixel_format,  60,  80,  75);
     }
+}
+
+
+void PPU::set_mmu(MMU *mmu)
+{
+    this->mmu = mmu;
 }

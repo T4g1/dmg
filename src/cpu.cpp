@@ -1,20 +1,14 @@
+#include "cpu.h"
+
 #include <stdio.h>
 #include <string.h>
-#include <unistd.h>     // DEBUG
 
 #include "utils.h"
 #include "log.h"
 
-#include "cpu.h"
 
-//#define debug_cpu info
-#define debug_cpu(...)
-
-CPU::CPU(MMU *mmu) : mmu(mmu)
+CPU::CPU() : mmu(nullptr)
 {
-    PC = 0;
-    clock = 0;
-
     // CPU opcode assingation
     l_callback[0x00] = &CPU::nop;
     l_callback[0x01] = &CPU::ld;
@@ -289,6 +283,22 @@ CPU::CPU(MMU *mmu) : mmu(mmu)
     l_callback[0xFF] = &CPU::rst;
 }
 
+
+bool CPU::init()
+{
+    if (mmu == nullptr) {
+        error("No MMU linked with CPU\n");
+        return false;
+    }
+
+    PC = 0;
+    clock = 0;
+
+    reset();
+
+    return true;
+}
+
 void CPU::reset()
 {
     reg[A] = 0x01;
@@ -302,38 +312,6 @@ void CPU::reset()
 
     reg[SP] = 0xFF;
     reg[SP+1] = 0xFE;
-
-    mmu->set(0xFF05, 0x00);     //<! TIMA
-    mmu->set(0xFF06, 0x00);     //<! TMA
-    mmu->set(0xFF07, 0x00);     //<! TAC
-    mmu->set(0xFF10, 0x80);     //<! NR10
-    mmu->set(0xFF11, 0xBF);     //<! NR11
-    mmu->set(0xFF12, 0xF3);     //<! NR12
-    mmu->set(0xFF14, 0xBF);     //<! NR14
-    mmu->set(0xFF16, 0x3F);     //<! NR21
-    mmu->set(0xFF17, 0x00);     //<! NR22
-    mmu->set(0xFF19, 0xBF);     //<! NR24
-    mmu->set(0xFF1A, 0x7F);     //<! NR30
-    mmu->set(0xFF1B, 0xFF);     //<! NR31
-    mmu->set(0xFF1C, 0x9F);     //<! NR32
-    mmu->set(0xFF1E, 0xBF);     //<! NR33
-    mmu->set(0xFF20, 0xFF);     //<! NR41
-    mmu->set(0xFF21, 0x00);     //<! NR42
-    mmu->set(0xFF22, 0x00);     //<! NR43
-    mmu->set(0xFF23, 0xBF);     //<! NR44
-    mmu->set(0xFF24, 0x77);     //<! NR50
-    mmu->set(0xFF25, 0xF3);     //<! NR51
-    mmu->set(0xFF26, 0xF1);     //<! NR52
-    mmu->set(LCDC, 0x91);       //<! LCDC
-    mmu->set(SCY, 0x00);        //<! SCY
-    mmu->set(SCX, 0x00);        //<! SCX
-    mmu->set(LYC, 0x00);        //<! LYC
-    mmu->set(0xFF47, 0xFC);     //<! BGP
-    mmu->set(0xFF48, 0xFF);     //<! OBP0
-    mmu->set(0xFF49, 0xFF);     //<! OBP1
-    mmu->set(0xFF4A, 0x00);     //<! WY
-    mmu->set(0xFF4B, 0x00);     //<! WX
-    mmu->set(0xFFFF, 0x00);     //<! IE
 
     IME = true;
     halted = false;
@@ -359,7 +337,6 @@ bool CPU::step()
         error("Not Implemented PC: 0x%04X\tOpcode: 0x%02X\n", PC, opcode);
         PC += 1; // Just in case
 
-        // TODO: Crash?
         return false;
     }
 
@@ -1205,8 +1182,6 @@ void CPU::prefix_CB(uint8_t opcode)
 
     PC += 2;
     clock += ticks;
-
-    debug_cpu("Prefix CB\n");
 }
 
 void CPU::or_xor_and_cp(uint8_t opcode)
@@ -1404,4 +1379,10 @@ void CPU::handle_interrupts()
             }
         }
     }
+}
+
+
+void CPU::set_mmu(MMU *mmu)
+{
+    this->mmu = mmu;
 }

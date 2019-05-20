@@ -42,10 +42,13 @@ class Input {
     bool left_pressed;
 
 public:
-    Input(MMU *mmu);
+    Input();
 
+    bool init();
     void update();
     void handle(SDL_Event *event);
+
+    void set_mmu(MMU *mmu);
 };
 
 #endif /* INPUT_H */

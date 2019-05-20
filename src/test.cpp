@@ -8,6 +8,7 @@
 MMU *mmu;
 PPU *ppu;
 CPU *cpu;
+Timer *timer;
 
 /**
  * @brief      Init CPU to PC 0 and same value for all register except F
@@ -1578,6 +1579,7 @@ bool test_blargg_cpu_instrs()
         DMG dmg;
         dmg.init(nullptr, cpu_instrs[test_id]);
         dmg.set_palette('1');
+        dmg.set_speed(5000);
         dmg.run();
 
         fprintf(stdout, "\n");
@@ -1588,11 +1590,22 @@ bool test_blargg_cpu_instrs()
 
 int main(void)
 {
+
     mmu = new MMU();
-    cpu = new CPU(mmu);
-    ppu = new PPU(mmu);
+    cpu = new CPU();
+    ppu = new PPU();
+    timer = new Timer();
 
     mmu->set_ppu(ppu);
+    mmu->set_timer(timer);
+    cpu->set_mmu(mmu);
+    ppu->set_mmu(mmu);
+    timer->set_mmu(mmu);
+
+    mmu->init(nullptr, nullptr);
+    cpu->init();
+    ppu->init();
+    timer->init();
 
     fprintf(stdout, "DMG auto testing\n");
 

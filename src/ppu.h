@@ -58,7 +58,7 @@ enum pixel_type {
  */
 class PPU {
 public:
-    PPU(MMU *mmu);
+    PPU();
 
     bool init();
     void step();
@@ -73,6 +73,7 @@ public:
     Uint32 get_window_id();
 
     void set_palette(size_t palette_index);
+    void set_mmu(MMU *mmu);
 
 private:
     MMU *mmu;

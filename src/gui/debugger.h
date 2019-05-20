@@ -18,7 +18,9 @@ class MMU;
  */
 class Debugger {
 public:
-    Debugger(CPU *cpu, MMU *mmu);
+    bool suspend_dmg;
+
+    Debugger();
 
     bool init();
     bool update();
@@ -29,7 +31,8 @@ public:
 
     Uint32 get_window_id();
 
-    bool suspend_dmg;
+    void set_cpu(CPU *cpu);
+    void set_mmu(MMU *mmu);
 
 private:
     bool running;

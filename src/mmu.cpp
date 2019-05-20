@@ -15,15 +15,67 @@ MMU::MMU() : booted(false), cart(nullptr), ppu(nullptr), timer(nullptr)
 }
 
 
-void MMU::set_ppu(PPU *ppu)
+bool MMU::init(const char *path_bios, Cartridge *cartridge)
 {
-    this->ppu = ppu;
+    if (ppu == nullptr) {
+        error("No PPU linked with MMU\n");
+        return false;
+    }
+
+    if (timer == nullptr) {
+        error("No Timer linked with MMU\n");
+        return false;
+    }
+
+    if (path_bios != nullptr) {
+        if (!load(path_bios)) {
+            return false;
+        }
+    }
+
+    set_cartridge(cartridge);
+
+    reset();
+
+    return true;
 }
 
 
-void MMU::set_timer(Timer *timer)
+void MMU::reset()
 {
-    this->timer = timer;
+    set(0xFF05, 0x00);     //<! TIMA
+    set(0xFF06, 0x00);     //<! TMA
+    set(0xFF07, 0x00);     //<! TAC
+    set(0xFF10, 0x80);     //<! NR10
+    set(0xFF11, 0xBF);     //<! NR11
+    set(0xFF12, 0xF3);     //<! NR12
+    set(0xFF14, 0xBF);     //<! NR14
+    set(0xFF16, 0x3F);     //<! NR21
+    set(0xFF17, 0x00);     //<! NR22
+    set(0xFF19, 0xBF);     //<! NR24
+    set(0xFF1A, 0x7F);     //<! NR30
+    set(0xFF1B, 0xFF);     //<! NR31
+    set(0xFF1C, 0x9F);     //<! NR32
+    set(0xFF1E, 0xBF);     //<! NR33
+    set(0xFF20, 0xFF);     //<! NR41
+    set(0xFF21, 0x00);     //<! NR42
+    set(0xFF22, 0x00);     //<! NR43
+    set(0xFF23, 0xBF);     //<! NR44
+    set(0xFF24, 0x77);     //<! NR50
+    set(0xFF25, 0xF3);     //<! NR51
+    set(0xFF26, 0xF1);     //<! NR52
+    set(LCDC, 0x91);       //<! LCDC
+    set(SCY, 0x00);        //<! SCY
+    set(SCX, 0x00);        //<! SCX
+    set(LYC, 0x00);        //<! LYC
+    set(0xFF47, 0xFC);     //<! BGP
+    set(0xFF48, 0xFF);     //<! OBP0
+    set(0xFF49, 0xFF);     //<! OBP1
+    set(0xFF4A, 0x00);     //<! WY
+    set(0xFF4B, 0x00);     //<! WX
+    set(0xFFFF, 0x00);     //<! IE
+
+    update_ram();
 }
 
 
@@ -102,6 +154,14 @@ bool MMU::set(uint16_t address, uint8_t value)
 
     ram[address] = value;
 
+    handle_callbacks(address, value);
+
+    return false;
+}
+
+
+void MMU::handle_callbacks(uint16_t address, uint8_t value)
+{
     // BOOT Status
     if (address == BOOT_ROM_ENABLE) {
         set_boot_rom_enable(value);
@@ -124,8 +184,9 @@ bool MMU::set(uint16_t address, uint8_t value)
     else if (address == TAC) {
         timer->set_TAC(value);
     }
-
-    return false;
+    else if (address == TIMA) {
+        timer->set_TIMA(value);
+    }
 }
 
 
@@ -272,4 +333,16 @@ void MMU::update_ram()
 bool MMU::is_booted()
 {
     return booted;
+}
+
+
+void MMU::set_ppu(PPU *ppu)
+{
+    this->ppu = ppu;
+}
+
+
+void MMU::set_timer(Timer *timer)
+{
+    this->timer = timer;
 }

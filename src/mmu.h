@@ -77,8 +77,9 @@ public:
     uint8_t ram[RAM_SIZE];
     MMU();
 
-    void set_ppu(PPU *ppu);
-    void set_timer(Timer *timer);
+    bool init(const char *path_bios, Cartridge *cart);
+    void reset();
+    void handle_callbacks(uint16_t address, uint8_t value);
 
     bool set(uint16_t address, uint8_t value);
     const void *at(uint16_t address);
@@ -96,6 +97,9 @@ public:
     bool is_booted();
 
     void update_ram();
+
+    void set_ppu(PPU *ppu);
+    void set_timer(Timer *timer);
 };
 
 #endif /* MMU_H */

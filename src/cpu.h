@@ -48,23 +48,6 @@ typedef void (CPU::*cpu_callback)(uint8_t opcode);
  * @brief      Central Processing Unit
  */
 class CPU {
-public:
-    CPU(MMU *mmu);
-
-    void reset();
-    bool step();
-
-    size_t clock;
-
-    // TODO: Force F flag to be always 0-3 at 0
-    uint8_t reg[REGISTER_COUNT];
-    uint16_t PC;                    //<! Program Counter
-
-    void set_flag(size_t flag, bool value);
-    bool get_flag(size_t flag);
-
-    uint16_t reg16(size_t i);
-
 private:
     MMU *mmu;
 
@@ -119,6 +102,26 @@ private:
     void handle_interrupts();
 
     friend class Debugger;
+
+public:
+    CPU();
+
+    bool init();
+    void reset();
+    bool step();
+
+    size_t clock;
+
+    // TODO: Force F flag to be always 0-3 at 0
+    uint8_t reg[REGISTER_COUNT];
+    uint16_t PC;                    //<! Program Counter
+
+    void set_flag(size_t flag, bool value);
+    bool get_flag(size_t flag);
+
+    uint16_t reg16(size_t i);
+
+    void set_mmu(MMU *mmu);
 };
 
 #endif /* CPU_H */

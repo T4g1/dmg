@@ -21,29 +21,36 @@ bool DMG::init(const char *path_bios, const char *path_rom)
 
     atexit(quit);
 
-    cpu = new CPU(&mmu);
-    ppu = new PPU(&mmu);
-    input = new Input(&mmu);
-    timer = new Timer(&mmu);
-    debugger = new Debugger(cpu, &mmu);
+    mmu = new MMU();
+    cpu = new CPU();
+    ppu = new PPU();
+    timer = new Timer();
+    input = new Input();
+    debugger = new Debugger();
+
+    mmu->set_ppu(ppu);
+    mmu->set_timer(timer);
+    cpu->set_mmu(mmu);
+    ppu->set_mmu(mmu);
+    timer->set_mmu(mmu);
+    input->set_mmu(mmu);
+    debugger->set_cpu(cpu);
+    debugger->set_mmu(mmu);
 
     running  = cart.load(path_rom);
+    running &= mmu->init(path_bios, &cart);
+    running &= cpu->init();
     running &= ppu->init();
+    running &= timer->init();
+    running &= input->init();
     running &= debugger->init();
-
-    if (path_bios != nullptr) {
-        running &= mmu.load(path_bios);
-    }
-
-    mmu.set_ppu(ppu);
-    mmu.set_timer(timer);
-    mmu.set_cartridge(&cart);
-
-    cpu->reset();
 
     if (path_bios == nullptr) {
         no_boot();
     }
+
+    system_clock = 0;
+    set_speed(DEFAULT_SPEED);
 
     return running;
 }
@@ -57,7 +64,9 @@ int DMG::run()
 {
     while (running) {
         if (!debugger->update()) {
-            process();
+            for (size_t i=0; i<speed; i++) {
+                process();
+            }
         }
 
         debugger->draw();
@@ -79,16 +88,32 @@ int DMG::run()
 void DMG::process()
 {
     input->update();
-    timer->update(0);   // TODO
 
-    if (ppu->clock < cpu->clock) {
-        ppu->step();
-    } else {
+    if (system_clock >= cpu->clock) {
         if (!cpu->step()) {
             error("CPU crash!\n");
             debugger->suspend_dmg = true;
         }
     }
+
+    if (system_clock >= ppu->clock) {
+        ppu->step();
+    }
+
+    if (system_clock >= timer->clock) {
+        timer->step();
+    }
+
+    // Update system clock
+    system_clock = timer->clock;
+    if (ppu->clock < system_clock) {
+        system_clock = ppu->clock;
+    }
+    if (cpu->clock < system_clock) {
+        system_clock = cpu->clock;
+    }
+
+    // TODO: Prevent clock overflow by substracting some value from them all
 }
 
 
@@ -140,7 +165,7 @@ void DMG::no_boot()
 {
     cpu->PC = 0x0100;
 
-    mmu.set_boot_rom_enable(0x01);
+    mmu->set_boot_rom_enable(0x01);
 }
 
 
@@ -156,4 +181,10 @@ void DMG::set_palette(char palette_index)
     }
 
     ppu->set_palette(palette_index - '0');
+}
+
+
+void DMG::set_speed(size_t speed)
+{
+    this->speed = speed;
 }
