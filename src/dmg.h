@@ -4,6 +4,7 @@
 #include "ppu.h"
 #include "cpu.h"
 #include "input.h"
+#include "timer.h"
 #include "cartridge.h"
 #include "gui/debugger.h"
 
@@ -24,6 +25,7 @@ class DMG {
     CPU *cpu;
     PPU *ppu;
     Input *input;
+    Timer *timer;
 
     Debugger *debugger;
 

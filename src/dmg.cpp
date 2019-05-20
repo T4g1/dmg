@@ -24,6 +24,7 @@ bool DMG::init(const char *path_bios, const char *path_rom)
     cpu = new CPU(&mmu);
     ppu = new PPU(&mmu);
     input = new Input(&mmu);
+    timer = new Timer(&mmu);
     debugger = new Debugger(cpu, &mmu);
 
     running  = cart.load(path_rom);
@@ -35,6 +36,7 @@ bool DMG::init(const char *path_bios, const char *path_rom)
     }
 
     mmu.set_ppu(ppu);
+    mmu.set_timer(timer);
     mmu.set_cartridge(&cart);
 
     cpu->reset();
@@ -77,7 +79,7 @@ int DMG::run()
 void DMG::process()
 {
     input->update();
-    //timer->update();
+    timer->update(0);   // TODO
 
     if (ppu->clock < cpu->clock) {
         ppu->step();

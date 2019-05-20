@@ -1,14 +1,15 @@
+#include "mmu.h"
+
 #include <stdio.h>
 #include <string.h>
 
 #include "utils.h"
 #include "log.h"
 #include "ppu.h"
+#include "timer.h"
 
-#include "mmu.h"
 
-
-MMU::MMU() : booted(false), cart(nullptr), ppu(nullptr)
+MMU::MMU() : booted(false), cart(nullptr), ppu(nullptr), timer(nullptr)
 {
 
 }
@@ -17,6 +18,12 @@ MMU::MMU() : booted(false), cart(nullptr), ppu(nullptr)
 void MMU::set_ppu(PPU *ppu)
 {
     this->ppu = ppu;
+}
+
+
+void MMU::set_timer(Timer *timer)
+{
+    this->timer = timer;
 }
 
 
@@ -108,6 +115,14 @@ bool MMU::set(uint16_t address, uint8_t value)
     // BG Palette
     else if (address == BGP) {
         ppu->set_bgp(value);
+    }
+
+    // Timer
+    else if (address == DIV) {
+        timer->set_DIV(value);
+    }
+    else if (address == TAC) {
+        timer->set_TAC(value);
     }
 
     return false;

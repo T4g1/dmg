@@ -39,6 +39,10 @@
 #define WY                  0xFF4A      // Window Y position
 #define WX                  0xFF4B      // Window X position
 #define JOYPAD              0xFF00      // Joypad
+#define DIV                 0xFF04      // Divider (timer)
+#define TIMA                0xFF05      // Timer counter
+#define TMA                 0xFF06      // Timer modulo
+#define TAC                 0xFF07      // Timer control
 #define IF_ADDRESS          0xFF0F      // Interrupt Flag
 #define IE_ADDRESS          0xFFFF      // Interrupt Enable
 
@@ -54,6 +58,7 @@ enum address_type {
 
 
 class PPU;
+class Timer;
 
 
 /**
@@ -63,6 +68,7 @@ class MMU {
     bool booted;
     Cartridge *cart;
     PPU *ppu;
+    Timer *timer;
 
     address_type get_address_identity(uint16_t address);
 
@@ -72,6 +78,7 @@ public:
     MMU();
 
     void set_ppu(PPU *ppu);
+    void set_timer(Timer *timer);
 
     bool set(uint16_t address, uint8_t value);
     const void *at(uint16_t address);
