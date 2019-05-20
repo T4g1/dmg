@@ -10,11 +10,12 @@
 #include "../log.h"
 #include "../cpu.h"
 #include "../mmu.h"
+#include "../ppu.h"
 
 static MemoryEditor memoryViewer;
 
 
-Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr)
+Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr), ppu(nullptr)
 {
     running = false;
     suspend_dmg = false;
@@ -39,6 +40,11 @@ bool Debugger::init()
 
     if (dmg == nullptr) {
         error("No DMG linked with Debugger\n");
+        return false;
+    }
+
+    if (ppu == nullptr) {
+        error("No PPU linked with Debugger\n");
         return false;
     }
 
@@ -84,12 +90,9 @@ bool Debugger::init()
     ImGui::CreateContext();
     ImGuiIO& io = ImGui::GetIO(); (void)io;
     io.Fonts->AddFontDefault();
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableKeyboard;  // Enable Keyboard Controls
-    //io.ConfigFlags |= ImGuiConfigFlags_NavEnableGamepad;   // Enable Gamepad Controls
 
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
-    //ImGui::StyleColorsClassic();
 
     // Setup Platform/Renderer bindings
     ImGui_ImplSDL2_InitForOpenGL(sdl_window, gl_context);
@@ -625,4 +628,10 @@ void Debugger::set_mmu(MMU *mmu)
 void Debugger::set_dmg(DMG *dmg)
 {
     this->dmg = dmg;
+}
+
+
+void Debugger::set_ppu(PPU *ppu)
+{
+    this->ppu = ppu;
 }

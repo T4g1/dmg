@@ -13,6 +13,7 @@
 class CPU;
 class MMU;
 class DMG;
+class PPU;
 
 /**
  * @brief      Displays emulator informations/status
@@ -38,6 +39,7 @@ public:
     void set_cpu(CPU *cpu);
     void set_mmu(MMU *mmu);
     void set_dmg(DMG *dmg);
+    void set_ppu(PPU *ppu);
 
 private:
     bool running;
@@ -46,9 +48,9 @@ private:
     CPU *cpu;
     MMU *mmu;
     DMG *dmg;
+    PPU *ppu;
 
     SDL_Window *sdl_window;
-    SDL_Surface *sdl_screen;
     SDL_PixelFormat *pixel_format;
     SDL_GLContext gl_context;
 
