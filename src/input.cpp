@@ -6,7 +6,15 @@
 
 Input::Input(MMU *mmu) : mmu(mmu)
 {
+    a_pressed = false;
+    b_pressed = false;
+    start_pressed = false;
+    select_pressed = false;
 
+    up_pressed = false;
+    down_pressed = false;
+    right_pressed = false;
+    left_pressed = false;
 }
 
 
@@ -25,19 +33,19 @@ void Input::update()
         last_key == SDLK_RIGHT ||
         last_key == SDLK_UP ||
         last_key == SDLK_DOWN) {
-        set_bit(joypad, SELECT_BUTTON, false);
-        set_bit(joypad, SELECT_DIRECTION, true);
-        set_bit(joypad, KEY_DOWN_START, down_pressed);
-        set_bit(joypad, KEY_UP_SELECT, up_pressed);
-        set_bit(joypad, KEY_LEFT_B, left_pressed);
-        set_bit(joypad, KEY_RIGHT_A, right_pressed);
+        set_bit(joypad, SELECT_BUTTON, 1);
+        set_bit(joypad, SELECT_DIRECTION, 0);               // 0 = selected
+        set_bit(joypad, KEY_DOWN_START, !down_pressed);     // 0 = pressed
+        set_bit(joypad, KEY_UP_SELECT, !up_pressed);
+        set_bit(joypad, KEY_LEFT_B, !left_pressed);
+        set_bit(joypad, KEY_RIGHT_A, !right_pressed);
     } else {
-        set_bit(joypad, SELECT_BUTTON, true);
-        set_bit(joypad, SELECT_DIRECTION, false);
-        set_bit(joypad, KEY_DOWN_START, start_pressed);
-        set_bit(joypad, KEY_UP_SELECT, select_pressed);
-        set_bit(joypad, KEY_LEFT_B, b_pressed);
-        set_bit(joypad, KEY_RIGHT_A, a_pressed);
+        set_bit(joypad, SELECT_BUTTON, 0);                  // 0 = selected
+        set_bit(joypad, SELECT_DIRECTION, 1);
+        set_bit(joypad, KEY_DOWN_START, !start_pressed);    // 0 = pressed
+        set_bit(joypad, KEY_UP_SELECT, !select_pressed);
+        set_bit(joypad, KEY_LEFT_B, !b_pressed);
+        set_bit(joypad, KEY_RIGHT_A, !a_pressed);
     }
 
     mmu->set(JOYPAD, joypad);
