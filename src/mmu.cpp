@@ -303,7 +303,10 @@ void MMU::set_cartridge(Cartridge *cart)
  */
 void MMU::set_boot_rom_enable(uint8_t value)
 {
-    booted = value & 0x01;
+    // Cannot restore boot once it is booted
+    if (!booted) {
+        booted = value & 0x01;
+    }
 
     update_ram();
 }
