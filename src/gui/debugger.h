@@ -29,10 +29,10 @@ public:
 
     Uint32 get_window_id();
 
+    bool suspend_dmg;
+
 private:
     bool running;
-
-    bool suspend_dmg;
 
     CPU *cpu;
     MMU *mmu;

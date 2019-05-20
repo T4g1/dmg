@@ -32,8 +32,10 @@ class DMG {
 public:
     bool init(const char *path_bios, const char *path_rom);
     int run();
-    void handle_event(SDL_Event *event);
+    void process();
+    void handle_events();
 
+    void no_boot();
     void set_palette(char palette_index);
 };
 

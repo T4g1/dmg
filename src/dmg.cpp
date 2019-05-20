@@ -26,22 +26,22 @@ bool DMG::init(const char *path_bios, const char *path_rom)
     input = new Input(&mmu);
     debugger = new Debugger(cpu, &mmu);
 
-    // ROM loading
-    if (path_bios == nullptr) {
-        cpu->PC = 0x0100;
-        mmu.set_boot_rom_enable(0x01);
-    } else if (!mmu.load(path_bios)) {
-        return false;
-    }
-
     running  = cart.load(path_rom);
     running &= ppu->init();
     running &= debugger->init();
+
+    if (path_bios != nullptr) {
+        running &= mmu.load(path_bios);
+    }
 
     mmu.set_ppu(ppu);
     mmu.set_cartridge(&cart);
 
     cpu->reset();
+
+    if (path_bios == nullptr) {
+        no_boot();
+    }
 
     return running;
 }
@@ -53,34 +53,15 @@ bool DMG::init(const char *path_bios, const char *path_rom)
  */
 int DMG::run()
 {
-    SDL_Event event;
-
     while (running) {
-        // Process
-        bool suspended = debugger->update();
-
-        if (!suspended) {
-            input->update();
-
-            if (ppu->clock < cpu->clock) {
-                ppu->step();
-            } else {
-                if (!cpu->step()) {
-                    error("CPU crash!\n");
-                    running = false;
-                    break;
-                }
-            }
+        if (!debugger->update()) {
+            process();
         }
 
-        // Display
         debugger->draw();
         ppu->draw();
 
-        // Event
-        while (SDL_PollEvent(&event)) {
-            handle_event(&event);
-        }
+        handle_events();
     }
 
     debugger->quit();
@@ -90,26 +71,52 @@ int DMG::run()
 }
 
 
-void DMG::handle_event(SDL_Event *event)
+/**
+ * @brief      Dispatch process time to each DMG component
+ */
+void DMG::process()
 {
-    debugger->handle_event(event);
-    input->handle(event);
+    input->update();
+    //timer->update();
 
-    if (event->type == SDL_QUIT) {
-        running = false;
-    } else if (event->type == SDL_WINDOWEVENT) {
-        switch(event->window.event) {
-        case SDL_WINDOWEVENT_CLOSE:
-            Uint32 window_id = event->window.windowID;
+    if (ppu->clock < cpu->clock) {
+        ppu->step();
+    } else {
+        if (!cpu->step()) {
+            error("CPU crash!\n");
+            debugger->suspend_dmg = true;
+        }
+    }
+}
 
-            if (window_id == debugger->get_window_id()) {
-                debugger->close();
+
+/**
+ * @brief      Dispatch events to all subsystems
+ */
+void DMG::handle_events()
+{
+    SDL_Event event;
+
+    while (SDL_PollEvent(&event)) {
+        debugger->handle_event(&event);
+        input->handle(&event);
+
+        if (event.type == SDL_QUIT) {
+            running = false;
+        } else if (event.type == SDL_WINDOWEVENT) {
+            switch(event.window.event) {
+            case SDL_WINDOWEVENT_CLOSE:
+                Uint32 window_id = event.window.windowID;
+
+                if (window_id == debugger->get_window_id()) {
+                    debugger->close();
+                }
+
+                if (window_id == ppu->get_window_id()) {
+                    running = false;
+                }
+                break;
             }
-
-            if (window_id == ppu->get_window_id()) {
-                running = false;
-            }
-            break;
         }
     }
 }
@@ -121,6 +128,17 @@ void DMG::handle_event(SDL_Event *event)
 void quit()
 {
     SDL_Quit();
+}
+
+
+/**
+ * @brief      Set the program to works without BOOT rom
+ */
+void DMG::no_boot()
+{
+    cpu->PC = 0x0100;
+
+    mmu.set_boot_rom_enable(0x01);
 }
 
 
