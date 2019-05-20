@@ -340,6 +340,11 @@ bool CPU::step()
         return false;
     }
 
+    if (halt_bug) {
+        PC -= 1;
+        halt_bug = false;
+    }
+
     (*this.*l_callback[opcode])(opcode);
 
     return true;
@@ -798,12 +803,29 @@ void CPU::stop(uint8_t /*opcode*/)
     clock += 4;
 }
 
+/**
+ * @brief      Halts behave differently given IME and registers state
+ * @see        http://www.devrs.com/gb/files/faqs.html
+ */
 void CPU::halt(uint8_t /*opcode*/)
 {
-    halted = true;
+    if (IME) {
+        halted = true;
 
-    PC += 1;
-    clock += 4;
+        PC += 1;
+        clock += 4;
+    } else {
+        uint8_t IF_val = mmu->get(IF_ADDRESS);
+        uint8_t IE_val = mmu->get(IE_ADDRESS);
+
+        // Halt bug
+        if (IF_val & IE_val) {
+            halt_bug = true;
+        }
+
+        // Abort HALT
+        halt_aborted = true;
+    }
 }
 
 void CPU::add(uint8_t opcode)
@@ -1362,16 +1384,17 @@ void CPU::handle_interrupts()
         uint8_t mask = interrupt_masks[i];
 
         if (_if & mask) {
+            // Discard the interrupt
+            mmu->set(IF_ADDRESS, _if ^ mask);
+
             if (_ie & mask) {
                 IME = false;
                 halted = false;
+                halt_bug = false;   // Assume interrupts cancel halt bug
 
                 _call(0x0040 + (i * 0x0008));
                 interrupted = true;
             }
-
-            // Discard the interrupt
-            mmu->set(IF_ADDRESS, _if ^ mask);
 
             // Serve only one interrupt at a time
             if (interrupted) {
