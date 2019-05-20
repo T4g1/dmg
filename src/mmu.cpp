@@ -189,6 +189,12 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
     else if (address == TIMA) {
         timer->set_TIMA(value);
     }
+
+    // Interrupts
+    else if (address == IF_ADDRESS) {
+        // First three bit always set
+        ram[address] |= 0xE0;
+    }
 }
 
 

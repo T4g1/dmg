@@ -434,7 +434,7 @@ uint8_t *CPU::get_target16(size_t index)
 // TODO: Simplify
 void CPU::ld8_mmu(uint16_t address, const uint8_t* src, size_t size, size_t ticks)
 {
-    mmu->set(address, *(uint8_t*) src);
+    mmu->set(address, *src);
     PC += size;
     clock += ticks;
 }

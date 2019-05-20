@@ -113,6 +113,8 @@ private:
 
     void clear_fifo();
     size_t pop_pixel();
+
+    friend class Debugger;
 };
 
 #endif /* PPU_H */

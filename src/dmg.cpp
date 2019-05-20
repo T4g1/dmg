@@ -65,8 +65,8 @@ bool DMG::init(const char *path_bios, const char *path_rom)
 int DMG::run()
 {
     while (running) {
-        if (!debugger->update()) {
-            for (size_t i=0; i<debugger->get_speed(); i++) {
+        for (size_t i=0; i<debugger->get_speed(); i++) {
+            if (!debugger->update()) {
                 process();
             }
         }
@@ -92,6 +92,8 @@ void DMG::process()
     input->update();
 
     if (system_clock >= cpu->clock) {
+        debugger->step_dmg = false;
+
         if (!cpu->step()) {
             error("CPU crash!\n");
             debugger->suspend_dmg = true;

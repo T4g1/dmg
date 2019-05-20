@@ -21,6 +21,7 @@ class PPU;
 class Debugger {
 public:
     bool suspend_dmg;
+    bool step_dmg;
 
     Debugger();
 
@@ -57,10 +58,12 @@ private:
     Uint32 last_refresh;
 
     uint16_t translate(char buffer[], size_t size, uint16_t address);
+    void ColorBoolean(bool condition);
 
     void display_memory();
     void display_registers();
     void display_execution();
+    void display_PPU_status();
 };
 
 #endif /* DEBUGGER_H */

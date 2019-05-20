@@ -222,6 +222,13 @@ bool test_CPU_LD_8bit()
         mmu->get(cpu->reg16(HL))
     );
 
+    mmu->set(0xFF0F, 0x00);
+    cpu->reg[A] = 0x04;
+
+    execute({ 0xE0, 0x0F });      // LD (0xFF00 + 0x0F), A
+
+    ASSERTV(mmu->get(0xFF0F) & 0x04, "0xFF0F: 0x%02X\n", mmu->get(0xFF0F));
+
     return true;
 }
 

@@ -19,6 +19,7 @@ Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr), ppu(nullptr)
 {
     running = false;
     suspend_dmg = false;
+    step_dmg = false;
 
     sdl_window = nullptr;
 
@@ -113,7 +114,11 @@ bool Debugger::update()
 {
     dmg->set_speed(execution_speed);
 
-    return suspend_dmg;
+    if (cpu->PC == 0xC2B5) {
+        suspend_dmg = true;
+    }
+
+    return suspend_dmg && !step_dmg;
 }
 
 
@@ -135,6 +140,7 @@ void Debugger::draw()
     display_memory();
     display_registers();
     display_execution();
+    display_PPU_status();
 
     // Rendering
     ImGui::Render();
@@ -206,9 +212,6 @@ void Debugger::display_registers()
 {
     const char *title = "Registers";
 
-    ImVec4 active = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
-    ImVec4 inactive = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
-
     if (ImGui::Begin(title)) {
         ImGui::BeginChild("registers");
 
@@ -228,24 +231,14 @@ void Debugger::display_registers()
 
         ImGui::Columns(2, "boolean", false);
 
-        ImVec4 color = inactive;
-        if (cpu->IME) {
-            color = active;
-        }
-
         ImGui::Text("IME:");
         ImGui::NextColumn();
-        ImGui::ColorButton("MyColor##3c", color, ImGuiColorEditFlags_NoOptions);
+        ColorBoolean(cpu->IME);
         ImGui::NextColumn();
-
-        color = inactive;
-        if (cpu->halted) {
-            color = active;
-        }
 
         ImGui::Text("Halted:");
         ImGui::NextColumn();
-        ImGui::ColorButton("MyColor##3c", color, ImGuiColorEditFlags_NoOptions);
+        ColorBoolean(cpu->halted);
         ImGui::NextColumn();
 
         ImGui::Columns(1, "boolean", false);
@@ -270,8 +263,38 @@ void Debugger::display_execution()
     if (ImGui::Begin(title)) {
         ImGui::BeginChild("execution");
 
-        ImGui::Checkbox("Suspend execution", &suspend_dmg);
+        ImGui::Columns(3, "code", false);
+
+        if (ImGui::Button("Suspend execution")) {
+            suspend_dmg = true;
+        }
+
+        ImGui::NextColumn();
+
+        if (ImGui::Button("Resume execution")) {
+            suspend_dmg = false;
+        }
+
+        ImGui::NextColumn();
+
+        if (ImGui::Button("Step execution")) {
+            suspend_dmg = true;
+            step_dmg = true;
+        }
+
+        ImGui::NextColumn();
+
+        ImGui::Text("Suspended:");
+        ImGui::NextColumn();
+        ColorBoolean(suspend_dmg);
+        ImGui::NextColumn();
+
         ImGui::DragInt("Execution speed", &execution_speed, 0.25f, 1, 5000, "%d");
+        ImGui::NextColumn();
+
+        ImGui::Columns(1, "code", false);
+
+        ImGui::Separator();
 
         ImGui::Columns(3, "code", false);
 
@@ -330,6 +353,69 @@ void Debugger::display_execution()
         }
 
         ImGui::Columns(1);
+
+        ImGui::EndChild();
+    }
+
+    ImGui::End();
+}
+
+
+/**
+ * @brief      Displays PPU status
+ */
+void Debugger::display_PPU_status()
+{
+
+    const char *title = "PPU Status";
+
+    if (ImGui::Begin(title)) {
+        ImGui::BeginChild("status");
+
+        ImGui::Columns(2, "boolean", false);
+
+        ImGui::Text("BG/Window tileset:");
+        ImGui::NextColumn();
+        ImGui::Text("0x%04X", ppu->bg_window_tile_data_address);
+        ImGui::NextColumn();
+
+        ImGui::Text("BG map data:");
+        ImGui::NextColumn();
+        ImGui::Text("0x%04X", ppu->bg_map_address);
+        ImGui::NextColumn();
+
+        ImGui::Text("Window map data:");
+        ImGui::NextColumn();
+        ImGui::Text("0x%04X", ppu->window_map_address);
+        ImGui::NextColumn();
+
+        ImGui::Columns(1, "boolean", false);
+
+        ImGui::Separator();
+
+        ImGui::Columns(2, "boolean", false);
+
+        ImGui::Text("LCD Enabled:");
+        ImGui::NextColumn();
+        ColorBoolean(ppu->lcd_enabled);
+        ImGui::NextColumn();
+
+        ImGui::Text("BG Enabled:");
+        ImGui::NextColumn();
+        ColorBoolean(ppu->background_enabled);
+        ImGui::NextColumn();
+
+        ImGui::Text("Window Enabled:");
+        ImGui::NextColumn();
+        ColorBoolean(ppu->window_enabled);
+        ImGui::NextColumn();
+
+        ImGui::Text("Sprites Enabled:");
+        ImGui::NextColumn();
+        ColorBoolean(ppu->sprites_enabled);
+        ImGui::NextColumn();
+
+        ImGui::Columns(1, "boolean", false);
 
         ImGui::EndChild();
     }
@@ -598,6 +684,20 @@ uint16_t Debugger::translate(char buffer[], size_t size, uint16_t address)
     }
 
     TRANSLATION(1, " ");
+}
+
+
+void Debugger::ColorBoolean(bool condition)
+{
+    ImVec4 active = ImVec4(0.0f, 1.0f, 0.0f, 1.0f);
+    ImVec4 inactive = ImVec4(1.0f, 0.0f, 0.0f, 1.0f);
+
+    ImVec4 color = inactive;
+    if (condition) {
+        color = active;
+    }
+
+    ImGui::ColorButton("MyColor##3c", color, ImGuiColorEditFlags_NoOptions);
 }
 
 
