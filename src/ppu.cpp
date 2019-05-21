@@ -199,7 +199,7 @@ bool PPU::draw_line()
 
             Pixel pixel = pop_pixel();
 
-            Uint32 *used_palette = bg_palette;
+            uint8_t *used_palette = bg_palette;
             if (pixel.type == SPRITE_OBP0) {
                 used_palette = sprite_palette[0];
             }
@@ -207,7 +207,9 @@ bool PPU::draw_line()
                 used_palette = sprite_palette[1];
             }
 
-            set_pixel(sdl_screen, x, ly, used_palette[pixel.value]);
+            Uint32 color = palette[used_palette[pixel.value]];
+
+            set_pixel(sdl_screen, x, ly, color);
         }
 
         clock += CLOCK_PIXEL_TRANSFER;
@@ -455,10 +457,10 @@ void PPU::set_lcdc(uint8_t lcdc)
  */
 void PPU::set_bgp(uint8_t value)
 {
-    bg_palette[0b00] = palette[(value & 0b00000011)     ];
-    bg_palette[0b01] = palette[(value & 0b00001100) >> 2];
-    bg_palette[0b10] = palette[(value & 0b00110000) >> 4];
-    bg_palette[0b11] = palette[(value & 0b11000000) >> 6];
+    bg_palette[0b00] = (value & 0b00000011);
+    bg_palette[0b01] = (value & 0b00001100) >> 2;
+    bg_palette[0b10] = (value & 0b00110000) >> 4;
+    bg_palette[0b11] = (value & 0b11000000) >> 6;
 }
 
 
@@ -468,10 +470,10 @@ void PPU::set_bgp(uint8_t value)
  */
 void PPU::set_obp(size_t obp_id, uint8_t value)
 {
-    sprite_palette[obp_id][0b00] = palette[(value & 0b00000011)     ];
-    sprite_palette[obp_id][0b01] = palette[(value & 0b00001100) >> 2];
-    sprite_palette[obp_id][0b10] = palette[(value & 0b00110000) >> 4];
-    sprite_palette[obp_id][0b11] = palette[(value & 0b11000000) >> 6];
+    sprite_palette[obp_id][0b00] = (value & 0b00000011);
+    sprite_palette[obp_id][0b01] = (value & 0b00001100) >> 2;
+    sprite_palette[obp_id][0b10] = (value & 0b00110000) >> 4;
+    sprite_palette[obp_id][0b11] = (value & 0b11000000) >> 6;
 }
 
 
@@ -490,13 +492,22 @@ void PPU::set_palette(size_t palette_index)
 {
     color_ldc_disabled = SDL_MapRGB(pixel_format, 150, 125, 16);
 
-    // Fixed colors of the DMG
+    // Blac/White
     if (palette_index == 1) {
         palette[0b00] = SDL_MapRGB(pixel_format, 255, 255, 255);
         palette[0b01] = SDL_MapRGB(pixel_format, 211, 211, 211);
         palette[0b10] = SDL_MapRGB(pixel_format, 120, 120, 120);
         palette[0b11] = SDL_MapRGB(pixel_format,   0,   0,   0);
-    } else {
+    }
+    // Clean green scales
+    else if (palette_index == 2) {
+        palette[0b00] = SDL_MapRGB(pixel_format, 0xE0, 0xF8, 0xD0);
+        palette[0b01] = SDL_MapRGB(pixel_format, 0x88, 0xC0, 0x70);
+        palette[0b10] = SDL_MapRGB(pixel_format, 0x34, 0x68, 0x56);
+        palette[0b11] = SDL_MapRGB(pixel_format, 0x08, 0x18, 0x20);
+    }
+    // Original values
+    else {
         palette[0b00] = SDL_MapRGB(pixel_format, 110, 125,  70);
         palette[0b01] = SDL_MapRGB(pixel_format,  80, 105,  75);
         palette[0b10] = SDL_MapRGB(pixel_format,  60,  90,  85);

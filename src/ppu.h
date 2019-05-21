@@ -115,8 +115,8 @@ private:
 
     Uint32 color_ldc_disabled;
     Uint32 palette[PALETTE_SIZE];
-    Uint32 bg_palette[PALETTE_SIZE];
-    Uint32 sprite_palette[SPRITE_PALETTE_COUNT][PALETTE_SIZE];
+    uint8_t bg_palette[PALETTE_SIZE];
+    uint8_t sprite_palette[SPRITE_PALETTE_COUNT][PALETTE_SIZE];
 
     Uint32 last_refresh;
 
