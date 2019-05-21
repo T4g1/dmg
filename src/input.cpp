@@ -88,8 +88,8 @@ void Input::handle(SDL_Event *event)
         case SDLK_DOWN:     should_interrupt(code); down_pressed = true;    break;
         case SDLK_a:        should_interrupt(code); a_pressed = true;       break;
         case SDLK_b:        should_interrupt(code); b_pressed = true;       break;
-        case SDLK_KP_SPACE: should_interrupt(code); start_pressed = true;   break;
-        case SDLK_KP_ENTER: should_interrupt(code); select_pressed = true;  break;
+        case SDLK_SPACE:    should_interrupt(code); start_pressed = true;   break;
+        case SDLK_RETURN:   should_interrupt(code); select_pressed = true;  break;
         }
         break;
 
@@ -102,8 +102,8 @@ void Input::handle(SDL_Event *event)
         case SDLK_DOWN:     down_pressed = false;   break;
         case SDLK_a:        a_pressed = false;      break;
         case SDLK_b:        b_pressed = false;      break;
-        case SDLK_KP_SPACE: start_pressed = false;  break;
-        case SDLK_KP_ENTER: select_pressed = false; break;
+        case SDLK_SPACE:    start_pressed = false;  break;
+        case SDLK_RETURN:   select_pressed = false; break;
         }
         break;
     }
@@ -147,8 +147,8 @@ void Input::should_interrupt(size_t key)
     if (get_selected(joypad, SELECT_BUTTON_KEY_MASKS)) {
         if (key == SDLK_a ||
             key == SDLK_b ||
-            key == SDLK_KP_SPACE ||
-            key == SDLK_KP_ENTER ) {
+            key == SDLK_SPACE ||
+            key == SDLK_RETURN ) {
             interrupt_request = true;
         }
     }
