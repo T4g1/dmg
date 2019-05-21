@@ -54,8 +54,12 @@ bool MBC1::load(size_t mb_index, const uint8_t *rom)
 
 bool MBC1::set(uint16_t /*address*/, uint8_t value)
 {
-    // We add 1 because to select memory bank 1, we write 0
-    value = (value + 1) % MBC_COUNT;
+    // Selecting memory bank 0 gives bank 1
+    // Selecting memory bank above MBC_COUNT wraps
+    value = value % MBC_COUNT;
+    if (value == 0) {
+        value = 1;
+    }
 
     debug("Set MBC to 0x%02X\n", value);
     selected_mbc = value;
