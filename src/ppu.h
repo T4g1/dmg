@@ -61,6 +61,7 @@ public:
     PPU();
 
     bool init();
+    void reset();
     void step();
     void draw();
     void quit();

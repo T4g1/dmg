@@ -291,9 +291,6 @@ bool CPU::init()
         return false;
     }
 
-    PC = 0;
-    clock = 0;
-
     reset();
 
     return true;
@@ -302,6 +299,7 @@ bool CPU::init()
 void CPU::reset()
 {
     PC = 0;
+    clock = 0;
 
     reg[A] = 0x01;
     reg[F] = 0xB0;
@@ -833,10 +831,10 @@ void CPU::halt(uint8_t /*opcode*/)
         // Halt bug
         if (IF_val & IE_val) {
             halt_bug = true;
+            halt_aborted = true;
+        } else {
+            halted = true;
         }
-
-        // Abort HALT
-        halt_aborted = true;
     }
 
     PC += 1;
@@ -1419,6 +1417,12 @@ bool CPU::handle_interrupts()
             halt_bug = false;   // Assume interrupts cancel halt bug
 
             _call(0x0040 + (i * 0x0008));
+
+            // Takes 20 clock to service an interrupts (+4 in halt mode)
+            clock += 20;
+            if (halted) {
+                clock += 4;
+            }
 
             return true;
         }

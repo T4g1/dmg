@@ -39,6 +39,7 @@ public:
     int run();
     void process();
     void handle_events();
+    void reset();
 
     void no_boot();
     void set_palette(char palette_index);

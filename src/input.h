@@ -45,6 +45,7 @@ public:
     Input();
 
     bool init();
+    void reset();
     void update();
     void handle(SDL_Event *event);
 

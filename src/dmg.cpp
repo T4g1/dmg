@@ -150,6 +150,16 @@ void DMG::handle_events()
 }
 
 
+void DMG::reset()
+{
+    mmu->reset();
+    cpu->reset();
+    ppu->reset();
+    timer->reset();
+    input->reset();
+}
+
+
 /**
  * @brief      Cleanup
  */

@@ -18,6 +18,14 @@ bool Input::init()
         return false;
     }
 
+    reset();
+
+    return true;
+}
+
+
+void Input::reset()
+{
     a_pressed = false;
     b_pressed = false;
     start_pressed = false;
@@ -27,8 +35,6 @@ bool Input::init()
     down_pressed = false;
     right_pressed = false;
     left_pressed = false;
-
-    return true;
 }
 
 

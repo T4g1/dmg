@@ -45,6 +45,10 @@ bool MMU::init(const char *path_bios, Cartridge *cartridge)
 
 void MMU::reset()
 {
+    booted = false;
+
+    set(0x0100, 0x00);     // Reset MBC
+
     set(0xFF05, 0x00);     //<! TIMA
     set(0xFF06, 0x00);     //<! TMA
     set(0xFF07, 0x00);     //<! TAC

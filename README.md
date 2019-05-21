@@ -28,7 +28,7 @@ Test with `./test`
 |# |name               |state             |
 |- |-                  |-                 |
 |01|special            |:heavy_check_mark:|
-|02|interrupts         |:x:               |
+|02|interrupts         |:heavy_check_mark:|
 |03|op sp,hl           |:heavy_check_mark:|
 |04|op r,imm           |:heavy_check_mark:|
 |05|op rp              |:heavy_check_mark:|

@@ -33,6 +33,7 @@ public:
     Timer();
 
     bool init();
+    void reset();
     void step();
 
     void set_DIV(uint8_t value);

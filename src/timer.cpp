@@ -18,6 +18,14 @@ bool Timer::init()
         return false;
     }
 
+    reset();
+
+    return true;
+}
+
+
+void Timer::reset()
+{
     clock = 0;
 
     enabled = false;
@@ -25,8 +33,6 @@ bool Timer::init()
 
     last_increment = 0;
     last_div_increment = 0;
-
-    return true;
 }
 
 

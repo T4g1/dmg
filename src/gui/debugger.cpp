@@ -114,10 +114,6 @@ bool Debugger::update()
 {
     dmg->set_speed(execution_speed);
 
-    if (cpu->PC == 0xC36F) {
-        suspend_dmg = true;
-    }
-
     return suspend_dmg && !step_dmg;
 }
 
@@ -263,7 +259,21 @@ void Debugger::display_execution()
     if (ImGui::Begin(title)) {
         ImGui::BeginChild("execution");
 
-        ImGui::Columns(3, "code", false);
+        ImGui::Columns(1, "control1", false);
+
+        if (ImGui::Button("Reset")) {
+            dmg->reset();
+
+            step_dmg = false;
+        }
+
+        ImGui::Text("Suspended:");
+        ImGui::SameLine();
+        ColorBoolean(suspend_dmg);
+
+        ImGui::DragInt("Speed", &execution_speed, 0.25f, 1, 5000, "%d");
+
+        ImGui::Columns(3, "control2", false);
 
         if (ImGui::Button("Suspend execution")) {
             suspend_dmg = true;
@@ -281,16 +291,6 @@ void Debugger::display_execution()
             suspend_dmg = true;
             step_dmg = true;
         }
-
-        ImGui::NextColumn();
-
-        ImGui::Text("Suspended:");
-        ImGui::NextColumn();
-        ColorBoolean(suspend_dmg);
-        ImGui::NextColumn();
-
-        ImGui::DragInt("Speed", &execution_speed, 0.25f, 1, 5000, "%d");
-        ImGui::NextColumn();
 
         ImGui::Columns(1, "code", false);
 

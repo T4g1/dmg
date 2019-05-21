@@ -42,6 +42,16 @@ bool PPU::init()
 
     pixel_format = sdl_screen->format;
 
+    reset();
+
+    set_palette(0);
+
+    return true;
+}
+
+
+void PPU::reset()
+{
     lcd_enabled = false;
     window_enabled = false;
     sprites_enabled = false;
@@ -50,10 +60,6 @@ bool PPU::init()
     clock = 0;
 
     last_refresh = 0;
-
-    set_palette(0);
-
-    return true;
 }
 
 
