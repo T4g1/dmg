@@ -192,7 +192,7 @@ bool PPU::draw_line()
             if (sprites_enabled) {
                 for (auto const& sprite : displayable_sprites) {
                     if (sprite.x == x) {
-                        fetch_sprite(sprite, ly);
+                        //fetch_sprite(sprite, ly);
                     }
                 }
             }
@@ -348,7 +348,11 @@ void PPU::fetch_at(
     uint16_t map_address = base_map_address + (tile_y * MAP_WIDTH) + tile_x;
 
     // Tile index in the tileset
-    uint8_t tile_id  = mmu->ram[map_address];
+    uint8_t tile_id = mmu->ram[map_address];
+    if (base_tileset_address == TILE_ADDRESS_2) {
+        // When tileset base address is $8800: tile ID are signed and 0 is $9000
+        tile_id = mmu->get_signed(map_address) + 128;
+    }
 
     // Address of the tile in the tileset
     uint16_t tile_address = base_tileset_address + (tile_id * TILE_SIZE);
