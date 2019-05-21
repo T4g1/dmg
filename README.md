@@ -45,14 +45,14 @@ Test with `./test`
 * [-] Implement interupts
     * [x] V-Blank
     * [ ] LCD Stat
-    * [ ] Timer
+    * [x] Timer
     * [ ] Serial
     * [x] Joypad
 * [x] Implement MMU
 * [-] Implement PPU
     * [x] Draw background
     * [x] Draw window
-    * [ ] Draw sprites
+    * [x] Draw sprites
 * [x] Implement inputs
 * [ ] Sound!
 
@@ -60,3 +60,4 @@ Test with `./test`
 
 ![Debugger](img/debugger.png)
 ![Debugger](img/tetris.png)
+![Debugger](img/super_mario.png)
