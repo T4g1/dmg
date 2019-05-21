@@ -5,19 +5,12 @@
 
 #include "mmu.h"
 
-#define JOYPAD_MASK         0x3F
-#define SELECT_BUTTON       5
-#define SELECT_DIRECTION    4
+#define SELECT_BUTTON_KEY_MASKS       0b00100000
+#define SELECT_DIRECTION_KEY_MASKS    0b00010000
 #define KEY_DOWN_START      3
 #define KEY_UP_SELECT       2
 #define KEY_LEFT_B          1
 #define KEY_RIGHT_A         0
-
-#define PRESSED(code, variable) \
-    variable = true; dirty = true; interrupt_request = true; last_key = code;
-
-#define RELEASED(code, variable) \
-    variable = false; dirty = true; last_key = code;
 
 
 /**

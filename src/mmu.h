@@ -59,6 +59,7 @@ enum address_type {
 
 class PPU;
 class Timer;
+class Input;
 
 
 /**
@@ -69,6 +70,7 @@ class MMU {
     Cartridge *cart;
     PPU *ppu;
     Timer *timer;
+    Input *input;
 
     address_type get_address_identity(uint16_t address);
 
@@ -101,6 +103,7 @@ public:
 
     void set_ppu(PPU *ppu);
     void set_timer(Timer *timer);
+    void set_input(Input *input);
 };
 
 #endif /* MMU_H */

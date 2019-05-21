@@ -357,6 +357,7 @@ bool CPU::step()
             ei_delay -= 1;
         } else {
             IME = true;
+            ei_requested = false;
         }
     }
 

@@ -194,6 +194,12 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
         timer->set_TIMA(value);
     }
 
+    // Joypad
+    else if (address == JOYPAD) {
+        // Last two bytes always 1
+        ram[address] |= 0b11000000;
+    }
+
     // Interrupts
     else if (address == IF_ADDRESS) {
         // IF cannot triggers if IE corresponding bit is not set
@@ -371,4 +377,10 @@ void MMU::set_ppu(PPU *ppu)
 void MMU::set_timer(Timer *timer)
 {
     this->timer = timer;
+}
+
+
+void MMU::set_input(Input *input)
+{
+    this->input = input;
 }

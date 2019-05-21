@@ -43,29 +43,19 @@ void Input::reset()
  */
 void Input::update()
 {
-    if (!dirty) {
-        return;
-    }
-
     uint8_t joypad = mmu->get(JOYPAD);
 
-    if (last_key == SDLK_LEFT ||
-        last_key == SDLK_RIGHT ||
-        last_key == SDLK_UP ||
-        last_key == SDLK_DOWN) {
-        set_bit(joypad, SELECT_BUTTON, 1);
-        set_bit(joypad, SELECT_DIRECTION, 0);               // 0 = selected
-        set_bit(joypad, KEY_DOWN_START, !down_pressed);     // 0 = pressed
-        set_bit(joypad, KEY_UP_SELECT, !up_pressed);
-        set_bit(joypad, KEY_LEFT_B, !left_pressed);
-        set_bit(joypad, KEY_RIGHT_A, !right_pressed);
-    } else {
-        set_bit(joypad, SELECT_BUTTON, 0);                  // 0 = selected
-        set_bit(joypad, SELECT_DIRECTION, 1);
-        set_bit(joypad, KEY_DOWN_START, !start_pressed);    // 0 = pressed
-        set_bit(joypad, KEY_UP_SELECT, !select_pressed);
-        set_bit(joypad, KEY_LEFT_B, !b_pressed);
-        set_bit(joypad, KEY_RIGHT_A, !a_pressed);
+    if (joypad & SELECT_DIRECTION_KEY_MASKS) {
+        joypad = set_bit(joypad, KEY_DOWN_START, !down_pressed);     // 0 = pressed
+        joypad = set_bit(joypad, KEY_UP_SELECT, !up_pressed);
+        joypad = set_bit(joypad, KEY_LEFT_B, !left_pressed);
+        joypad = set_bit(joypad, KEY_RIGHT_A, !right_pressed);
+    }
+    if (joypad & SELECT_BUTTON_KEY_MASKS) {
+        joypad = set_bit(joypad, KEY_DOWN_START, !start_pressed);    // 0 = pressed
+        joypad = set_bit(joypad, KEY_UP_SELECT, !select_pressed);
+        joypad = set_bit(joypad, KEY_LEFT_B, !b_pressed);
+        joypad = set_bit(joypad, KEY_RIGHT_A, !a_pressed);
     }
 
     mmu->set(JOYPAD, joypad);
@@ -73,6 +63,8 @@ void Input::update()
     // Set joypad interrupt
     if (interrupt_request) {
         mmu->set(IF_ADDRESS, mmu->get(IF_ADDRESS) | INT_JOYPAD_MASK);
+
+        interrupt_request = false;
     }
 }
 
@@ -85,28 +77,28 @@ void Input::handle(SDL_Event *event)
     case SDL_KEYDOWN:
         code = event->key.keysym.sym;
         switch(code){
-        case SDLK_LEFT:     PRESSED(code, left_pressed);    break;
-        case SDLK_RIGHT:    PRESSED(code, right_pressed);   break;
-        case SDLK_UP:       PRESSED(code, up_pressed);      break;
-        case SDLK_DOWN:     PRESSED(code, down_pressed);    break;
-        case SDLK_a:        PRESSED(code, a_pressed);       break;
-        case SDLK_b:        PRESSED(code, b_pressed);       break;
-        case SDLK_KP_SPACE: PRESSED(code, start_pressed);   break;
-        case SDLK_KP_ENTER: PRESSED(code, select_pressed);  break;
+        case SDLK_LEFT:     interrupt_request = true; left_pressed = true;    break;
+        case SDLK_RIGHT:    interrupt_request = true; right_pressed = true;   break;
+        case SDLK_UP:       interrupt_request = true; up_pressed = true;      break;
+        case SDLK_DOWN:     interrupt_request = true; down_pressed = true;    break;
+        case SDLK_a:        interrupt_request = true; a_pressed = true;       break;
+        case SDLK_b:        interrupt_request = true; b_pressed = true;       break;
+        case SDLK_KP_SPACE: interrupt_request = true; start_pressed = true;   break;
+        case SDLK_KP_ENTER: interrupt_request = true; select_pressed = true;  break;
         }
         break;
 
     case SDL_KEYUP:
         code = event->key.keysym.sym;
         switch(event->key.keysym.sym){
-        case SDLK_LEFT:     RELEASED(code, left_pressed);    break;
-        case SDLK_RIGHT:    RELEASED(code, right_pressed);   break;
-        case SDLK_UP:       RELEASED(code, up_pressed);      break;
-        case SDLK_DOWN:     RELEASED(code, down_pressed);    break;
-        case SDLK_a:        RELEASED(code, a_pressed);       break;
-        case SDLK_b:        RELEASED(code, b_pressed);       break;
-        case SDLK_KP_SPACE: RELEASED(code, start_pressed);   break;
-        case SDLK_KP_ENTER: RELEASED(code, select_pressed);  break;
+        case SDLK_LEFT:     left_pressed = false;   break;
+        case SDLK_RIGHT:    right_pressed = false;  break;
+        case SDLK_UP:       up_pressed = false;     break;
+        case SDLK_DOWN:     down_pressed = false;   break;
+        case SDLK_a:        a_pressed = false;      break;
+        case SDLK_b:        b_pressed = false;      break;
+        case SDLK_KP_SPACE: start_pressed = false;  break;
+        case SDLK_KP_ENTER: select_pressed = false; break;
         }
         break;
     }
