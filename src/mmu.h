@@ -42,6 +42,8 @@
 #define MAP_ADDRESS_1       0x9800
 #define MAP_ADDRESS_2       0x9C00
 
+#define SPRITE_TILE_ADDRESS TILE_ADDRESS_1
+
 
 // Registers addresses
 #define LCDC                0xFF40      // LCD Control register

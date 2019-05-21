@@ -11,6 +11,9 @@
 #define SCREEN_WIDTH            LINE_X_COUNT
 #define SCREEN_HEIGHT           LINE_Y_COUNT
 
+#define OAM_ENTRY_SIZE          4       // Size in byte of an OAM entry
+#define OAM_COUNT               40      // How many sprites in OAM max?
+#define MAX_SPRITE_DISPLAYED    10      // Do not display more than X sprites on the same line
 
 #define BIT_LCD_ENABLED                     7
 #define BIT_WINDOW_MAP_SELECT               6
@@ -53,6 +56,15 @@ enum pixel_type {
     SPRITE,
 };
 
+
+struct Sprite {
+    uint8_t x;
+    uint8_t y;
+    uint8_t tile;
+    uint8_t attrs;
+};
+
+
 /**
  * @brief      Pixel Processing Unit
  */
@@ -94,7 +106,7 @@ private:
     bool sprites_enabled;
     bool background_enabled;
 
-    //size_t sprite_height;
+    size_t sprite_height;
 
     uint16_t bg_window_tile_data_address;
     uint16_t bg_map_address;
@@ -108,6 +120,7 @@ private:
     void fetch(size_t x, size_t ly, pixel_type type);
     void fetch_bg(size_t x, size_t ly);
     void fetch_window(size_t x, size_t ly);
+    void fetch_sprite(const Sprite &sprite, size_t ly);
     void fetch_at(
         uint16_t map_address, uint16_t tileset_address,
         size_t viewport_x, size_t viewport_y);

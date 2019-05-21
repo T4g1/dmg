@@ -182,7 +182,7 @@ bool MMU::set(uint16_t address, uint8_t value)
     }
 
     // Write to ROM are passed to cartridge
-    else if (identity == ROM1) {
+    else if (identity == ROM0 || identity == ROM1) {
         cart->set(address, value);
         update_ram();
     }
