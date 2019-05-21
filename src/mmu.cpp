@@ -187,10 +187,8 @@ bool MMU::set(uint16_t address, uint8_t value)
         update_ram();
     }
 
-    // Writting to CRASH causes errors
+    // Writting to CRASH is ignored on DMG
     else if (identity == CRASH) {
-        // TODO: Crash?
-        error("Trying to write to CRASH memory\n");
         return false;
     }
 

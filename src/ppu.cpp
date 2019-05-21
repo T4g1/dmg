@@ -143,10 +143,10 @@ bool PPU::draw_line()
             uint16_t oam_address = OAM_START + (oam_id * OAM_ENTRY_SIZE);
 
             Sprite sprite;
-            sprite.y = mmu->ram[oam_address];
+            sprite.y = mmu->ram[oam_address] - SPRITE_Y_OFFSET;
 
             if (sprite.y + TILE_WIDTH > ly && ly >= sprite.y) {
-                sprite.x = mmu->ram[oam_address + 1];
+                sprite.x = mmu->ram[oam_address + 1] - SPRITE_X_OFFSET;
                 sprite.tile = mmu->ram[oam_address + 2];
                 sprite.attrs = mmu->ram[oam_address + 3];
 
@@ -313,6 +313,7 @@ void PPU::fetch_sprite(const Sprite &sprite, size_t ly)
     size_t viewport_y = ly - sprite.y;
 
     // Address of the tile in the tileset
+// TODO: Handle SPRITE_HEIGHT (ignore last bit)
     uint16_t tile_address = SPRITE_TILE_ADDRESS + (sprite.tile * TILE_SIZE);
 
     // Data for the current line of the tile being drawn
@@ -329,7 +330,7 @@ void PPU::fetch_sprite(const Sprite &sprite, size_t ly)
         size_t bit1 = get_bit(data1, 7 - i);
         size_t bit2 = get_bit(data2, 7 - i);
 
-        pixel_fifo[i] = (bit1 << 1) + bit2;
+        pixel_fifo[(pf_index + i) % FIFO_SIZE] = (bit1 << 1) + bit2;
     }
 }
 

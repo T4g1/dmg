@@ -29,6 +29,9 @@
 #define V_BLANK_PERIOD      10
 #define MAX_LY              LINE_Y_COUNT + V_BLANK_PERIOD
 
+#define SPRITE_X_OFFSET     8       // Sprite is hidden until X >= 8
+#define SPRITE_Y_OFFSET     16      // Sprite is hidden until Y >= 16
+
 // Clock timing
 #define CLOCK_OAM_SEARCH        20
 #define CLOCK_PIXEL_TRANSFER    43
@@ -40,7 +43,6 @@
 
 #define PIXEL_SIZE              2      // Size of a pixel data in bit
 
-// TODO: SPRITE_HEIGHT should be handled by the BIT_SPRITE_SIZE in LCDC
 #define TILE_HEIGHT             8
 #define TILE_WIDTH              8
 #define TILE_LINE_SIZE          2       // Size of a line of a tile in bytes
