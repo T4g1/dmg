@@ -59,3 +59,4 @@ Test with `./test`
 # Screenshots
 
 ![Debugger](img/debugger.png)
+![Debugger](img/tetris.png)
