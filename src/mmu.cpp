@@ -221,6 +221,12 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
     else if (address == BGP) {
         ppu->set_bgp(value);
     }
+    else if (address == OBP0) {
+        ppu->set_obp(0, value);
+    }
+    else if (address == OBP1) {
+        ppu->set_obp(1, value);
+    }
 
     // Timer
     else if (address == DIV) {

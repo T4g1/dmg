@@ -15,6 +15,7 @@
 #define OAM_COUNT               40      // How many sprites in OAM max?
 #define MAX_SPRITE_DISPLAYED    10      // Do not display more than X sprites on the same line
 
+// LCD Controller
 #define BIT_LCD_ENABLED                     7
 #define BIT_WINDOW_MAP_SELECT               6
 #define BIT_WINDOW_ENABLED                  5
@@ -24,7 +25,14 @@
 #define BIT_SPRITES_ENABLED                 1
 #define BIT_BACKGROUND_ENABLED              0
 
+// OAM Attribute
+#define BIT_SPRITE_PRIORITY                 7
+#define BIT_SPRITE_Y_FLIP                   6
+#define BIT_SPRITE_X_FLIP                   5
+#define BIT_SPRITE_PALETTE_NUMBER           4
+
 #define PALETTE_SIZE            4       // How many colors available
+#define SPRITE_PALETTE_COUNT    2       // OBP0 and OBP1
 
 #define V_BLANK_PERIOD      10
 #define MAX_LY              LINE_Y_COUNT + V_BLANK_PERIOD
@@ -55,7 +63,14 @@
 enum pixel_type {
     BG,
     WINDOW,
-    SPRITE,
+    SPRITE_OBP0,
+    SPRITE_OBP1
+};
+
+
+struct Pixel {
+    uint8_t value;
+    pixel_type type;
 };
 
 
@@ -83,7 +98,8 @@ public:
     size_t clock;
 
     void set_lcdc(uint8_t lcdc);
-    void set_bgp(uint8_t bgp);
+    void set_bgp(uint8_t value);
+    void set_obp(size_t obp_id, uint8_t value);
 
     Uint32 get_window_id();
 
@@ -100,6 +116,7 @@ private:
     Uint32 color_ldc_disabled;
     Uint32 palette[PALETTE_SIZE];
     Uint32 bg_palette[PALETTE_SIZE];
+    Uint32 sprite_palette[SPRITE_PALETTE_COUNT][PALETTE_SIZE];
 
     Uint32 last_refresh;
 
@@ -114,7 +131,7 @@ private:
     uint16_t bg_map_address;
     uint16_t window_map_address;
 
-    uint8_t pixel_fifo[FIFO_SIZE];
+    Pixel pixel_fifo[FIFO_SIZE];
     size_t pf_size;             // How many pixels in the FIFO
     size_t pf_index;            // Position in the FIFO
 
@@ -128,7 +145,7 @@ private:
         size_t viewport_x, size_t viewport_y);
 
     void clear_fifo();
-    size_t pop_pixel();
+    Pixel pop_pixel();
 
     friend class Debugger;
 };

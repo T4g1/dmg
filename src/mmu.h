@@ -55,6 +55,8 @@
 #define LYC                 0xFF45      // Value to be compared with LY (interrupts)
 #define OAM_TRANSFER        0xFF46      // Writting here starts an OAM transfers
 #define BGP                 0xFF47      // BG Palette data
+#define OBP0                0xFF48      // Sprite palette 0
+#define OBP1                0xFF49      // Sprite palette 1
 #define WY                  0xFF4A      // Window Y position
 #define WX                  0xFF4B      // Window X position
 #define BOOT_ROM_ENABLE     0xFF50      // Booted status

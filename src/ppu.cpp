@@ -111,9 +111,9 @@ void PPU::clear_fifo()
  * @brief      Consume a pixel in the fifo
  * @return     Pixel poped
  */
-size_t PPU::pop_pixel()
+Pixel PPU::pop_pixel()
 {
-    size_t pixel = pixel_fifo[pf_index];
+    Pixel pixel = pixel_fifo[pf_index];
     pf_index = (pf_index + 1) % FIFO_SIZE;
     pf_size -= 1;
 
@@ -197,10 +197,17 @@ bool PPU::draw_line()
                 }
             }
 
-            size_t pixel = pop_pixel();
+            Pixel pixel = pop_pixel();
 
-            // TODO: Check if pixel is BG, Window or Sprite
-            set_pixel(sdl_screen, x, ly, bg_palette[pixel]);
+            Uint32 *used_palette = bg_palette;
+            if (pixel.type == SPRITE_OBP0) {
+                used_palette = sprite_palette[0];
+            }
+            else if (pixel.type == SPRITE_OBP1) {
+                used_palette = sprite_palette[1];
+            }
+
+            set_pixel(sdl_screen, x, ly, used_palette[pixel.value]);
         }
 
         clock += CLOCK_PIXEL_TRANSFER;
@@ -330,7 +337,20 @@ void PPU::fetch_sprite(const Sprite &sprite, size_t ly)
         size_t bit1 = get_bit(data1, 7 - i);
         size_t bit2 = get_bit(data2, 7 - i);
 
-        pixel_fifo[(pf_index + i) % FIFO_SIZE] = (bit1 << 1) + bit2;
+        Pixel pixel;
+        pixel.value = (bit1 << 1) + bit2;
+
+        // 00 is transparent for sprite
+        if (pixel.value == 0) {
+            continue;
+        }
+
+        pixel.type = SPRITE_OBP0;
+        if (get_bit(sprite.attrs, BIT_SPRITE_PALETTE_NUMBER)) {
+            pixel.type = SPRITE_OBP1;
+        }
+
+        pixel_fifo[(pf_index + i) % FIFO_SIZE] = pixel;
     }
 }
 
@@ -372,7 +392,11 @@ void PPU::fetch_at(
         size_t bit1 = get_bit(data1, 7 - i);
         size_t bit2 = get_bit(data2, 7 - i);
 
-        pixel_fifo[(pf_index + pf_size++) % FIFO_SIZE] = (bit1 << 1) + bit2;
+        Pixel pixel;
+        pixel.value = (bit1 << 1) + bit2;
+        pixel.type = BG;    // Only used for palette so same as WINDOW here
+
+        pixel_fifo[(pf_index + pf_size++) % FIFO_SIZE] = pixel;
     }
 }
 
@@ -429,12 +453,25 @@ void PPU::set_lcdc(uint8_t lcdc)
  * @brief      Set the palette used for background tiles
  * @param[in]  bgp  BGP value
  */
-void PPU::set_bgp(uint8_t bgp)
+void PPU::set_bgp(uint8_t value)
 {
-    bg_palette[0b00] = palette[(bgp & 0b00000011)     ];
-    bg_palette[0b01] = palette[(bgp & 0b00001100) >> 2];
-    bg_palette[0b10] = palette[(bgp & 0b00110000) >> 4];
-    bg_palette[0b11] = palette[(bgp & 0b11000000) >> 6];
+    bg_palette[0b00] = palette[(value & 0b00000011)     ];
+    bg_palette[0b01] = palette[(value & 0b00001100) >> 2];
+    bg_palette[0b10] = palette[(value & 0b00110000) >> 4];
+    bg_palette[0b11] = palette[(value & 0b11000000) >> 6];
+}
+
+
+/**
+ * @brief      Set the palette used for sprites
+ * @param[in]  value  Palette value
+ */
+void PPU::set_obp(size_t obp_id, uint8_t value)
+{
+    sprite_palette[obp_id][0b00] = palette[(value & 0b00000011)     ];
+    sprite_palette[obp_id][0b01] = palette[(value & 0b00001100) >> 2];
+    sprite_palette[obp_id][0b10] = palette[(value & 0b00110000) >> 4];
+    sprite_palette[obp_id][0b11] = palette[(value & 0b11000000) >> 6];
 }
 
 
