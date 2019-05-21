@@ -25,7 +25,7 @@ void MBC1::init()
  */
 const void *MBC1::at(uint16_t address)
 {
-    if (address <= MBC0_END) {
+    if (address <= ROM0_END) {
         return &memory[address % MBC_SIZE];
     }
 

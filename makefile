@@ -18,7 +18,7 @@ SOURCES  := $(filter-out $(SRCDIR)/main.cpp, $(SOURCES))
 SOURCES  := $(filter-out $(SRCDIR)/test.cpp, $(SOURCES))
 
 INCLUDES := -Ilib/imgui \
-            -Ilib/imgui_club/imgui_memory_editor \
+            -Ilib/imgui_club/ \
             -Ilib/imgui/examples \
             -Ilib/imgui/examples/libs/gl3w \
             -I/usr/include/SDL2

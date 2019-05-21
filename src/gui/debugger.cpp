@@ -195,7 +195,7 @@ void Debugger::display_memory()
 
     ImGui::Begin(title);
 
-    memoryViewer.DrawContents(mmu->ram, 0x10000, 0x0000);
+    memoryViewer.DrawContents(mmu, mmu->ram, 0x10000);
 
     ImGui::End();
 }

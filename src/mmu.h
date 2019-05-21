@@ -6,27 +6,42 @@
 
 #include "cartridge.h"
 
-// Memory locations addresses
 #define RAM_SIZE            0x10000
-#define ROM_START           0x0000
-#define ROM_END             0x7FFF
-#define MBC0_END            0x3FFF
-#define ROM_SWITCH_START    0x4000
+#define BOOT_SIZE           0x0100
+
+// Memory locations addresses
 #define BOOT_START          0x0000
 #define BOOT_END            0x00FF
-#define BOOT_SIZE           0x0100
-#define BOOT_ROM_ENABLE     0xFF50
+#define ROM_START           0x0000
+#define ROM_END             0x7FFF
+#define ROM0_START          0x0000
+#define ROM0_END            0x3FFF
+#define ROM1_START          0x4000
+#define ROM1_END            0x7FFF
+#define VRAM_START          0x8000
+#define VRAM_END            0x9FFF
+#define SRAM_START          0xA000
+#define SRAM_END            0xBFFF
+#define WRAM0_START         0xC000
+#define WRAM0_END           0xCFFF
+#define WRAM1_START         0xD000
+#define WRAM1_END           0xDFFF
 #define ECHO_START          0xE000
 #define ECHO_END            0xFDFF
 #define OAM_START           0xFE00
 #define OAM_END             0xFE9F
 #define CRASH_START         0xFEA0
 #define CRASH_END           0xFEFF
+#define IO_START            0xFF00
+#define IO_END              0xFF7F
+#define HRAM_START          0xFF80
+#define HRAM_END            0xFFFF
 
 #define TILE_ADDRESS_1      0x8000
 #define TILE_ADDRESS_2      0x8800
 #define MAP_ADDRESS_1       0x9800
 #define MAP_ADDRESS_2       0x9C00
+
 
 // Registers addresses
 #define LCDC                0xFF40      // LCD Control register
@@ -38,6 +53,7 @@
 #define BGP                 0xFF47      // BG Palette data
 #define WY                  0xFF4A      // Window Y position
 #define WX                  0xFF4B      // Window X position
+#define BOOT_ROM_ENABLE     0xFF50      // Booted status
 #define JOYPAD              0xFF00      // Joypad
 #define DIV                 0xFF04      // Divider (timer)
 #define TIMA                0xFF05      // Timer counter
@@ -48,12 +64,17 @@
 
 enum address_type {
     BOOT,
-    ROM,
-    RAM,
+    ROM0,
+    ROM1,
     VRAM,
-    OAM,
+    SRAM,
+    WRAM0,
+    WRAM1,
     ECHO,
+    OAM,
     CRASH,
+    IO_RAM,
+    HRAM
 };
 
 
@@ -100,6 +121,8 @@ public:
     bool is_booted();
 
     void update_ram();
+
+    const char *display_address_identity(uint16_t address);
 
     void set_ppu(PPU *ppu);
     void set_timer(Timer *timer);

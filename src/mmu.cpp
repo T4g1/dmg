@@ -101,21 +101,62 @@ address_type MMU::get_address_identity(uint16_t address)
     }
 
     // Cartridge ROM
-    if (/*address >= ROM_START &&*/ address <= ROM_END) {
-        return ROM;
+    if (address <= ROM0_END) {
+        return ROM0;
     }
-
-    // ECHO
-    if (address >= ECHO_START && address <= ECHO_END) {
+    else if (address <= ROM1_END) {
+        return ROM1;
+    }
+    else if (address <= VRAM_END) {
+        return VRAM;
+    }
+    else if (address <= SRAM_END) {
+        return SRAM;
+    }
+    else if (address <= WRAM0_END) {
+        return WRAM0;
+    }
+    else if (address <= WRAM1_END) {
+        return WRAM1;
+    }
+    else if (address <= ECHO_END) {
         return ECHO;
     }
-
-    // CRASH
-    if (address >= CRASH_START && address <= CRASH_END) {
+    else if (address <= OAM_END) {
+        return OAM;
+    }
+    else if (address <= CRASH_END) {
         return CRASH;
     }
+    else if (address <= IO_END) {
+        return IO_RAM;
+    }
+    //else if (address <= HRAM_END) {
+    return HRAM;
+    //}
+}
 
-    return RAM;
+
+const char *MMU::display_address_identity(uint16_t address)
+{
+    address_type type = get_address_identity(address);
+
+    switch(type) {
+    case BOOT:   return "BOOT";
+    case ROM0:   return "ROM0";
+    case ROM1:   return "ROM1";
+    case VRAM:   return "VRAM";
+    case SRAM:   return "SRAM";
+    case WRAM0:  return "WRA0";
+    case WRAM1:  return "WRA1";
+    case ECHO:   return "ECHO";
+    case OAM:    return "OAM";
+    case CRASH:  return "";
+    case IO_RAM: return "I/O";
+    case HRAM:   return "HRAM";
+    }
+
+    return "";
 }
 
 
@@ -141,7 +182,7 @@ bool MMU::set(uint16_t address, uint8_t value)
     }
 
     // Write to ROM are passed to cartridge
-    else if (identity == ROM) {
+    else if (identity == ROM1) {
         cart->set(address, value);
         update_ram();
     }
