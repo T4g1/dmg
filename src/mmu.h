@@ -8,6 +8,7 @@
 
 #define RAM_SIZE            0x10000
 #define BOOT_SIZE           0x0100
+#define OAM_SIZE            0xA0
 
 // Memory locations addresses
 #define BOOT_START          0x0000
@@ -52,6 +53,7 @@
 #define SCX                 0xFF43      // Viewport X position
 #define LY                  0xFF44      // Current line being drawn
 #define LYC                 0xFF45      // Value to be compared with LY (interrupts)
+#define OAM_TRANSFER        0xFF46      // Writting here starts an OAM transfers
 #define BGP                 0xFF47      // BG Palette data
 #define WY                  0xFF4A      // Window Y position
 #define WX                  0xFF4B      // Window X position

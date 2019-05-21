@@ -192,7 +192,7 @@ bool PPU::draw_line()
             if (sprites_enabled) {
                 for (auto const& sprite : displayable_sprites) {
                     if (sprite.x == x) {
-                        //fetch_sprite(sprite, ly);
+                        fetch_sprite(sprite, ly);
                     }
                 }
             }

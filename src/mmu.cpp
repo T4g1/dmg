@@ -235,6 +235,12 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
         timer->set_TIMA(value);
     }
 
+    // OAM transfer
+    else if (address == OAM_TRANSFER) {
+        // TODO: Takes more time?
+        memcpy(ram + OAM_START, ram + (value * 0x0100), OAM_SIZE);
+    }
+
     // Joypad
     else if (address == JOYPAD) {
         // Last two bytes always 1

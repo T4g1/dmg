@@ -11,7 +11,7 @@
 #define FPS                 30
 #define GLSL_VERSION        "#version 130"
 #define FRAME_CYCLES        70244       //<! Amount of CPU cycle between each frame
-#define DEFAULT_SPEED       10          // Speed of the emulator
+#define DEFAULT_SPEED       5           // Speed of the emulator
 
 
 void quit();
