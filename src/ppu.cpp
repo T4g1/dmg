@@ -333,14 +333,14 @@ void PPU::fetch_sprite(const Sprite &sprite, size_t ly)
 
     // Exctract the 8 pixels for the data
     for (size_t i=0; i<TILE_WIDTH; i++) {
-        // 8 first bit (data1) = first bit of data for the pixels
-        // 8 last bit (data2) = second bit of data for the pixels
+        // 8 first bit (data1) = low bit of data for the pixels
+        // 8 last bit (data2) = high bit of data for the pixels
         // b7 b6 b5 b4 b3 b2 b1 b0 so 7 - i to get correct bit
-        size_t bit1 = get_bit(data1, 7 - i);
-        size_t bit2 = get_bit(data2, 7 - i);
+        size_t low = get_bit(data1, 7 - i);
+        size_t high = get_bit(data2, 7 - i);
 
         Pixel pixel;
-        pixel.value = (bit1 << 1) + bit2;
+        pixel.value = (high << 1) + low;
 
         // 00 is transparent for sprite
         if (pixel.value == 0) {
@@ -388,14 +388,14 @@ void PPU::fetch_at(
 
     // Exctract the 8 pixels for the data
     for (size_t i=0; i<TILE_WIDTH; i++) {
-        // 8 first bit (data1) = first bit of data for the pixels
-        // 8 last bit (data2) = second bit of data for the pixels
+        // 8 first bit (data1) = low bit of data for the pixels
+        // 8 last bit (data2) = high bit of data for the pixels
         // b7 b6 b5 b4 b3 b2 b1 b0 so 7 - i to get correct bit
-        size_t bit1 = get_bit(data1, 7 - i);
-        size_t bit2 = get_bit(data2, 7 - i);
+        size_t low = get_bit(data1, 7 - i);
+        size_t high = get_bit(data2, 7 - i);
 
         Pixel pixel;
-        pixel.value = (bit1 << 1) + bit2;
+        pixel.value = (high << 1) + low;
         pixel.type = BG;    // Only used for palette so same as WINDOW here
 
         pixel_fifo[(pf_index + pf_size++) % FIFO_SIZE] = pixel;
@@ -457,10 +457,10 @@ void PPU::set_lcdc(uint8_t lcdc)
  */
 void PPU::set_bgp(uint8_t value)
 {
-    bg_palette[0b00] = (value & 0b00000011);
-    bg_palette[0b01] = (value & 0b00001100) >> 2;
-    bg_palette[0b10] = (value & 0b00110000) >> 4;
-    bg_palette[0b11] = (value & 0b11000000) >> 6;
+    bg_palette[0] = (value & 0b00000011);
+    bg_palette[1] = (value & 0b00001100) >> 2;
+    bg_palette[2] = (value & 0b00110000) >> 4;
+    bg_palette[3] = (value & 0b11000000) >> 6;
 }
 
 
@@ -470,10 +470,10 @@ void PPU::set_bgp(uint8_t value)
  */
 void PPU::set_obp(size_t obp_id, uint8_t value)
 {
-    sprite_palette[obp_id][0b00] = (value & 0b00000011);
-    sprite_palette[obp_id][0b01] = (value & 0b00001100) >> 2;
-    sprite_palette[obp_id][0b10] = (value & 0b00110000) >> 4;
-    sprite_palette[obp_id][0b11] = (value & 0b11000000) >> 6;
+    sprite_palette[obp_id][0] = (value & 0b00000011);
+    sprite_palette[obp_id][1] = (value & 0b00001100) >> 2;
+    sprite_palette[obp_id][2] = (value & 0b00110000) >> 4;
+    sprite_palette[obp_id][3] = (value & 0b11000000) >> 6;
 }
 
 
@@ -494,24 +494,24 @@ void PPU::set_palette(size_t palette_index)
 
     // Blac/White
     if (palette_index == 1) {
-        palette[0b00] = SDL_MapRGB(pixel_format, 255, 255, 255);
-        palette[0b01] = SDL_MapRGB(pixel_format, 211, 211, 211);
-        palette[0b10] = SDL_MapRGB(pixel_format, 120, 120, 120);
-        palette[0b11] = SDL_MapRGB(pixel_format,   0,   0,   0);
+        palette[0] = SDL_MapRGB(pixel_format, 255, 255, 255);
+        palette[1] = SDL_MapRGB(pixel_format, 211, 211, 211);
+        palette[2] = SDL_MapRGB(pixel_format, 120, 120, 120);
+        palette[3] = SDL_MapRGB(pixel_format,   0,   0,   0);
     }
     // Clean green scales
     else if (palette_index == 2) {
-        palette[0b00] = SDL_MapRGB(pixel_format, 0xE0, 0xF8, 0xD0);
-        palette[0b01] = SDL_MapRGB(pixel_format, 0x88, 0xC0, 0x70);
-        palette[0b10] = SDL_MapRGB(pixel_format, 0x34, 0x68, 0x56);
-        palette[0b11] = SDL_MapRGB(pixel_format, 0x08, 0x18, 0x20);
+        palette[0] = SDL_MapRGB(pixel_format, 0xE0, 0xF8, 0xD0);
+        palette[1] = SDL_MapRGB(pixel_format, 0x88, 0xC0, 0x70);
+        palette[2] = SDL_MapRGB(pixel_format, 0x34, 0x68, 0x56);
+        palette[3] = SDL_MapRGB(pixel_format, 0x08, 0x18, 0x20);
     }
     // Original values
     else {
-        palette[0b00] = SDL_MapRGB(pixel_format, 110, 125,  70);
-        palette[0b01] = SDL_MapRGB(pixel_format,  80, 105,  75);
-        palette[0b10] = SDL_MapRGB(pixel_format,  60,  90,  85);
-        palette[0b11] = SDL_MapRGB(pixel_format,  60,  80,  75);
+        palette[0] = SDL_MapRGB(pixel_format, 110, 125,  70);
+        palette[1] = SDL_MapRGB(pixel_format,  80, 105,  75);
+        palette[2] = SDL_MapRGB(pixel_format,  60,  90,  85);
+        palette[3] = SDL_MapRGB(pixel_format,  60,  80,  75);
     }
 }
 
