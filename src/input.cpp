@@ -51,11 +51,16 @@ void Input::update()
         set_key(&joypad, KEY_LEFT_B, b_pressed);
         set_key(&joypad, KEY_RIGHT_A, a_pressed);
     }
-    if (get_selected(joypad, SELECT_DIRECTION_KEY_MASKS)) {
+    else if (get_selected(joypad, SELECT_DIRECTION_KEY_MASKS)) {
         set_key(&joypad, KEY_DOWN_START, down_pressed);
         set_key(&joypad, KEY_UP_SELECT, up_pressed);
         set_key(&joypad, KEY_LEFT_B, left_pressed);
         set_key(&joypad, KEY_RIGHT_A, right_pressed);
+    } else {
+        set_key(&joypad, KEY_DOWN_START, false);
+        set_key(&joypad, KEY_UP_SELECT, false);
+        set_key(&joypad, KEY_LEFT_B, false);
+        set_key(&joypad, KEY_RIGHT_A, false);
     }
 
     mmu->set(JOYPAD, joypad);
@@ -77,14 +82,14 @@ void Input::handle(SDL_Event *event)
     case SDL_KEYDOWN:
         code = event->key.keysym.sym;
         switch(code){
-        case SDLK_LEFT:     interrupt_request = true; left_pressed = true;    break;
-        case SDLK_RIGHT:    interrupt_request = true; right_pressed = true;   break;
-        case SDLK_UP:       interrupt_request = true; up_pressed = true;      break;
-        case SDLK_DOWN:     interrupt_request = true; down_pressed = true;    break;
-        case SDLK_a:        interrupt_request = true; a_pressed = true;       break;
-        case SDLK_b:        interrupt_request = true; b_pressed = true;       break;
-        case SDLK_KP_SPACE: interrupt_request = true; start_pressed = true;   break;
-        case SDLK_KP_ENTER: interrupt_request = true; select_pressed = true;  break;
+        case SDLK_LEFT:     should_interrupt(code); left_pressed = true;    break;
+        case SDLK_RIGHT:    should_interrupt(code); right_pressed = true;   break;
+        case SDLK_UP:       should_interrupt(code); up_pressed = true;      break;
+        case SDLK_DOWN:     should_interrupt(code); down_pressed = true;    break;
+        case SDLK_a:        should_interrupt(code); a_pressed = true;       break;
+        case SDLK_b:        should_interrupt(code); b_pressed = true;       break;
+        case SDLK_KP_SPACE: should_interrupt(code); start_pressed = true;   break;
+        case SDLK_KP_ENTER: should_interrupt(code); select_pressed = true;  break;
         }
         break;
 
@@ -128,6 +133,34 @@ void Input::set_key(uint8_t *joypad, size_t key, bool pressed)
 {
     // Inverted logic for pressed/released (0 = pressed)
     *joypad = set_bit(*joypad, key, !pressed);
+}
+
+
+/**
+ * @brief      Determines if an interrupt can occur
+ * @param[in]  key   The key being pressed
+ */
+void Input::should_interrupt(size_t key)
+{
+    uint8_t joypad = mmu->get(JOYPAD);
+
+    if (get_selected(joypad, SELECT_BUTTON_KEY_MASKS)) {
+        if (key == SDLK_a ||
+            key == SDLK_b ||
+            key == SDLK_KP_SPACE ||
+            key == SDLK_KP_ENTER ) {
+            interrupt_request = true;
+        }
+    }
+
+    if (get_selected(joypad, SELECT_DIRECTION_KEY_MASKS)) {
+        if (key == SDLK_LEFT ||
+            key == SDLK_RIGHT ||
+            key == SDLK_UP ||
+            key == SDLK_DOWN ) {
+            interrupt_request = true;
+        }
+    }
 }
 
 

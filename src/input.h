@@ -42,6 +42,7 @@ public:
     void update();
     void handle(SDL_Event *event);
 
+    void should_interrupt(size_t key);
     bool get_selected(uint8_t joypad, uint8_t line_mask);
     void set_key(uint8_t *joypad, size_t key, bool pressed);
 

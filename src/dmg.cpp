@@ -128,7 +128,10 @@ void DMG::handle_events()
 
     while (SDL_PollEvent(&event)) {
         debugger->handle_event(&event);
-        input->handle(&event);
+
+        if (event.window.windowID == ppu->get_window_id()) {
+            input->handle(&event);
+        }
 
         if (event.type == SDL_QUIT) {
             running = false;
