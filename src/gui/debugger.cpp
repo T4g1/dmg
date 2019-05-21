@@ -114,11 +114,6 @@ bool Debugger::update()
 {
     dmg->set_speed(execution_speed);
 
-    if (mmu->get(cpu->PC) == 0xCD && mmu->get(cpu->PC + 1) == 0x15 && mmu->get(cpu->PC + 2) == 0x24) {
-        if (step_dmg) { return false; }
-        return true;
-    }
-
     return suspend_dmg && !step_dmg;
 }
 

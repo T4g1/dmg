@@ -45,17 +45,17 @@ void Input::update()
 {
     uint8_t joypad = mmu->get(JOYPAD);
 
-    if (joypad & SELECT_DIRECTION_KEY_MASKS) {
-        joypad = set_bit(joypad, KEY_DOWN_START, !down_pressed);     // 0 = pressed
-        joypad = set_bit(joypad, KEY_UP_SELECT, !up_pressed);
-        joypad = set_bit(joypad, KEY_LEFT_B, !left_pressed);
-        joypad = set_bit(joypad, KEY_RIGHT_A, !right_pressed);
+    if (get_selected(joypad, SELECT_BUTTON_KEY_MASKS)) {
+        set_key(&joypad, KEY_DOWN_START, start_pressed);
+        set_key(&joypad, KEY_UP_SELECT, select_pressed);
+        set_key(&joypad, KEY_LEFT_B, b_pressed);
+        set_key(&joypad, KEY_RIGHT_A, a_pressed);
     }
-    if (joypad & SELECT_BUTTON_KEY_MASKS) {
-        joypad = set_bit(joypad, KEY_DOWN_START, !start_pressed);    // 0 = pressed
-        joypad = set_bit(joypad, KEY_UP_SELECT, !select_pressed);
-        joypad = set_bit(joypad, KEY_LEFT_B, !b_pressed);
-        joypad = set_bit(joypad, KEY_RIGHT_A, !a_pressed);
+    if (get_selected(joypad, SELECT_DIRECTION_KEY_MASKS)) {
+        set_key(&joypad, KEY_DOWN_START, down_pressed);
+        set_key(&joypad, KEY_UP_SELECT, up_pressed);
+        set_key(&joypad, KEY_LEFT_B, left_pressed);
+        set_key(&joypad, KEY_RIGHT_A, right_pressed);
     }
 
     mmu->set(JOYPAD, joypad);
@@ -102,6 +102,32 @@ void Input::handle(SDL_Event *event)
         }
         break;
     }
+}
+
+
+/**
+ * @brief      Indicates if the given line is selected or not
+ * @param[in]  joypad     The joypad
+ * @param[in]  line_mask  The line mask
+ * @return     true if it is selected
+ */
+bool Input::get_selected(uint8_t joypad, uint8_t line_mask)
+{
+    // 0 = Selected
+    return (joypad & line_mask) == 0;
+}
+
+
+/**
+ * @brief      Sets the key in the given joypad register
+ * @param[in]  joypad   The joypad register value
+ * @param[in]  key      The key
+ * @param[in]  pressed  The key state (pressed = true)
+ */
+void Input::set_key(uint8_t *joypad, size_t key, bool pressed)
+{
+    // Inverted logic for pressed/released (0 = pressed)
+    *joypad = set_bit(*joypad, key, !pressed);
 }
 
 

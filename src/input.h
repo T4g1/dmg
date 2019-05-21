@@ -42,6 +42,9 @@ public:
     void update();
     void handle(SDL_Event *event);
 
+    bool get_selected(uint8_t joypad, uint8_t line_mask);
+    void set_key(uint8_t *joypad, size_t key, bool pressed);
+
     void set_mmu(MMU *mmu);
 };
 
