@@ -114,7 +114,7 @@ bool Debugger::update()
 {
     dmg->set_speed(execution_speed);
 
-    if (cpu->PC == 0xC2B5) {
+    if (cpu->PC == 0xC36F) {
         suspend_dmg = true;
     }
 
@@ -289,7 +289,7 @@ void Debugger::display_execution()
         ColorBoolean(suspend_dmg);
         ImGui::NextColumn();
 
-        ImGui::DragInt("Execution speed", &execution_speed, 0.25f, 1, 5000, "%d");
+        ImGui::DragInt("Speed", &execution_speed, 0.25f, 1, 5000, "%d");
         ImGui::NextColumn();
 
         ImGui::Columns(1, "code", false);
@@ -697,7 +697,11 @@ void Debugger::ColorBoolean(bool condition)
         color = active;
     }
 
-    ImGui::ColorButton("MyColor##3c", color, ImGuiColorEditFlags_NoOptions);
+    ImGui::ColorButton("MyColor##3c", color,
+        ImGuiColorEditFlags_NoTooltip |
+        ImGuiColorEditFlags_NoDragDrop |
+        ImGuiColorEditFlags_NoOptions
+    );
 }
 
 

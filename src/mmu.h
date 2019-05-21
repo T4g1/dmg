@@ -7,7 +7,7 @@
 #include "cartridge.h"
 
 // Memory locations addresses
-#define RAM_SIZE            0xFFFF
+#define RAM_SIZE            0x10000
 #define ROM_START           0x0000
 #define ROM_END             0x7FFF
 #define MBC0_END            0x3FFF

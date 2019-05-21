@@ -192,6 +192,9 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
 
     // Interrupts
     else if (address == IF_ADDRESS) {
+        // IF cannot triggers if IE corresponding bit is not set
+        ram[address] &= ram[IE_ADDRESS];
+
         // First three bit always set
         ram[address] |= 0xE0;
     }

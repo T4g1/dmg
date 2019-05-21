@@ -92,11 +92,8 @@ void DMG::process()
     input->update();
 
     if (system_clock >= cpu->clock) {
-        debugger->step_dmg = false;
-
-        if (!cpu->step()) {
-            error("CPU crash!\n");
-            debugger->suspend_dmg = true;
+        if (cpu->step()) {
+            debugger->step_dmg = false;
         }
     }
 

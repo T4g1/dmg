@@ -51,10 +51,13 @@ class CPU {
 private:
     MMU *mmu;
 
-    bool IME;           // Interrupts are enabled when this is at true
+    bool IME;           // Interrupts calls are enabled when this is at true
     bool halted;        // Waits for an interuption or not
     bool halt_aborted;  // Tried to halt but was not able to (TODO)
     bool halt_bug;      // Bug with halt triggerred or not
+
+    bool ei_requested;  // Enabe interrupts pending?
+    size_t ei_delay;    // How many step before acknowledging ei request
 
     cpu_callback l_callback[MAX_OPCODES];
 
@@ -101,7 +104,7 @@ private:
     void rst(uint8_t opcode);
 
     void _call(uint16_t address);
-    void handle_interrupts();
+    bool handle_interrupts();
 
     friend class Debugger;
 

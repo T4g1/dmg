@@ -322,24 +322,27 @@ void CPU::reset()
 
 /**
  * @brief      Execute the opcode pointed by PC
- * @return     false in case of crash
+ * @return     false if PC is unchanged
  */
 bool CPU::step()
 {
-    handle_interrupts();
+    // If we trigger an interruption, PC changes so we return
+    if (handle_interrupts()) {
+        return true;
+    }
 
     if (halted) {
         clock += 4;
-        return true;
+        return false;
     }
 
     uint8_t opcode = mmu->get(PC);
 
-    // Some instructions are not meant to do anything, crash the system
+    // Some instructions are not meant to do anything,
+    // this will stall until reboot
     if (l_callback[opcode] == nullptr) {
         error("Not Implemented PC: 0x%04X\tOpcode: 0x%02X\n", PC, opcode);
-        PC += 1; // Just in case
-
+        IME = false;
         return false;
     }
 
@@ -349,6 +352,15 @@ bool CPU::step()
     }
 
     (*this.*l_callback[opcode])(opcode);
+
+    // Handle EI delay
+    if (ei_requested) {
+        if (ei_delay) {
+            ei_delay -= 1;
+        } else {
+            IME = true;
+        }
+    }
 
     return true;
 }
@@ -1320,7 +1332,14 @@ void CPU::sub(uint8_t opcode)
 
 void CPU::ei_di(uint8_t opcode)
 {
-    IME = opcode == 0xFB;
+    // EI
+    if (opcode == 0xFB) {
+        ei_requested = true;
+        ei_delay = 1;
+    } else {
+        IME = false;
+        ei_requested = false;
+    }
 
     PC += 1;
     clock += 4;
@@ -1363,12 +1382,12 @@ void CPU::_call(uint16_t address)
 }
 
 
-void CPU::handle_interrupts()
+/**
+ * @brief      Generates interruption
+ * @return     true if n interruption triggered
+ */
+bool CPU::handle_interrupts()
 {
-    // Disabled interruption
-    if (!IME) {
-        return;
-    }
 
     uint8_t _ie = mmu->get(IE_ADDRESS);
     uint8_t _if = mmu->get(IF_ADDRESS);
@@ -1382,29 +1401,30 @@ void CPU::handle_interrupts()
         INT_JOYPAD_MASK
     };
 
-    bool interrupted = false;
     for (size_t i=0; i<interrupt_count; i++) {
         uint8_t mask = interrupt_masks[i];
 
-        if (_if & mask) {
+        if (_if & mask && _ie & mask) {
+            halted = false;
+
+            // Disabled interruption
+            if (!IME) {
+                return false;
+            }
+
             // Discard the interrupt
             mmu->set(IF_ADDRESS, _if ^ mask);
 
-            if (_ie & mask) {
-                IME = false;
-                halted = false;
-                halt_bug = false;   // Assume interrupts cancel halt bug
+            IME = false;
+            halt_bug = false;   // Assume interrupts cancel halt bug
 
-                _call(0x0040 + (i * 0x0008));
-                interrupted = true;
-            }
+            _call(0x0040 + (i * 0x0008));
 
-            // Serve only one interrupt at a time
-            if (interrupted) {
-                break;
-            }
+            return true;
         }
     }
+
+    return false;
 }
 
 
