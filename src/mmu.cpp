@@ -49,9 +49,9 @@ void MMU::reset()
 
     set(0x0100, 0x00);     // Reset MBC
 
-    set(0xFF05, 0x00);     //<! TIMA
-    set(0xFF06, 0x00);     //<! TMA
-    set(0xFF07, 0x00);     //<! TAC
+    set(TIMA, 0x00);
+    set(TMA, 0x00);
+    set(TAC, 0x00);
     set(0xFF10, 0x80);     //<! NR10
     set(0xFF11, 0xBF);     //<! NR11
     set(0xFF12, 0xF3);     //<! NR12
@@ -70,16 +70,16 @@ void MMU::reset()
     set(0xFF24, 0x77);     //<! NR50
     set(0xFF25, 0xF3);     //<! NR51
     set(0xFF26, 0xF1);     //<! NR52
-    set(LCDC, 0x91);       //<! LCDC
-    set(SCY, 0x00);        //<! SCY
-    set(SCX, 0x00);        //<! SCX
-    set(LYC, 0x00);        //<! LYC
-    set(0xFF47, 0xFC);     //<! BGP
-    set(0xFF48, 0xFF);     //<! OBP0
-    set(0xFF49, 0xFF);     //<! OBP1
-    set(0xFF4A, 0x00);     //<! WY
-    set(0xFF4B, 0x00);     //<! WX
-    set(0xFFFF, 0x00);     //<! IE
+    set(LCDC, 0x91);
+    set(SCY, 0x00);
+    set(SCX, 0x00);
+    set(LYC, 0x00);
+    set(BGP, 0xFC);
+    set(OBP0, 0xFF);
+    set(OBP1, 0xFF);
+    set(WY, 0x00);
+    set(WX, 0x00);
+    set(IE_ADDRESS, 0x00);
 
     update_ram();
 }
@@ -195,6 +195,7 @@ bool MMU::set(uint16_t address, uint8_t value)
     if (address == LCD_STATUS) {
         // Cannot overwrite on Mode and coincidence flag
         value &= 0b01111000;
+        value |= 0b10000000;
     }
     else if (address == LY) {
         // Writting to LY reset the counter
