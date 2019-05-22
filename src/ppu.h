@@ -161,7 +161,7 @@ private:
     void fetch(size_t x, size_t ly, pixel_type type);
     void fetch_bg(size_t x, size_t ly);
     void fetch_window(size_t x, size_t ly);
-    void fetch_sprite(const Sprite &sprite, size_t ly);
+    void fetch_sprite(const Sprite &sprite, size_t ly, size_t pixel_count);
     void fetch_at(
         uint16_t map_address, uint16_t tileset_address,
         size_t viewport_x, size_t viewport_y);

@@ -158,10 +158,12 @@ void PPU::oam_search(uint8_t ly)
         uint16_t oam_address = OAM_START + (oam_id * OAM_ENTRY_SIZE);
 
         Sprite sprite;
-        sprite.y = mmu->ram[oam_address] - SPRITE_Y_OFFSET;
-        sprite.x = mmu->ram[oam_address + 1] - SPRITE_X_OFFSET;
+        sprite.y = mmu->ram[oam_address];
+        sprite.x = mmu->ram[oam_address + 1];
 
-        if (sprite.x != 0 && sprite.y + TILE_WIDTH > ly && ly >= sprite.y) {
+        if (sprite.x != 0 &&
+            sprite.y + TILE_WIDTH > ly + SPRITE_Y_OFFSET &&
+            ly + SPRITE_Y_OFFSET >= sprite.y) {
             sprite.tile = mmu->ram[oam_address + 2];
             sprite.attrs = mmu->ram[oam_address + 3];
 
@@ -209,8 +211,13 @@ void PPU::pixel_transfer(uint8_t ly)
         // Fetch sprites
         if (sprites_enabled) {
             for (auto const& sprite : displayable_sprites) {
-                if (sprite.x == x) {
-                    fetch_sprite(sprite, ly);
+                uint8_t sprite_x_corrected = sprite.x - SPRITE_X_OFFSET;
+                if (sprite_x_corrected == x) {
+                    fetch_sprite(sprite, ly, TILE_WIDTH);
+                }
+                // Pixel partially hidden on the left
+                else if (x == 0 && sprite.x < SPRITE_X_OFFSET) {
+                    fetch_sprite(sprite, ly, sprite.x);
                 }
             }
         }
@@ -305,9 +312,9 @@ void PPU::fetch_window(size_t x, size_t ly)
  * @param[in]  sprite  The sprite
  * @param[in]  ly      Line to fetch
  */
-void PPU::fetch_sprite(const Sprite &sprite, size_t ly)
+void PPU::fetch_sprite(const Sprite &sprite, size_t ly, size_t pixel_count)
 {
-    size_t viewport_y = ly - sprite.y;
+    size_t viewport_y = ly - (sprite.y - SPRITE_Y_OFFSET);
 
     if (get_bit(sprite.attrs, BIT_SPRITE_Y_FLIP)) {
         viewport_y = (TILE_HEIGHT - 1) - viewport_y;
@@ -323,37 +330,36 @@ void PPU::fetch_sprite(const Sprite &sprite, size_t ly)
     uint8_t data1 = mmu->ram[tile_line_address];
     uint8_t data2 = mmu->ram[tile_line_address + 1];
 
-    // Exctract the 8 pixels for the data
-    for (size_t i=0; i<TILE_WIDTH; i++) {
-        size_t index = i;
-        if (get_bit(sprite.attrs, BIT_SPRITE_X_FLIP)) {
-            index = (TILE_WIDTH - 1) - i;
-        }
+    Pixel pixel;
+    pixel.type = SPRITE_OBP0;
+    if (get_bit(sprite.attrs, BIT_SPRITE_PALETTE_NUMBER)) {
+        pixel.type = SPRITE_OBP1;
+    }
+
+    // Exctract the pixel_count pixels for the data (usually 8)
+    for (size_t i=0; i<pixel_count; i++) {
+        uint8_t index = (TILE_WIDTH - pixel_count) + i;
 
         // 8 first bit (data1) = low bit of data for the pixels
         // 8 last bit (data2) = high bit of data for the pixels
         // b7 b6 b5 b4 b3 b2 b1 b0 so 7 - index to get correct bit
         size_t low = get_bit(data1, 7 - index);
         size_t high = get_bit(data2, 7 - index);
-
-        Pixel pixel;
-        pixel.value = (high << 1) + low;
+        if (get_bit(sprite.attrs, BIT_SPRITE_X_FLIP)) {
+            low = get_bit(data1, index);
+            high = get_bit(data2, index);
+        }
 
         Pixel current_pixel = pixel_fifo[(pf_index + i) % FIFO_SIZE];
 
+        pixel.value = (high << 1) + low;
+
         // Sprite with lowest X is on top
-        if (current_pixel.type == SPRITE_OBP0 || current_pixel.type == SPRITE_OBP1) {
-            continue;
-        }
-
+        if (current_pixel.type == SPRITE_OBP0 ||
+            current_pixel.type == SPRITE_OBP1 ||
         // 00 is transparent for sprite
-        if (pixel.value == 0) {
+            pixel.value == 0) {
             continue;
-        }
-
-        pixel.type = SPRITE_OBP0;
-        if (get_bit(sprite.attrs, BIT_SPRITE_PALETTE_NUMBER)) {
-            pixel.type = SPRITE_OBP1;
         }
 
         pixel_fifo[(pf_index + i) % FIFO_SIZE] = pixel;
