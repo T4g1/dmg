@@ -118,6 +118,8 @@ public:
     void set_obp(size_t obp_id, uint8_t value);
 
     Uint32 get_window_id();
+    uint8_t get_current_ly();
+    const char *get_current_mode();
 
     void set_palette(size_t palette_index);
     void set_mmu(MMU *mmu);

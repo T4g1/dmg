@@ -73,7 +73,6 @@ int DMG::run()
         }
 
         debugger->draw();
-        ppu->draw();
 
         handle_events();
     }

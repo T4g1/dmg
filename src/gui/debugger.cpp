@@ -171,6 +171,16 @@ void Debugger::draw()
 void Debugger::handle_event(SDL_Event *event)
 {
     ImGui_ImplSDL2_ProcessEvent(event);
+
+    switch(event->type) {
+    case SDL_KEYDOWN:
+        switch(event->key.keysym.sym){
+        case SDLK_F1:
+            suspend_dmg = !suspend_dmg;
+            break;
+        }
+        break;
+    }
 }
 
 
@@ -334,13 +344,13 @@ void Debugger::display_execution()
         ImGui::Columns(3, "code", false);
 
         size_t operations = 0;
-        uint16_t address = cpu->PC;
+        uint32_t address = cpu->PC;
         char indicator = '>';
         while (operations < 0xFF) {
             operations += 1;
 
             // Out of bound
-            if (address >= 0xFF00) {
+            if (address > 0xFFFF) {
                 ImGui::Text(" ");
                 ImGui::NextColumn();
                 ImGui::Text(" ");
@@ -406,6 +416,22 @@ void Debugger::display_PPU_status()
 
     if (ImGui::Begin(title)) {
         ImGui::BeginChild("status");
+
+        ImGui::Columns(2, "boolean", false);
+
+        ImGui::Text("LY:");
+        ImGui::NextColumn();
+        ImGui::Text("0x%02X", ppu->get_current_ly());
+        ImGui::NextColumn();
+
+        ImGui::Text("Mode:");
+        ImGui::NextColumn();
+        ImGui::Text(ppu->get_current_mode());
+        ImGui::NextColumn();
+
+        ImGui::Columns(1, "boolean", false);
+
+        ImGui::Separator();
 
         ImGui::Columns(2, "boolean", false);
 

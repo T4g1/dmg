@@ -85,6 +85,7 @@ void PPU::step()
     }
 
     mmu->ram[LY] = ly;
+    current_ly = ly;
 
     // Draw (0 - 143)
     if (ly < LINE_Y_COUNT) {
@@ -127,8 +128,6 @@ void PPU::step()
         update_lcd_status();
         clock += CLOCK_V_BLANK;
     }
-
-    current_ly = ly;
 }
 
 
@@ -160,9 +159,9 @@ void PPU::oam_search(uint8_t ly)
 
         Sprite sprite;
         sprite.y = mmu->ram[oam_address] - SPRITE_Y_OFFSET;
+        sprite.x = mmu->ram[oam_address + 1] - SPRITE_X_OFFSET;
 
-        if (sprite.y + TILE_WIDTH > ly && ly >= sprite.y) {
-            sprite.x = mmu->ram[oam_address + 1] - SPRITE_X_OFFSET;
+        if (sprite.x != 0 && sprite.y + TILE_WIDTH > ly && ly >= sprite.y) {
             sprite.tile = mmu->ram[oam_address + 2];
             sprite.attrs = mmu->ram[oam_address + 3];
 
@@ -440,7 +439,6 @@ void PPU::update_lcd_status()
     uint8_t old_status = mmu->get(LCD_STATUS);
     uint8_t new_status = old_status;
 
-    uint8_t ly = mmu->get(LY);
     uint8_t lyc = mmu->get(LYC);
 
     bool coincidence = current_ly == lyc;
@@ -559,6 +557,26 @@ void PPU::set_obp(size_t obp_id, uint8_t value)
 Uint32 PPU::get_window_id()
 {
     return SDL_GetWindowID(sdl_window);
+}
+
+
+uint8_t PPU::get_current_ly()
+{
+    return current_ly;
+}
+
+
+const char *PPU::get_current_mode()
+{
+    switch(current_mode) {
+    case OAM_SEARCH: return "OAM Search";
+    case PIXEL_TRANSFER: return "Pixel transfer";
+    case H_BLANK: return "H-Blank";
+    default:
+    case V_BLANK: return "V-Blank";
+    }
+
+    return "";
 }
 
 
