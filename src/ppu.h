@@ -2,6 +2,7 @@
 #define PPU_H
 
 #include <SDL2/SDL.h>
+#include <list>
 
 #include "mmu.h"
 
@@ -30,6 +31,14 @@
 #define BIT_SPRITE_Y_FLIP                   6
 #define BIT_SPRITE_X_FLIP                   5
 #define BIT_SPRITE_PALETTE_NUMBER           4
+
+// LCD Status
+#define BIT_INT_COINCIDENCE                 6
+#define BIT_INT_OAM                         5
+#define BIT_INT_V_BLANK                     4
+#define BIT_INT_H_BLANK                     3
+#define BIT_COINCIDENCE_LY_LYC              2
+#define MASK_MODE                           0b00000011
 
 #define PALETTE_SIZE            4       // How many colors available
 #define SPRITE_PALETTE_COUNT    2       // OBP0 and OBP1
@@ -65,6 +74,14 @@ enum pixel_type {
     WINDOW,
     SPRITE_OBP0,
     SPRITE_OBP1
+};
+
+
+enum ppu_mode {
+    H_BLANK = 0,
+    V_BLANK,
+    OAM_SEARCH,
+    PIXEL_TRANSFER,
 };
 
 
@@ -135,7 +152,15 @@ private:
     size_t pf_size;             // How many pixels in the FIFO
     size_t pf_index;            // Position in the FIFO
 
-    bool draw_line();
+    uint8_t current_ly;                     // Line that was being drawn
+    ppu_mode current_mode;
+    std::list<Sprite> displayable_sprites;  // Contains results of OAM search
+
+    void process();
+
+    void oam_search(uint8_t ly);
+    void pixel_transfer(uint8_t ly);
+
     void fetch(size_t x, size_t ly, pixel_type type);
     void fetch_bg(size_t x, size_t ly);
     void fetch_window(size_t x, size_t ly);
@@ -146,6 +171,9 @@ private:
 
     void clear_fifo();
     Pixel pop_pixel();
+
+    void update_lcd_status();
+    void update_interrupts(uint8_t old_status, uint8_t new_status);
 
     friend class Debugger;
 };

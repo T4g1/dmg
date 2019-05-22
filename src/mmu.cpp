@@ -168,13 +168,7 @@ const char *MMU::display_address_identity(uint16_t address)
  */
 bool MMU::set(uint16_t address, uint8_t value)
 {
-#ifdef DEBUG
-    if (ppu == nullptr) {
-        error("PPU is not linked to the MMU: Segfault will happen. Use mmu->set_ppu()\n");
-    }
-#endif
     address_type identity = get_address_identity(address);
-    //debug("set 0x%04X 0x%02X\n", address, value);
 
     // Cannot write over BOOT rom
     if (identity == BOOT) {
@@ -195,6 +189,31 @@ bool MMU::set(uint16_t address, uint8_t value)
     // ECHO memory
     else if (identity == ECHO) {
         address -= 0x2000;
+    }
+
+    // LCD_STATUS
+    if (address == LCD_STATUS) {
+        // Cannot overwrite on Mode and coincidence flag
+        value &= 0b01111000;
+    }
+    else if (address == LY) {
+        // Writting to LY reset the counter
+        value = 0;
+    }
+
+    // Joypad
+    else if (address == JOYPAD) {
+        // Last two bytes always 1
+        value |= 0b11000000;
+    }
+
+    // Interrupts
+    else if (address == IF_ADDRESS) {
+        // IF cannot triggers if IE corresponding bit is not set
+        value &= ram[IE_ADDRESS];
+
+        // First three bit always set
+        value |= 0xE0;
     }
 
     ram[address] = value;
@@ -243,21 +262,6 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
     else if (address == OAM_TRANSFER) {
         // TODO: Takes more time?
         memcpy(ram + OAM_START, ram + (value * 0x0100), OAM_SIZE);
-    }
-
-    // Joypad
-    else if (address == JOYPAD) {
-        // Last two bytes always 1
-        ram[address] |= 0b11000000;
-    }
-
-    // Interrupts
-    else if (address == IF_ADDRESS) {
-        // IF cannot triggers if IE corresponding bit is not set
-        ram[address] &= ram[IE_ADDRESS];
-
-        // First three bit always set
-        ram[address] |= 0xE0;
     }
 }
 
@@ -402,6 +406,16 @@ void MMU::update_ram()
     if (!booted) {
         memcpy(ram, boot, BOOT_SIZE);
     }
+}
+
+
+/**
+ * @brief      Helper to set interrupts
+ * @param[in]  interrupt_mask  The interrupt mask
+ */
+void MMU::trigger_interrupt(uint8_t interrupt_mask)
+{
+    set(IF_ADDRESS, ram[IF_ADDRESS] | interrupt_mask);
 }
 
 

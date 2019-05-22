@@ -101,7 +101,7 @@ void Timer::set_TIMA(uint8_t value)
         mmu->ram[TIMA] = mmu->get(TMA);
 
         // Interrupt
-        mmu->set(IF_ADDRESS, mmu->get(IF_ADDRESS) | INT_TIMER_MASK);
+        mmu->trigger_interrupt(INT_TIMER_MASK);
     }
 }
 

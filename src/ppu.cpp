@@ -1,8 +1,5 @@
 #include "ppu.h"
 
-#include <SDL2/SDL.h>
-#include <list>
-
 #include "dmg.h"
 #include "log.h"
 #include "utils.h"
@@ -61,6 +58,8 @@ void PPU::reset()
     clock = 0;
 
     last_refresh = 0;
+
+    current_ly = 0xFF;
 }
 
 
@@ -70,13 +69,12 @@ void PPU::reset()
 void PPU::step()
 {
     if (lcd_enabled) {
-        draw_line();
+        process();
     } else {
         SDL_FillRect(sdl_screen, NULL, color_ldc_disabled);
 
-        // TODO: Handle LCD control register so PPU gets CPU clock time when LCD is on
-        // DEBUG: Arbitrary increase waiting for display to be active
-        clock += CLOCK_H_BLANK;
+        // Arbitrary increase waiting for display to be active
+        clock += CLOCK_V_BLANK;
     }
 }
 
@@ -97,155 +95,173 @@ void PPU::draw()
 }
 
 
-/**
- * @brief      Reset the fifo
- */
-void PPU::clear_fifo()
+void PPU::quit()
 {
-    pf_index = 0;
-    pf_size = 0;
-}
-
-
-/**
- * @brief      Consume a pixel in the fifo
- * @return     Pixel poped
- */
-Pixel PPU::pop_pixel()
-{
-    Pixel pixel = pixel_fifo[pf_index];
-    pf_index = (pf_index + 1) % FIFO_SIZE;
-    pf_size -= 1;
-
-    return pixel;
-}
-
-
-/**
- * @brief      Draws a line.
- * @return     true if the screen can be refreshed
- */
-bool PPU::draw_line()
-{
-    clear_fifo();
-
-    pixel_type fetching_type = BG;
-    uint8_t ly = mmu->get(LY);
-
-    if (ly < LINE_Y_COUNT) {
-        //----------------------------
-        // OAM search
-        //----------------------------
-
-        std::list<Sprite> displayable_sprites;
-
-        for (size_t oam_id=0; oam_id < OAM_COUNT && displayable_sprites.size() < MAX_SPRITE_DISPLAYED; oam_id++) {
-            uint16_t oam_address = OAM_START + (oam_id * OAM_ENTRY_SIZE);
-
-            Sprite sprite;
-            sprite.y = mmu->ram[oam_address] - SPRITE_Y_OFFSET;
-
-            if (sprite.y + TILE_WIDTH > ly && ly >= sprite.y) {
-                sprite.x = mmu->ram[oam_address + 1] - SPRITE_X_OFFSET;
-                sprite.tile = mmu->ram[oam_address + 2];
-                sprite.attrs = mmu->ram[oam_address + 3];
-
-                displayable_sprites.push_back(sprite);
-            }
-        }
-
-        clock += CLOCK_OAM_SEARCH;
-
-
-        //----------------------------
-        // Pixel transfer
-        //----------------------------
-
-        // Viewport position
-        //uint8_t scy = mmu->get(SCY);
-        uint8_t scx = mmu->get(SCX);
-
-        // Window position
-        //uint8_t wy = mmu->get(WY);
-        uint8_t wx = mmu->get(WX);
-
-        fetch(0, ly, fetching_type);
-
-        // Drop a few pixels according to SCX to scroll LEFT/RIGHT
-        for (size_t i=0; i<scx % TILE_WIDTH; i++) {
-            pop_pixel();
-        }
-
-        for (size_t x=0; x<LINE_X_COUNT; x++) {
-            // We want to draw the window
-            if (x == wx && window_enabled) {
-                clear_fifo();
-                fetching_type = WINDOW;
-            }
-
-            // Fetch next 8 pixels
-            if (pf_size <= TILE_WIDTH) {
-                fetch(x, ly, fetching_type);
-            }
-
-            // Fetch sprites
-            if (sprites_enabled) {
-                for (auto const& sprite : displayable_sprites) {
-                    if (sprite.x == x) {
-                        fetch_sprite(sprite, ly);
-                    }
-                }
-            }
-
-            Pixel pixel = pop_pixel();
-
-            uint8_t *used_palette = bg_palette;
-            if (pixel.type == SPRITE_OBP0) {
-                used_palette = sprite_palette[0];
-            }
-            else if (pixel.type == SPRITE_OBP1) {
-                used_palette = sprite_palette[1];
-            }
-
-            Uint32 color = palette[used_palette[pixel.value]];
-
-            set_pixel(sdl_screen, x, ly, color);
-        }
-
-        clock += CLOCK_PIXEL_TRANSFER;
-
-
-        //----------------------------
-        // H-Blank
-        //----------------------------
-
-        clock += CLOCK_H_BLANK;
-
-
-        //----------------------------
-
-        ly += 1;
-        mmu->set(LY, ly);
+    if (sdl_screen) {
+        SDL_FreeSurface(sdl_screen);
     }
-    // V-Blank
+
+    if (sdl_window) {
+        SDL_DestroyWindow(sdl_window);
+    }
+
+    sdl_screen = nullptr;
+    sdl_window = nullptr;
+}
+
+
+/**
+ * @brief      Process next PPU operation depending on current mode and line being draw
+ */
+void PPU::process()
+{
+    uint8_t ly = mmu->ram[LY];
+
+    // Reset occured
+    if (ly != current_ly || ly >= MAX_LY || current_ly >= MAX_LY) {
+        ly = 0;
+        current_mode = H_BLANK;
+    }
+
+    // End of line draw
+     else if (current_mode == H_BLANK ||
+              current_mode == V_BLANK) {
+        ly = (ly + 1);
+
+        if (ly >= MAX_LY) {
+            ly = 0;
+        }
+    }
+
+    mmu->ram[LY] = ly;
+
+    // Draw (0 - 143)
+    if (ly < LINE_Y_COUNT) {
+        if (current_mode == H_BLANK ||
+            current_mode == V_BLANK) {
+            oam_search(ly);
+
+            current_mode = OAM_SEARCH;
+            update_lcd_status();
+            clock += CLOCK_OAM_SEARCH;
+        }
+
+        // Pixel transfer
+        else if (current_mode == OAM_SEARCH) {
+            pixel_transfer(ly);
+
+            current_mode = PIXEL_TRANSFER;
+            update_lcd_status();
+            clock += CLOCK_PIXEL_TRANSFER;
+        }
+
+        // H-BLANK
+        else /*if (current_mode == PIXEL_TRANSFER)*/ {
+            current_mode = H_BLANK;
+            update_lcd_status();
+            clock += CLOCK_H_BLANK;
+        }
+    }
+
+    // V-Blank (144 - 153)
     else if (ly < MAX_LY) {
         // V-Blank interrupt
         if (ly == LINE_Y_COUNT) {
-            mmu->set(IF_ADDRESS, mmu->get(IF_ADDRESS) | INT_V_BLANK_MASK);
+            mmu->trigger_interrupt(INT_V_BLANK_MASK);
         }
 
+        current_mode = V_BLANK;
+        update_lcd_status();
         clock += CLOCK_V_BLANK;
-
-        ly += 1;
-        mmu->set(LY, ly);
-    }
-    // Reset LY
-    else {
-        mmu->set(LY, 0);
     }
 
-    // Arbitrary choice to refresh SDL screen at last line draw
-    return ly == LINE_Y_COUNT;
+    current_ly = ly;
+}
+
+
+/**
+ * @brief      Handles OAM search
+ * We search for at most 10 sprites that must be displayed
+ */
+void PPU::oam_search(uint8_t ly)
+{
+    displayable_sprites.clear();
+
+    for (size_t oam_id=0; oam_id < OAM_COUNT && displayable_sprites.size() < MAX_SPRITE_DISPLAYED; oam_id++) {
+        uint16_t oam_address = OAM_START + (oam_id * OAM_ENTRY_SIZE);
+
+        Sprite sprite;
+        sprite.y = mmu->ram[oam_address] - SPRITE_Y_OFFSET;
+
+        if (sprite.y + TILE_WIDTH > ly && ly >= sprite.y) {
+            sprite.x = mmu->ram[oam_address + 1] - SPRITE_X_OFFSET;
+            sprite.tile = mmu->ram[oam_address + 2];
+            sprite.attrs = mmu->ram[oam_address + 3];
+
+            displayable_sprites.push_back(sprite);
+        }
+    }
+}
+
+
+/**
+ * @brief      Pixel transfer
+ */
+void PPU::pixel_transfer(uint8_t ly)
+{
+    clear_fifo();
+    pixel_type fetching_type = BG;
+
+    // Viewport position
+    //uint8_t scy = mmu->get(SCY);
+    uint8_t scx = mmu->get(SCX);
+
+    // Window position
+    //uint8_t wy = mmu->get(WY);
+    uint8_t wx = mmu->get(WX);
+
+    fetch(0, ly, fetching_type);
+
+    // Drop a few pixels according to SCX to scroll LEFT/RIGHT
+    for (size_t i=0; i<scx % TILE_WIDTH; i++) {
+        pop_pixel();
+    }
+
+    for (size_t x=0; x<LINE_X_COUNT; x++) {
+        // We want to draw the window
+        if (x == wx && window_enabled) {
+            clear_fifo();
+            fetching_type = WINDOW;
+        }
+
+        // Fetch next 8 pixels
+        if (pf_size <= TILE_WIDTH) {
+            fetch(x, ly, fetching_type);
+        }
+
+        // Fetch sprites
+        if (sprites_enabled) {
+            for (auto const& sprite : displayable_sprites) {
+                if (sprite.x == x) {
+                    fetch_sprite(sprite, ly);
+                }
+            }
+        }
+
+        Pixel pixel = pop_pixel();
+
+        uint8_t *used_palette = bg_palette;
+        if (pixel.type == SPRITE_OBP0) {
+            used_palette = sprite_palette[0];
+        }
+        else if (pixel.type == SPRITE_OBP1) {
+            used_palette = sprite_palette[1];
+        }
+
+        Uint32 color = palette[used_palette[pixel.value]];
+
+        set_pixel(sdl_screen, x, ly, color);
+    }
 }
 
 
@@ -403,18 +419,94 @@ void PPU::fetch_at(
 }
 
 
-void PPU::quit()
+/**
+ * @brief      Reset the fifo
+ */
+void PPU::clear_fifo()
 {
-    if (sdl_screen) {
-        SDL_FreeSurface(sdl_screen);
-    }
+    pf_index = 0;
+    pf_size = 0;
+}
 
-    if (sdl_window) {
-        SDL_DestroyWindow(sdl_window);
-    }
 
-    sdl_screen = nullptr;
-    sdl_window = nullptr;
+/**
+ * @brief      Consume a pixel in the fifo
+ * @return     Pixel poped
+ */
+Pixel PPU::pop_pixel()
+{
+    Pixel pixel = pixel_fifo[pf_index];
+    pf_index = (pf_index + 1) % FIFO_SIZE;
+    pf_size -= 1;
+
+    return pixel;
+}
+
+
+/**
+ * @brief      Set LCD status according to current mode and coincidence flag
+ */
+void PPU::update_lcd_status()
+{
+    uint8_t old_status = mmu->get(LCD_STATUS);
+    uint8_t new_status = old_status;
+
+    uint8_t ly = mmu->get(LY);
+    uint8_t lyc = mmu->get(LYC);
+
+    bool coincidence = ly == lyc;
+
+    new_status = set_bit(new_status, BIT_COINCIDENCE_LY_LYC, coincidence);
+
+    // Clear mode
+    new_status &= ~MASK_MODE;
+
+    // Set mode
+    new_status |= (current_mode & MASK_MODE);
+
+    //mmu->ram[LCD_STATUS] = new_status;
+
+    update_interrupts(old_status, new_status);
+}
+
+
+/**
+ * @brief      Set interrupt flags as needed
+ * @param[in]  old_status  The old status
+ * @param[in]  new_status  The new status
+ */
+void PPU::update_interrupts(uint8_t old_status, uint8_t new_status)
+{
+    // LYC == LY interrupt
+    if (get_bit(new_status, BIT_INT_COINCIDENCE)) {
+        bool old_coincidence = get_bit(old_status, BIT_COINCIDENCE_LY_LYC);
+        bool new_coincidence = get_bit(new_status, BIT_COINCIDENCE_LY_LYC);
+        bool coincidence_triggerred = old_coincidence != new_coincidence;
+        if (new_coincidence && coincidence_triggerred) {
+            mmu->trigger_interrupt(INT_LCD_STAT_MASK);
+        }
+    }
+    // OAM interrupt
+    if (get_bit(new_status, BIT_INT_OAM)) {
+        if (current_mode == OAM_SEARCH &&
+            (old_status & MASK_MODE) != OAM_SEARCH) {
+            mmu->trigger_interrupt(INT_LCD_STAT_MASK);
+        }
+    }
+    // V-BLANK interrupt
+    if (get_bit(new_status, BIT_INT_V_BLANK)) {
+        if (current_mode == V_BLANK &&
+            (old_status & MASK_MODE) != V_BLANK) {
+            mmu->trigger_interrupt(INT_LCD_STAT_MASK);
+        }
+    }
+    // H-BLANK interrupt
+    if (get_bit(new_status, BIT_INT_H_BLANK)) {
+        if (current_mode == H_BLANK &&
+            (old_status & MASK_MODE) != H_BLANK) {
+            mmu->trigger_interrupt(INT_LCD_STAT_MASK);
+        }
+    }
 }
 
 
