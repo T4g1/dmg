@@ -51,6 +51,11 @@ bool Cartridge::load(const char *path_rom)
                 mbc = new MBC1();
             }
 
+            else {
+                error("Please implement cartridge type 0x%02X\n", cartridge_type);
+                return false;
+            }
+
             if (mbc == nullptr) {
                 error("Unable to allocate space for the MBC\n");
                 return false;

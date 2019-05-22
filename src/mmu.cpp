@@ -33,7 +33,7 @@ bool MMU::init(const char *path_bios, Cartridge *cartridge)
     }
 
     if (cartridge == nullptr) {
-        warning("No cartridge given!\n");
+        info("No cartridge given!\n");
     }
 
     if (path_bios != nullptr) {
