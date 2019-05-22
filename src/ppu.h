@@ -109,7 +109,6 @@ public:
     bool init();
     void reset();
     void step();
-    void draw();
     void quit();
 
     size_t clock;
@@ -134,8 +133,6 @@ private:
     Uint32 palette[PALETTE_SIZE];
     uint8_t bg_palette[PALETTE_SIZE];
     uint8_t sprite_palette[SPRITE_PALETTE_COUNT][PALETTE_SIZE];
-
-    Uint32 last_refresh;
 
     bool lcd_enabled;
     bool window_enabled;

@@ -8,7 +8,7 @@
 
 MBC1::MBC1(size_t mbc_count)
 {
-    info("MBC1 RAM: %zu banks\n", mbc_count);
+    debug("MBC1 RAM: %zu banks\n", mbc_count);
     this->mbc_count = mbc_count;
 
     mbc_count = 0;

@@ -51,7 +51,6 @@ bool Cartridge::load(const char *path_rom)
             else if (cartridge_type == CART_TYPE_MBC1 ||
                      cartridge_type == CART_TYPE_MBC1_RAM ||
                      cartridge_type == CART_TYPE_MBC1_RAM_BATTERY) {
-                info("MBC1 ROM type: %02X\n", rom_type);
                 size_t bank_count = Cartridge::get_bank_count(rom_type);
                 mbc = new MBC1(bank_count);
             }

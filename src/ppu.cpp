@@ -57,8 +57,6 @@ void PPU::reset()
 
     clock = 0;
 
-    last_refresh = 0;
-
     current_ly = 0xFF;
 }
 
@@ -121,6 +119,8 @@ void PPU::step()
         // V-Blank interrupt
         if (ly == LINE_Y_COUNT) {
             mmu->trigger_interrupt(INT_V_BLANK_MASK);
+
+            SDL_UpdateWindowSurface(sdl_window);
         }
 
         current_mode = V_BLANK;
@@ -129,22 +129,6 @@ void PPU::step()
     }
 
     current_ly = ly;
-}
-
-/**
- * @brief      Refresh the screen
- */
-void PPU::draw()
-{
-    // Display
-    Uint32 current_ticks = SDL_GetTicks();
-    if (current_ticks < last_refresh + (1000 / FPS)) {
-        return;
-    }
-
-    SDL_UpdateWindowSurface(sdl_window);
-
-    last_refresh = current_ticks;
 }
 
 
@@ -459,7 +443,7 @@ void PPU::update_lcd_status()
     uint8_t ly = mmu->get(LY);
     uint8_t lyc = mmu->get(LYC);
 
-    bool coincidence = ly == lyc;
+    bool coincidence = current_ly == lyc;
 
     new_status = set_bit(new_status, BIT_COINCIDENCE_LY_LYC, coincidence);
 
