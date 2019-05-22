@@ -105,6 +105,8 @@ void DMG::process()
         timer->step();
     }
 
+    //system_clock += 4;
+
     // Update system clock
     system_clock = timer->clock;
     if (ppu->clock < system_clock) {

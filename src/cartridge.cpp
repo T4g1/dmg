@@ -106,6 +106,7 @@ bool Cartridge::set(uint16_t address, uint8_t value)
 size_t Cartridge::get_bank_count(uint8_t rom_type)
 {
     switch(rom_type) {
+    case 0x00: return 2;
     case 0x01: return 4;
     case 0x02: return 8;
     case 0x03: return 16;

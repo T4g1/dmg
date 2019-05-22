@@ -53,7 +53,8 @@
 #define CLOCK_OAM_SEARCH        20
 #define CLOCK_PIXEL_TRANSFER    43
 #define CLOCK_H_BLANK           51
-#define CLOCK_V_BLANK           CLOCK_OAM_SEARCH + CLOCK_PIXEL_TRANSFER + CLOCK_H_BLANK
+// TODO: Fix timing so this hack isn't required to run super mario
+#define CLOCK_V_BLANK           CLOCK_OAM_SEARCH + CLOCK_PIXEL_TRANSFER + CLOCK_H_BLANK * 10
 
 #define MAP_WIDTH            32
 #define MAP_HEIGHT           32
