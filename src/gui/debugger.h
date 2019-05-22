@@ -22,6 +22,8 @@ class Debugger {
 public:
     bool suspend_dmg;
     bool step_dmg;
+    bool breakpoint_set;
+    uint16_t breakpoint;
 
     Debugger();
 
@@ -56,6 +58,8 @@ private:
     SDL_GLContext gl_context;
 
     Uint32 last_refresh;
+
+    char breakpoint_string[5];
 
     uint16_t translate(char buffer[], size_t size, uint16_t address);
     void ColorBoolean(bool condition);

@@ -6,6 +6,7 @@
 #include "imgui_memory_editor.h"
 #include <GL/gl3w.h>
 
+#include "../utils.h"
 #include "../dmg.h"
 #include "../log.h"
 #include "../cpu.h"
@@ -20,6 +21,15 @@ Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr), ppu(nullptr)
     running = false;
     suspend_dmg = false;
     step_dmg = false;
+
+    breakpoint = 0;
+    breakpoint_string[0] = '0';
+    breakpoint_string[1] = '0';
+    breakpoint_string[2] = '0';
+    breakpoint_string[3] = '0';
+    breakpoint_string[4] = '\0';
+
+    breakpoint_set = false;
 
     sdl_window = nullptr;
 
@@ -113,6 +123,13 @@ bool Debugger::init()
 bool Debugger::update()
 {
     dmg->set_speed(execution_speed);
+
+    breakpoint = char_to_hex(breakpoint_string);
+
+    bool breakpoint_reached = breakpoint_set && cpu->PC == breakpoint;
+    if (breakpoint_reached) {
+        suspend_dmg = true;
+    }
 
     return suspend_dmg && !step_dmg;
 }
@@ -265,7 +282,23 @@ void Debugger::display_execution()
         ImGui::SameLine();
         ColorBoolean(suspend_dmg);
 
+        ImGui::Text("Breakpoint activated:");
+        ImGui::SameLine();
+        ColorBoolean(breakpoint_set);
+
         ImGui::DragInt("Speed", &execution_speed, 0.25f, 1, 5000, "%d");
+
+        ImGui::InputText("Breakpoint", breakpoint_string, 5, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
+
+        if (breakpoint_set) {
+            if (ImGui::Button("Disable breakpoint")) {
+                breakpoint_set = false;
+            }
+        } else {
+            if (ImGui::Button("Enable breakpoint")) {
+                breakpoint_set = true;
+            }
+        }
 
         ImGui::Columns(3, "control2", false);
 

@@ -1,4 +1,6 @@
 #include <stdio.h>
+#include <sstream>
+#include <iostream>
 
 #include "utils.h"
 
@@ -67,6 +69,21 @@ void inc16(uint8_t *address)
     if (*low == 0x00) {
         *high += 1;
     }
+}
+
+/**
+ * @brief      Converts an hexadecimal value from string to uint16_t
+ * @param[in]  value  The hexadecimal string
+ * @return     The value in uint16_t
+ */
+uint16_t char_to_hex(const char *value)
+{
+    uint16_t result;
+    std::stringstream ss;
+    ss << std::hex << value;
+    ss >> result;
+
+    return result;
 }
 
 void set_pixel(SDL_Surface *surface, size_t x, size_t y, Uint32 color)
