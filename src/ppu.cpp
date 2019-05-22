@@ -356,6 +356,13 @@ void PPU::fetch_sprite(const Sprite &sprite, size_t ly)
         Pixel pixel;
         pixel.value = (high << 1) + low;
 
+        Pixel current_pixel = pixel_fifo[(pf_index + i) % FIFO_SIZE];
+
+        // Sprite with lowest X is on top
+        if (current_pixel.type == SPRITE_OBP0 || current_pixel.type == SPRITE_OBP1) {
+            continue;
+        }
+
         // 00 is transparent for sprite
         if (pixel.value == 0) {
             continue;
