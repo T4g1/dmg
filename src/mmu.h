@@ -47,6 +47,12 @@
 
 
 // Registers addresses
+#define JOYPAD              0xFF00      // Joypad
+#define DIV                 0xFF04      // Divider (timer)
+#define TIMA                0xFF05      // Timer counter
+#define TMA                 0xFF06      // Timer modulo
+#define TAC                 0xFF07      // Timer control
+#define IF_ADDRESS          0xFF0F      // Interrupt Flag
 #define LCDC                0xFF40      // LCD Control register
 #define LCD_STATUS          0xFF41      // Status of the LCD
 #define SCY                 0xFF42      // Viewport Y position
@@ -60,12 +66,6 @@
 #define WY                  0xFF4A      // Window Y position
 #define WX                  0xFF4B      // Window X position
 #define BOOT_ROM_ENABLE     0xFF50      // Booted status
-#define JOYPAD              0xFF00      // Joypad
-#define DIV                 0xFF04      // Divider (timer)
-#define TIMA                0xFF05      // Timer counter
-#define TMA                 0xFF06      // Timer modulo
-#define TAC                 0xFF07      // Timer control
-#define IF_ADDRESS          0xFF0F      // Interrupt Flag
 #define IE_ADDRESS          0xFFFF      // Interrupt Enable
 
 enum address_type {
