@@ -6,9 +6,11 @@
 #include "mbc/mbc1.h"
 
 
-Cartridge::Cartridge() : mbc(nullptr)
+Cartridge::Cartridge()
 {
-
+    // Default empty random cartridge
+    mbc = new NoMBC();
+    mbc->init();
 }
 
 

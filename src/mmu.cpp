@@ -9,7 +9,7 @@
 #include "timer.h"
 
 
-MMU::MMU() : cart(nullptr), ppu(nullptr), timer(nullptr)
+MMU::MMU() : cart(nullptr), ppu(nullptr), timer(nullptr), input(nullptr)
 {
 
 }
@@ -25,6 +25,15 @@ bool MMU::init(const char *path_bios, Cartridge *cartridge)
     if (timer == nullptr) {
         error("No Timer linked with MMU\n");
         return false;
+    }
+
+    if (input == nullptr) {
+        error("No Input linked with MMU\n");
+        return false;
+    }
+
+    if (cartridge == nullptr) {
+        warning("No cartridge given!\n");
     }
 
     if (path_bios != nullptr) {

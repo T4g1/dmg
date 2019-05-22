@@ -9,6 +9,7 @@ MMU *mmu;
 PPU *ppu;
 CPU *cpu;
 Timer *timer;
+Input *input;
 
 /**
  * @brief      Init CPU to PC 0 and same value for all register except F
@@ -222,12 +223,12 @@ bool test_CPU_LD_8bit()
         mmu->get(cpu->reg16(HL))
     );
 
-    mmu->set(0xFF0F, 0x00);
+    mmu->set(0xFF10, 0x00);
     cpu->reg[A] = 0x04;
 
-    execute({ 0xE0, 0x0F });      // LD (0xFF00 + 0x0F), A
+    execute({ 0xE0, 0x10 });      // LD (0xFF00 + 0x0F), A
 
-    ASSERTV(mmu->get(0xFF0F) & 0x04, "0xFF0F: 0x%02X\n", mmu->get(0xFF0F));
+    ASSERTV(mmu->get(0xFF10) & 0x04, "0xFF10: 0x%02X\n", mmu->get(0xFF10));
 
     return true;
 }
@@ -1563,9 +1564,9 @@ bool test_CARTRIDGE_CPU_instrs()
 bool test_blargg_cpu_instrs()
 {
     // Blargg cpu instrs
-    const size_t blargg_count = 12;
+    const size_t blargg_count = 1;
     const char *cpu_instrs[] = {
-        "tests/blargg/01-special.gb",
+        /*"tests/blargg/01-special.gb",
         "tests/blargg/02-interrupts.gb",
         "tests/blargg/03-op sp,hl.gb",
         "tests/blargg/04-op r,imm.gb",
@@ -1575,7 +1576,7 @@ bool test_blargg_cpu_instrs()
         "tests/blargg/08-misc instrs.gb",
         "tests/blargg/09-op r,r.gb",
         "tests/blargg/10-bit ops.gb",
-        "tests/blargg/11-op a,(hl).gb",
+        "tests/blargg/11-op a,(hl).gb",*/
         "tests/blargg/cpu_instrs.gb",
     };
 
@@ -1602,17 +1603,21 @@ int main(void)
     cpu = new CPU();
     ppu = new PPU();
     timer = new Timer();
+    input = new Input();
 
     mmu->set_ppu(ppu);
     mmu->set_timer(timer);
+    mmu->set_input(input);
     cpu->set_mmu(mmu);
     ppu->set_mmu(mmu);
     timer->set_mmu(mmu);
+    input->set_mmu(mmu);
 
     mmu->init(nullptr, nullptr);
     cpu->init();
     ppu->init();
     timer->init();
+    input->init();
 
     fprintf(stdout, "DMG auto testing\n");
 
