@@ -692,9 +692,9 @@ uint16_t Debugger::translate(char buffer[], size_t size, uint16_t address)
     case 0xDC: TRANSLATION(3, "CALL C,0x%02X%02X", d1, d0);
     case 0xDE: TRANSLATION(2, "SBC A,0x%02X", d0);
     case 0xDF: TRANSLATION(1, "RST $18");
-    case 0xE0: TRANSLATION(2, "LD (0x%02X),A", d0);
+    case 0xE0: TRANSLATION(2, "LD (0xFF00+0x%02X),A", d0);
     case 0xE1: TRANSLATION(1, "POP HL");
-    case 0xE2: TRANSLATION(1, "LD (C),A");
+    case 0xE2: TRANSLATION(1, "LD (0xFF00+C),A");
     case 0xE5: TRANSLATION(1, "PUSH HL");
     case 0xE6: TRANSLATION(2, "AND 0x%02X", d0);
     case 0xE7: TRANSLATION(1, "RST $20");
@@ -703,9 +703,9 @@ uint16_t Debugger::translate(char buffer[], size_t size, uint16_t address)
     case 0xEA: TRANSLATION(3, "LD (0x%02X%02X),A", d1, d0);
     case 0xEE: TRANSLATION(2, "XOR 0x%02X", d0);
     case 0xEF: TRANSLATION(1, "RST $28");
-    case 0xF0: TRANSLATION(2, "LD A,(0x%02X)", d0);
+    case 0xF0: TRANSLATION(2, "LD A,(0xFF00+0x%02X)", d0);
     case 0xF1: TRANSLATION(1, "POP AF");
-    case 0xF2: TRANSLATION(1, "LD A,(C)");
+    case 0xF2: TRANSLATION(1, "LD A,(0xFF00+C)");
     case 0xF3: TRANSLATION(1, "DI");
     case 0xF5: TRANSLATION(1, "PUSH AF");
     case 0xF6: TRANSLATION(2, "OR 0x%02X", d0);
