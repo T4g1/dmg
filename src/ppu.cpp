@@ -326,6 +326,10 @@ void PPU::fetch_sprite(const Sprite &sprite, size_t ly)
 {
     size_t viewport_y = ly - sprite.y;
 
+    if (get_bit(sprite.attrs, BIT_SPRITE_Y_FLIP)) {
+        viewport_y = (TILE_HEIGHT - 1) - viewport_y;
+    }
+
     // Address of the tile in the tileset
 // TODO: Handle SPRITE_HEIGHT (ignore last bit)
     uint16_t tile_address = SPRITE_TILE_ADDRESS + (sprite.tile * TILE_SIZE);
@@ -338,11 +342,16 @@ void PPU::fetch_sprite(const Sprite &sprite, size_t ly)
 
     // Exctract the 8 pixels for the data
     for (size_t i=0; i<TILE_WIDTH; i++) {
+        size_t index = i;
+        if (get_bit(sprite.attrs, BIT_SPRITE_X_FLIP)) {
+            index = (TILE_WIDTH - 1) - i;
+        }
+
         // 8 first bit (data1) = low bit of data for the pixels
         // 8 last bit (data2) = high bit of data for the pixels
-        // b7 b6 b5 b4 b3 b2 b1 b0 so 7 - i to get correct bit
-        size_t low = get_bit(data1, 7 - i);
-        size_t high = get_bit(data2, 7 - i);
+        // b7 b6 b5 b4 b3 b2 b1 b0 so 7 - index to get correct bit
+        size_t low = get_bit(data1, 7 - index);
+        size_t high = get_bit(data2, 7 - index);
 
         Pixel pixel;
         pixel.value = (high << 1) + low;
