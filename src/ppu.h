@@ -130,7 +130,7 @@ private:
     SDL_Surface *sdl_screen;
     SDL_PixelFormat *pixel_format;
 
-    Uint32 color_ldc_disabled;
+    Uint32 color_lcd_disabled;
     Uint32 palette[PALETTE_SIZE];
     uint8_t bg_palette[PALETTE_SIZE];
     uint8_t sprite_palette[SPRITE_PALETTE_COUNT][PALETTE_SIZE];
@@ -155,8 +155,6 @@ private:
     uint8_t current_ly;                     // Line that was being drawn
     ppu_mode current_mode;
     std::list<Sprite> displayable_sprites;  // Contains results of OAM search
-
-    void process();
 
     void oam_search(uint8_t ly);
     void pixel_transfer(uint8_t ly);

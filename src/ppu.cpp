@@ -68,53 +68,6 @@ void PPU::reset()
  */
 void PPU::step()
 {
-    if (lcd_enabled) {
-        process();
-    } else {
-        SDL_FillRect(sdl_screen, NULL, color_ldc_disabled);
-
-        // Arbitrary increase waiting for display to be active
-        clock += CLOCK_V_BLANK;
-    }
-}
-
-/**
- * @brief      Refresh the screen
- */
-void PPU::draw()
-{
-    // Display
-    Uint32 current_ticks = SDL_GetTicks();
-    if (current_ticks < last_refresh + (1000 / FPS)) {
-        return;
-    }
-
-    SDL_UpdateWindowSurface(sdl_window);
-
-    last_refresh = current_ticks;
-}
-
-
-void PPU::quit()
-{
-    if (sdl_screen) {
-        SDL_FreeSurface(sdl_screen);
-    }
-
-    if (sdl_window) {
-        SDL_DestroyWindow(sdl_window);
-    }
-
-    sdl_screen = nullptr;
-    sdl_window = nullptr;
-}
-
-
-/**
- * @brief      Process next PPU operation depending on current mode and line being draw
- */
-void PPU::process()
-{
     uint8_t ly = mmu->ram[LY];
 
     // Reset occured
@@ -176,6 +129,37 @@ void PPU::process()
     }
 
     current_ly = ly;
+}
+
+/**
+ * @brief      Refresh the screen
+ */
+void PPU::draw()
+{
+    // Display
+    Uint32 current_ticks = SDL_GetTicks();
+    if (current_ticks < last_refresh + (1000 / FPS)) {
+        return;
+    }
+
+    SDL_UpdateWindowSurface(sdl_window);
+
+    last_refresh = current_ticks;
+}
+
+
+void PPU::quit()
+{
+    if (sdl_screen) {
+        SDL_FreeSurface(sdl_screen);
+    }
+
+    if (sdl_window) {
+        SDL_DestroyWindow(sdl_window);
+    }
+
+    sdl_screen = nullptr;
+    sdl_window = nullptr;
 }
 
 
@@ -250,15 +234,20 @@ void PPU::pixel_transfer(uint8_t ly)
 
         Pixel pixel = pop_pixel();
 
-        uint8_t *used_palette = bg_palette;
-        if (pixel.type == SPRITE_OBP0) {
-            used_palette = sprite_palette[0];
-        }
-        else if (pixel.type == SPRITE_OBP1) {
-            used_palette = sprite_palette[1];
-        }
+        Uint32 color = color_lcd_disabled;
 
-        Uint32 color = palette[used_palette[pixel.value]];
+        // Don't color anything if LCD is disabled
+        if (lcd_enabled) {
+            uint8_t *used_palette = bg_palette;
+            if (pixel.type == SPRITE_OBP0) {
+                used_palette = sprite_palette[0];
+            }
+            else if (pixel.type == SPRITE_OBP1) {
+                used_palette = sprite_palette[1];
+            }
+
+            color = palette[used_palette[pixel.value]];
+        }
 
         set_pixel(sdl_screen, x, ly, color);
     }
@@ -458,13 +447,11 @@ void PPU::update_lcd_status()
 
     new_status = set_bit(new_status, BIT_COINCIDENCE_LY_LYC, coincidence);
 
-    // Clear mode
+    // Clear then set mode
     new_status &= ~MASK_MODE;
-
-    // Set mode
     new_status |= (current_mode & MASK_MODE);
 
-    //mmu->ram[LCD_STATUS] = new_status;
+    mmu->ram[LCD_STATUS] = new_status;
 
     update_interrupts(old_status, new_status);
 }
@@ -582,7 +569,7 @@ Uint32 PPU::get_window_id()
  */
 void PPU::set_palette(size_t palette_index)
 {
-    color_ldc_disabled = SDL_MapRGB(pixel_format, 150, 125, 16);
+    color_lcd_disabled = SDL_MapRGB(pixel_format, 150, 125, 16);
 
     // Blac/White
     if (palette_index == 1) {
