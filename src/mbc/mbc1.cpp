@@ -6,15 +6,29 @@
 #include "../log.h"
 
 
-MBC1::MBC1() : selected_mbc(1)
+MBC1::MBC1(size_t mbc_count)
 {
+    info("MBC1 RAM: %zu banks\n", mbc_count);
+    this->mbc_count = mbc_count;
 
+    mbc_count = 0;
+
+    rom_mode_selected = true;
+
+    rom_bank_select = 0;
+    ram_bank_select = 0;
+}
+
+
+MBC1::~MBC1()
+{
+    delete memory;
 }
 
 
 void MBC1::init()
 {
-    memory = new uint8_t[MBC_COUNT * MBC_SIZE];
+    memory = new uint8_t[mbc_count * MBC_SIZE];
 }
 
 
@@ -29,7 +43,7 @@ const void *MBC1::at(uint16_t address)
         return &memory[address % MBC_SIZE];
     }
 
-    return &memory[(selected_mbc * MBC_SIZE) + (address % MBC_SIZE)];
+    return &memory[(get_selected_rom_bank() * MBC_SIZE) + (address % MBC_SIZE)];
 }
 
 
@@ -41,8 +55,8 @@ const void *MBC1::at(uint16_t address)
  */
 bool MBC1::load(size_t mb_index, const uint8_t *rom)
 {
-    if (mb_index >= MBC_COUNT) {
-        error("MBC1 have at most %d memory bank(s)\n", MBC_COUNT);
+    if (mb_index >= mbc_count) {
+        error("MBC1 have at most %zu memory bank(s)\n", mbc_count);
         return false;
     }
 
@@ -52,17 +66,53 @@ bool MBC1::load(size_t mb_index, const uint8_t *rom)
 }
 
 
-bool MBC1::set(uint16_t /*address*/, uint8_t value)
+bool MBC1::set(uint16_t address, uint8_t value)
 {
-    // Selecting memory bank 0 gives bank 1
-    // Selecting memory bank above MBC_COUNT wraps
-    value = value % MBC_COUNT;
-    if (value == 0) {
-        value = 1;
+    // Enable RAM
+    if (address <= RAM_ENABLE_END) {
+        // TODO
     }
 
-    debug("Set MBC to 0x%02X\n", value);
-    selected_mbc = value;
+    // ROM bank select
+    else if (address <= ROM_BANK_NUMBER_END) {
+        rom_bank_select = value & LOWER_ROM_BANK_NUMBER_MASK;
+    }
+
+    // RAM bank select
+    else if (address <= RAM_BANK_NUMBER_END) {
+        ram_bank_select = value & UPPER_ROM_BANK_NUMBER_MASK;
+    }
+
+    // ROM/RAM mode selector
+    else if (address <= ROM_RAM_MODE_SELECT_END) {
+        if (value == 0x00) {
+            rom_mode_selected = true;
+        }
+
+        if (value == 0x01) {
+            rom_mode_selected = false;
+        }
+    }
 
     return true;
+}
+
+
+/**
+ * @brief      Compute selected ROM bank
+ * @return     The selected rom bank.
+ */
+size_t MBC1::get_selected_rom_bank()
+{
+    size_t lower = rom_bank_select;
+    if (lower == 0) {
+        lower = 1;
+    }
+
+    size_t higher = 0;
+    if (rom_mode_selected) {
+        higher = ram_bank_select;
+    }
+
+    return (higher << 5) + lower;
 }

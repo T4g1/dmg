@@ -42,13 +42,18 @@ bool Cartridge::load(const char *path_rom)
         // First memory bank: We need the type of MBC to use
         if (mb_index == 0) {
             uint8_t cartridge_type = memory_bank[CARTRIDGE_TYPE_ADDRESS];
+            uint8_t rom_type = memory_bank[ROM_SIZE_ADDRESS];
 
             if (cartridge_type == CART_TYPE_ROM_ONLY) {
                 mbc = new NoMBC();
             }
 
-            else if (cartridge_type == CART_TYPE_MBC1) {
-                mbc = new MBC1();
+            else if (cartridge_type == CART_TYPE_MBC1 ||
+                     cartridge_type == CART_TYPE_MBC1_RAM ||
+                     cartridge_type == CART_TYPE_MBC1_RAM_BATTERY) {
+                info("MBC1 ROM type: %02X\n", rom_type);
+                size_t bank_count = Cartridge::get_bank_count(rom_type);
+                mbc = new MBC1(bank_count);
             }
 
             else {
@@ -97,6 +102,25 @@ const void *Cartridge::at(uint16_t address)
 bool Cartridge::set(uint16_t address, uint8_t value)
 {
     return mbc->set(address, value);
+}
+
+size_t Cartridge::get_bank_count(uint8_t rom_type)
+{
+    switch(rom_type) {
+    case 0x01: return 4;
+    case 0x02: return 8;
+    case 0x03: return 16;
+    case 0x04: return 32;
+    case 0x05: return 64;
+    case 0x06: return 128;
+    case 0x07: return 256;
+    case 0x52: return 72;
+    case 0x53: return 80;
+    case 0x54: return 96;
+    default: return 0;
+    }
+
+    return 0;
 }
 
 
