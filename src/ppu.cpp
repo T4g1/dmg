@@ -331,9 +331,17 @@ void PPU::fetch_sprite(const Sprite &sprite, size_t ly, size_t pixel_count)
     uint8_t data2 = mmu->ram[tile_line_address + 1];
 
     Pixel pixel;
+
+    // Palette used
     pixel.type = SPRITE_OBP0;
     if (get_bit(sprite.attrs, BIT_SPRITE_PALETTE_NUMBER)) {
         pixel.type = SPRITE_OBP1;
+    }
+
+    // Pirority versus background
+    bool sprite_on_top = true;
+    if (get_bit(sprite.attrs, BIT_SPRITE_PRIORITY)) {
+        sprite_on_top = false;
     }
 
     // Exctract the pixel_count pixels for the data (usually 8)
@@ -359,6 +367,11 @@ void PPU::fetch_sprite(const Sprite &sprite, size_t ly, size_t pixel_count)
             current_pixel.type == SPRITE_OBP1 ||
         // 00 is transparent for sprite
             pixel.value == 0) {
+            continue;
+        }
+
+        // BG 0 is always behind sprites
+        if (!sprite_on_top && current_pixel.value != 0) {
             continue;
         }
 
