@@ -178,7 +178,6 @@ void PPU::oam_search(uint8_t ly)
  */
 void PPU::pixel_transfer(uint8_t ly)
 {
-    window_enabled = get_bit(mmu->get_nocheck(LCDC), BIT_WINDOW_ENABLED);
     clear_fifo();
     pixel_type fetching_type = BG;
 

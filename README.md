@@ -29,7 +29,7 @@ Test with `./test`
 |01|cgb_sound          |:no_entry_sign:   |
 |02|cpu_instrs         |:heavy_check_mark:|
 |03|dmg_sound          |:x:               |
-|04|halt_bug           |:grey_question:   |
+|04|halt_bug           |:x:               |
 |05|instr_timing       |:heavy_check_mark:|
 |06|interrupt_time     |:x:               |
 |07|mem_timing-2       |:grey_question:   |
