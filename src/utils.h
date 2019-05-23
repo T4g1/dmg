@@ -4,8 +4,10 @@
 #include <inttypes.h>
 #include <stdbool.h>
 #include <cstddef>
-
 #include <SDL2/SDL.h>
+#include <GL/gl3w.h>
+
+#include "imgui.h"
 
 #define UTIL_LEFT       true
 #define UTIL_RIGHT      false
@@ -20,5 +22,6 @@ void inc16(uint8_t *address);
 uint16_t char_to_hex(const char *value);
 
 void set_pixel(SDL_Surface *surface, size_t x, size_t y, Uint32 color);
+GLuint create_texture(float data[], size_t width, size_t height);
 
 #endif /* UTILS_H */

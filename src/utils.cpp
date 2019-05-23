@@ -92,3 +92,23 @@ void set_pixel(SDL_Surface *surface, size_t x, size_t y, Uint32 color)
 
     pixels[(y * surface->w) + x] = color;
 }
+
+
+/**
+ * @brief      Given an array of data, give a texture ID
+ * @param      data data to use for pixels array of [3] for RGB
+ * @return     ImGui texture ID
+ */
+GLuint create_texture(float data[], size_t width, size_t height)
+{
+    GLuint textureID;
+    glGenTextures(1, &textureID);
+
+    glBindTexture(GL_TEXTURE_2D, textureID);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, data);
+
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
+    glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);
+
+    return textureID;
+}

@@ -33,6 +33,8 @@ Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr), ppu(nullptr)
 
     sdl_window = nullptr;
 
+    vram_tilemap = 0;
+
     execution_speed = DEFAULT_SPEED;
 }
 
@@ -154,6 +156,7 @@ void Debugger::draw()
     display_registers();
     display_execution();
     display_PPU_status();
+    display_VRAM_status();
 
     // Rendering
     ImGui::Render();
@@ -477,6 +480,43 @@ void Debugger::display_PPU_status()
         ImGui::NextColumn();
 
         ImGui::Columns(1, "boolean", false);
+
+        ImGui::EndChild();
+    }
+
+    ImGui::End();
+}
+
+
+/**
+ * @brief      Displays VRAM status (tiles, map data, ...)
+ */
+void Debugger::display_VRAM_status()
+{
+    const char *title = "VRAM Status";
+
+    //GLuint tilemap = ppu->tilemap_to_texture();
+    float pixels [] = {1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
+                           1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f
+    };
+
+    if (vram_tilemap != 0) {
+        glDeleteTextures(1, &vram_tilemap);
+    }
+
+    vram_tilemap = create_texture(pixels, 2, 2);
+
+    ImGuiIO& io = ImGui::GetIO();
+    if (ImGui::Begin(title)) {
+        ImGui::BeginChild("status");
+
+        ImGui::Image((ImTextureID)(intptr_t)vram_tilemap, ImVec2(50, 50));
+        if (ImGui::IsItemHovered())
+        {
+            ImGui::BeginTooltip();
+            // TODO: Zoom
+            ImGui::EndTooltip();
+        }
 
         ImGui::EndChild();
     }

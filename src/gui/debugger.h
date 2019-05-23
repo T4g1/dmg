@@ -1,6 +1,7 @@
 #ifndef DEBUGGER_H
 #define DEBUGGER_H
 
+#include <GL/gl3w.h>
 #include <SDL2/SDL.h>
 #include "imgui.h"
 
@@ -65,6 +66,8 @@ private:
 
     char breakpoint_string[5];
 
+    GLuint vram_tilemap;
+
     uint16_t translate(char buffer[], size_t size, uint16_t address);
     void ColorBoolean(bool condition);
 
@@ -72,6 +75,7 @@ private:
     void display_registers();
     void display_execution();
     void display_PPU_status();
+    void display_VRAM_status();
 };
 
 #endif /* DEBUGGER_H */
