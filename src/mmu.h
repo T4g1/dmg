@@ -87,6 +87,7 @@ enum address_type {
 class PPU;
 class Timer;
 class Input;
+class Debugger;
 
 
 /**
@@ -99,20 +100,24 @@ class MMU {
     Timer *timer;
     Input *input;
 
-    address_type get_address_identity(uint16_t address);
-
-public:
     uint8_t boot[BOOT_SIZE];
     uint8_t ram[RAM_SIZE];
+
+    address_type get_address_identity(uint16_t address);
+
+    void handle_callbacks(uint16_t address, uint8_t value);
+
+public:
     MMU();
 
     bool init(const char *path_bios, Cartridge *cart);
     void reset();
-    void handle_callbacks(uint16_t address, uint8_t value);
 
     bool set(uint16_t address, uint8_t value);
-    const void *at(uint16_t address);
+    void set_nocheck(uint16_t address, uint8_t value);
+    const uint8_t *at(uint16_t address);
     uint8_t get(uint16_t address);
+    uint8_t get_nocheck(uint16_t address);
     uint16_t get16(uint16_t address);
     int8_t get_signed(uint16_t address);
 
@@ -134,6 +139,8 @@ public:
     void set_ppu(PPU *ppu);
     void set_timer(Timer *timer);
     void set_input(Input *input);
+
+    friend class Debugger;
 };
 
 #endif /* MMU_H */

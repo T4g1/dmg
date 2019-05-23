@@ -51,7 +51,7 @@ void Timer::step()
     clock += 16;
 
     if (clock - last_div_increment > DIV_FREQUENCY) {
-        mmu->ram[DIV] = mmu->get(DIV) + 1;
+        mmu->set_nocheck(DIV, mmu->get(DIV) + 1);
         last_div_increment += DIV_FREQUENCY;
     }
 
@@ -68,7 +68,7 @@ void Timer::step()
  */
 void Timer::set_DIV(uint8_t /*value*/)
 {
-    mmu->ram[DIV] = 0x00;
+    mmu->set_nocheck(DIV, 0x00);
 }
 
 
@@ -98,7 +98,7 @@ void Timer::set_TIMA(uint8_t value)
 {
     // Overflow
     if (value == 0x00) {
-        mmu->ram[TIMA] = mmu->get(TMA);
+        mmu->set_nocheck(TIMA, mmu->get(TMA));
 
         // Interrupt
         mmu->trigger_interrupt(INT_TIMER_MASK);

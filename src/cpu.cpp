@@ -416,9 +416,23 @@ uint8_t *CPU::get_target(size_t index)
         &reg[E],
         &reg[H],
         &reg[L],
-        // WARNING: We ignore some memory cannot be written!
-        (uint8_t*) mmu->at(reg16(HL)),
+        NULL,       // Can never happen (cleaner way to restrain that?)
         &reg[A]
+    };
+
+    return l_address[index];
+}
+uint8_t CPU::get_target_value(size_t index)
+{
+    uint8_t l_address[] = {
+        reg[B],
+        reg[C],
+        reg[D],
+        reg[E],
+        reg[H],
+        reg[L],
+        mmu->get(reg16(HL)),
+        reg[A]
     };
 
     return l_address[index];
@@ -443,16 +457,16 @@ uint8_t *CPU::get_target16(size_t index)
 }
 
 // TODO: Simplify
-void CPU::ld8_mmu(uint16_t address, const uint8_t* src, size_t size, size_t ticks)
+void CPU::ld8_mmu(uint16_t address, uint8_t src, size_t size, size_t ticks)
 {
-    mmu->set(address, *src);
+    mmu->set(address, src);
     PC += size;
     clock += ticks;
 }
 
-void CPU::ld8(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
+void CPU::ld8(uint8_t *dst, uint8_t src, size_t size, size_t ticks)
 {
-    memcpy(dst, src, sizeof(uint8_t));
+    *dst = src;
     PC += size;
     clock += ticks;
 }
@@ -460,11 +474,20 @@ void CPU::ld8(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
 /**
  * @brief Loads 16-bit value and invert order
  */
-void CPU::ld16(uint8_t *dst, const uint8_t* src, size_t size, size_t ticks)
+void CPU::ld16(uint8_t *dst, uint8_t src_l, uint8_t src_h, size_t size, size_t ticks)
 {
     // Invert LOW and HIGH bytes
-    memcpy(dst + 1, src, sizeof(uint8_t));
-    memcpy(dst, src + 1, sizeof(uint8_t));
+    *(dst + 1) = src_l;
+    *dst = src_h;
+
+    PC += size;
+    clock += ticks;
+}
+
+void CPU::ld16_mmu(uint16_t address, uint16_t src, size_t size, size_t ticks)
+{
+    mmu->set(address, src);
+    mmu->set(address + 1, src >> 8);
 
     PC += size;
     clock += ticks;
@@ -479,6 +502,16 @@ void CPU::inc8(uint8_t *address)
     set_flag(FH, (*address & 0x0F) == 0x00); // Went from 0xXF to 0xX0
 }
 
+void CPU::inc8_mmu(uint16_t address)
+{
+    uint8_t value = mmu->get(address) + 1;
+    mmu->set(address, value);
+
+    set_flag(FZ, value == 0);
+    set_flag(FN, 0);
+    set_flag(FH, (value & 0x0F) == 0x00); // Went from 0xXF to 0xX0
+}
+
 void CPU::dec8(uint8_t *address)
 {
     *address = *address - 1;
@@ -488,17 +521,27 @@ void CPU::dec8(uint8_t *address)
     set_flag(FH, (*address & 0x0F) == 0x0F); // Went from 0xX0 to 0xXF
 }
 
+void CPU::dec8_mmu(uint16_t address)
+{
+    uint8_t value = mmu->get(address) - 1;
+    mmu->set(address, value);
+
+    set_flag(FZ, value == 0);
+    set_flag(FN, 1);
+    set_flag(FH, (value & 0x0F) == 0x0F); // Went from 0xX0 to 0xXF
+}
+
 /**
  * @brief      Handles ADD and ADC
  */
 void CPU::add8(uint8_t opcode)
 {
     size_t target_index = opcode % 8;
-    const uint8_t *target = get_target(target_index);
+    uint8_t target = get_target_value(target_index);
 
     // ADD/ADC d8
     if (opcode > 0xC0) {
-        target = (const uint8_t*) mmu->at(PC + 1);
+        target = mmu->get(PC + 1);
         PC += 2;
         clock += 8;
     }
@@ -511,7 +554,7 @@ void CPU::add8(uint8_t opcode)
         clock += 4;
     }
 
-    uint16_t value = *target;
+    uint16_t value = target;
 
     // ADC
     if (opcode >= 0x88 && opcode != 0xC6) {
@@ -521,7 +564,7 @@ void CPU::add8(uint8_t opcode)
     uint16_t result = reg[A] + value;
 
     // FH set when adding carry flag
-    bool half_carry = (*target & 0xF0) < (value & 0xFFF0);
+    bool half_carry = (target & 0xF0) < (value & 0xFFF0);
 
     half_carry |= (reg[A] & 0x0F) + (value & 0x0F) > 0x0F;
 
@@ -533,12 +576,12 @@ void CPU::add8(uint8_t opcode)
     set_flag(FC, result > 0x00FF);  // Overflow
 }
 
-void CPU::add16(uint8_t *dst, const uint8_t *src)
+void CPU::add16(uint8_t *dst, uint8_t *src)
 {
     uint8_t *dh = dst;
-    const uint8_t *sh = src;
     uint8_t *dl = dst + 1;
-    const uint8_t *sl = src + 1;
+    uint8_t *sh = src;
+    uint8_t *sl = src + 1;
 
     uint16_t dst16 = (*dh << 8) + *dl;
     uint16_t src16 = (*sh << 8) + *sl;
@@ -876,8 +919,8 @@ void CPU::inc(uint8_t opcode)
         return inc16(get_target16(opcode >> 4));
     /* Inc 8-bit registers */
     case 0x34:
-        clock += 8;     // INC (HL) takes 8 extra clock cycle (total 12)
-        __attribute__ ((fallthrough));
+        clock += 12;     // INC (HL) takes 8 extra clock cycle (total 12)
+        return inc8_mmu(reg16(HL));
     case 0x04:
     case 0x0C:
     case 0x14:
@@ -904,8 +947,8 @@ void CPU::dec(uint8_t opcode)
         return dec16(get_target16(opcode >> 4));
     /* Dec 8-bit registers */
     case 0x35:
-        clock += 8;     // DEC (HL) takes 8 extra clock cycle (total 12)
-        __attribute__ ((fallthrough));
+        clock += 12;
+        return dec8_mmu(reg16(HL));
     case 0x05:
     case 0x0D:
     case 0x15:
@@ -945,11 +988,16 @@ void CPU::ld(uint8_t opcode)
         size_t src_index = (opcode - 0x40) % 8;
 
         uint8_t *dst = get_target(dst_index);
-        uint8_t *src = get_target(src_index);
+        uint8_t src = get_target_value(src_index);
 
         size_t ticks = 4;
-        if (src_index == 6 || dst_index == 6) {
+        if (dst_index == 6 || src_index == 6) {
             ticks += 4;
+        }
+
+        // LD (HL), ...
+        if (dst_index == 6) {
+            return ld8_mmu(reg16(HL), src, 1, ticks);
         }
 
         return ld8(dst, src, 1, ticks);
@@ -964,120 +1012,117 @@ void CPU::ld(uint8_t opcode)
     case 0x11:    // Loads 16-bit immediate to DE
     case 0x21:    // Loads 16-bit immediate to HL
     case 0x31:    // Loads 16-bit immediate to SP
-        ld16(get_target16(opcode >> 4), (uint8_t*)mmu->at(PC + 1), 3, 12);
+        ld16(get_target16(opcode >> 4), mmu->get(PC + 1), mmu->get(PC + 2), 3, 12);
         break;
 
     /* Load reg A into pointed address */
     case 0x02:    // Loads reg A to (BC)
-        ld8_mmu(reg16(BC), &reg[A], 1, 8);
+        ld8_mmu(reg16(BC), reg[A], 1, 8);
         break;
 
     case 0x12:    // Loads reg A to (DE)
-        ld8_mmu(reg16(DE), &reg[A], 1, 8);
+        ld8_mmu(reg16(DE), reg[A], 1, 8);
         break;
 
     case 0x22:    // Loads reg A to (HL), inc HL
-        ld8_mmu(reg16(HL), &reg[A], 1, 8);
+        ld8_mmu(reg16(HL), reg[A], 1, 8);
         inc16(&reg[HL]);
         break;
 
     case 0x32:    // Loads reg A to (HL), dec HL
-        ld8_mmu(reg16(HL), &reg[A], 1, 8);
+        ld8_mmu(reg16(HL), reg[A], 1, 8);
         dec16(&reg[HL]);
         break;
 
     /* Load 16-bit Sp to (immediate 16-bit) */
     case 0x08:
-        address = mmu->get16(PC + 1);
-        ld16((uint8_t*)mmu->at(address), &reg[SP], 3, 20);
+        ld16_mmu(mmu->get16(PC + 1), reg16(SP), 3, 20);
         break;
 
     /* Load 8-bit immediate to reg */
     case 0x06:    // Loads 8-bit immediate to B
-        ld8(&reg[B], (uint8_t*) mmu->at(PC + 1), 2, 8);
+        ld8(&reg[B], mmu->get(PC + 1), 2, 8);
         break;
 
     case 0x16:    // Loads 8-bit immediate to D
-        ld8(&reg[D], (uint8_t*) mmu->at(PC + 1), 2, 8);
+        ld8(&reg[D], mmu->get(PC + 1), 2, 8);
         break;
 
     case 0x26:    // Loads 8-bit immediate to H
-        ld8(&reg[H], (uint8_t*) mmu->at(PC + 1), 2, 8);
+        ld8(&reg[H], mmu->get(PC + 1), 2, 8);
         break;
 
     case 0x36:    // Loads 8-bit immediate to (HL)
-        ld8_mmu(reg16(HL), (uint8_t*) mmu->at(PC + 1), 2, 12);
+        ld8_mmu(reg16(HL), mmu->get(PC + 1), 2, 12);
         break;
 
     /* Load pointed address into A */
     case 0x0A:    // Loads (BC) to reg A
-        ld8(&reg[A], (uint8_t*) mmu->at(reg16(BC)), 1, 8);
+        ld8(&reg[A], mmu->get(reg16(BC)), 1, 8);
         break;
 
     case 0x1A:    // Loads (DE) to reg A
-        ld8(&reg[A], (uint8_t*) mmu->at(reg16(DE)), 1, 8);
+        ld8(&reg[A], mmu->get(reg16(DE)), 1, 8);
         break;
 
     case 0x2A:    // Loads (HL) to reg A, inc HL
-        ld8(&reg[A], (uint8_t*) mmu->at(reg16(HL)), 1, 8);
+        ld8(&reg[A], mmu->get(reg16(HL)), 1, 8);
         inc16(&reg[HL]);
         break;
 
     case 0x3A:    // Loads (HL) to reg A, dec HL
-        ld8(&reg[A], (uint8_t*) mmu->at(reg16(HL)), 1, 8);
+        ld8(&reg[A], mmu->get(reg16(HL)), 1, 8);
         dec16(&reg[HL]);
         break;
 
     /* Load 8-bit immediate to reg */
     case 0x0E:    // Loads 8-bit immediate to C
-        ld8(&reg[C], (uint8_t*) mmu->at(PC + 1), 2, 8);
+        ld8(&reg[C], mmu->get(PC + 1), 2, 8);
         break;
 
     case 0x1E:    // Loads 8-bit immediate to E
-        ld8(&reg[E], (uint8_t*) mmu->at(PC + 1), 2, 8);
+        ld8(&reg[E], mmu->get(PC + 1), 2, 8);
         break;
 
     case 0x2E:    // Loads 8-bit immediate to L
-        ld8(&reg[L], (uint8_t*) mmu->at(PC + 1), 2, 8);
+        ld8(&reg[L], mmu->get(PC + 1), 2, 8);
         break;
 
     case 0x3E:    // Loads 8-bit immediate to A
-        ld8(&reg[A], (uint8_t*) mmu->at(PC + 1), 2, 8);
+        ld8(&reg[A], mmu->get(PC + 1), 2, 8);
         break;
 
     /* Loads from/to 8-bit address */
     case 0xE0:      // Loads reg A to address immediate
         address = 0xFF00 + mmu->get(PC + 1);
-        ld8_mmu(address, &reg[A], 2, 12);
+        ld8_mmu(address, reg[A], 2, 12);
         break;
 
     case 0xF0:      // Loads from address immediate to reg A
         address = 0xFF00 + mmu->get(PC + 1);
-        ld8(&reg[A], (uint8_t*) mmu->at(address), 2, 12);
+        ld8(&reg[A], mmu->get(address), 2, 12);
         break;
 
     case 0xE2:      // Loads from addres reg C to reg A
-        ld8_mmu(0xFF00 + reg[C], &reg[A], 1, 8);
+        ld8_mmu(0xFF00 + reg[C], reg[A], 1, 8);
         break;
 
     case 0xF2:      // Loads from reg A to addres reg C
-        ld8(&reg[A], (uint8_t*) mmu->at(0xFF00 + reg[C]), 1, 8);
+        ld8(&reg[A], mmu->get(0xFF00 + reg[C]), 1, 8);
         break;
 
     /* Loads from/to 16-bit address */
     case 0xEA:      // Loads reg A to address immediate
-        address = mmu->get16(PC + 1);
-        ld8_mmu(address, &reg[A], 3, 16);
+        ld8_mmu(mmu->get16(PC + 1), reg[A], 3, 16);
         break;
 
-    case 0xFA:      // Loads from address immediate to reg A
-        address = mmu->get16(PC + 1);
-        ld8(&reg[A], (uint8_t*) mmu->at(address), 3, 16);
+    case 0xFA:      // LD A,(a16)
+        ld8(&reg[A], mmu->get(mmu->get16(PC + 1)), 3, 16);
         break;
 
-    case 0xF8:      // Loads SP+r8 to HL
+    case 0xF8:      // LD HL,SP+r8
         memcpy(&reg[HL], &reg[SP], sizeof(uint16_t));
-        addr8((uint8_t*) &reg[HL], mmu->get_signed(PC + 1));
+        addr8(&reg[HL], mmu->get_signed(PC + 1));
 
         PC += 2;
         clock += 12;
@@ -1133,7 +1178,8 @@ void CPU::nop(uint8_t /*opcode*/)
 void CPU::prefix_CB(uint8_t opcode)
 {
     opcode = mmu->get(PC + 1);
-    uint8_t *address = get_target(opcode % 8);
+    size_t index = opcode % 8;
+    uint8_t value = get_target_value(index);
 
     size_t offset = (opcode / 8) % 8;
     bool is_left = (opcode % 16) < 8;
@@ -1141,7 +1187,7 @@ void CPU::prefix_CB(uint8_t opcode)
 
     /* Rotate */
     if (opcode < 0x20) {
-        *address = rotate(*address, is_left, &carry);
+        value = rotate(value, is_left, &carry);
 
         /* Opcode to 0x10 set new byte to the shifted one */
         bool new_value = carry;
@@ -1152,66 +1198,66 @@ void CPU::prefix_CB(uint8_t opcode)
         }
 
         if (is_left) {
-            *address = set_bit(*address, 0, new_value);
+            value = set_bit(value, 0, new_value);
         } else {
-            *address = set_bit(*address, 7, new_value);
+            value = set_bit(value, 7, new_value);
         }
 
-        set_flag(FZ, *address == 0);
+        set_flag(FZ, value == 0);
         set_flag(FN, 0);
         set_flag(FH, 0);
         set_flag(FC, carry);
     }
     /* Shitf Left (SLA) */
     else if (opcode < 0x28) {
-        *address = shift(*address, UTIL_LEFT, &carry);
+        value = shift(value, UTIL_LEFT, &carry);
 
-        set_flag(FZ, *address == 0);
+        set_flag(FZ, value == 0);
         set_flag(FN, 0);
         set_flag(FH, 0);
         set_flag(FC, carry);
     }
     /* Shitf Right, keep b7 (SRA) */
     else if (opcode < 0x30) {
-        bool b0 = get_bit(*address, 0);
-        bool b7 = get_bit(*address, 7);
+        bool b0 = get_bit(value, 0);
+        bool b7 = get_bit(value, 7);
 
-        *address = shift(*address, UTIL_RIGHT, &carry);
+        value = shift(value, UTIL_RIGHT, &carry);
 
-        *address = set_bit(*address, 7, b7);
+        value = set_bit(value, 7, b7);
 
-        set_flag(FZ, *address == 0);
+        set_flag(FZ, value == 0);
         set_flag(FN, 0);
         set_flag(FH, 0);
         set_flag(FC, b0);
     }
     /* Swap */
     else if (opcode < 0x38) {
-        *address = swap(*address);
+        value = swap(value);
 
-        set_flag(FZ, *address == 0);
+        set_flag(FZ, value == 0);
         set_flag(FN, 0);
         set_flag(FH, 0);
         set_flag(FC, 0);
     }
     /* Shitf Right Logical (SRL) */
     else if (opcode < 0x40) {
-        *address = shift(*address, UTIL_RIGHT, &carry);
+        value = shift(value, UTIL_RIGHT, &carry);
 
-        set_flag(FZ, *address == 0);
+        set_flag(FZ, value == 0);
         set_flag(FN, 0);
         set_flag(FH, 0);
         set_flag(FC, carry);
     }
     /* Get Bit */
     else if (opcode < 0x80) {
-        set_flag(FZ, get_bit(*address, offset) == 0);
+        set_flag(FZ, get_bit(value, offset) == 0);
         set_flag(FN, 0);
         set_flag(FH, 1);
     }
     /* Set and Reset */
     else {
-        *address = set_bit(*address, offset, opcode >= 0xC0);
+        value = set_bit(value, offset, opcode >= 0xC0);
     }
 
     size_t ticks = 8;
@@ -1227,16 +1273,24 @@ void CPU::prefix_CB(uint8_t opcode)
 
     PC += 2;
     clock += ticks;
+
+    // (HL) case
+    if (index == 6) {
+        mmu->set(reg16(HL), value);
+    } else {
+        uint8_t *register_address = get_target(index);
+        *register_address = value;
+    }
 }
 
 void CPU::or_xor_and_cp(uint8_t opcode)
 {
     size_t target_index = opcode % 8;
-    const uint8_t *target = get_target(target_index);
+    uint8_t target = get_target_value(target_index);
 
     // OR/XOR/AND/CP with d8
     if (opcode > 0xC0) {
-        target = (const uint8_t*) mmu->at(PC + 1);
+        target = mmu->get(PC + 1);
         PC += 2;
         clock += 8;
     }
@@ -1255,16 +1309,16 @@ void CPU::or_xor_and_cp(uint8_t opcode)
         // We add an extra 0x0100 so we can detect underflow if high byte is 0x00
         // after the comparison
         uint16_t result = 0x0100 + reg[A];
-        result -= *target;
+        result -= target;
 
         set_flag(FZ, (result & 0x00FF) == 0);
         set_flag(FN, 1);
-        set_flag(FH, (reg[A] & 0x0F) < (*target & 0x0F));
+        set_flag(FH, (reg[A] & 0x0F) < (target & 0x0F));
         set_flag(FC, !(result & 0x100));   // Underflow
     }
     // OR
     else if ((opcode >= 0xB0 && opcode < 0xB8) || opcode == 0xF6) {
-        reg[A] |= *target;
+        reg[A] |= target;
 
         set_flag(FZ, reg[A] == 0);
         set_flag(FN, 0);
@@ -1273,7 +1327,7 @@ void CPU::or_xor_and_cp(uint8_t opcode)
     }
     // XOR
     else if ((opcode >= 0xA8 && opcode < 0xB0) || opcode == 0xEE) {
-        reg[A] ^= *target;
+        reg[A] ^= target;
 
         set_flag(FZ, reg[A] == 0);
         set_flag(FN, 0);
@@ -1282,7 +1336,7 @@ void CPU::or_xor_and_cp(uint8_t opcode)
     }
     // AND
     else if ((opcode >= 0xA0 && opcode < 0xA8) || opcode == 0xE6) {
-        reg[A] &= *target;
+        reg[A] &= target;
 
         set_flag(FZ, reg[A] == 0);
         set_flag(FN, 0);
@@ -1297,11 +1351,11 @@ void CPU::or_xor_and_cp(uint8_t opcode)
 void CPU::sub(uint8_t opcode)
 {
     size_t target_index = opcode % 8;
-    const uint8_t *target = get_target(target_index);
+    uint8_t target = get_target_value(target_index);
 
     // SUB/SBC d8
     if (opcode > 0xD0) {
-        target = (const uint8_t*) mmu->at(PC + 1);
+        target = mmu->get(PC + 1);
         PC += 2;
         clock += 8;
     }
@@ -1314,7 +1368,7 @@ void CPU::sub(uint8_t opcode)
         clock += 4;
     }
 
-    uint16_t value = *target;
+    uint16_t value = target;
 
     bool half_carry = (reg[A] & 0x0F) < (value & 0x0F);
 

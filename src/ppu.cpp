@@ -66,7 +66,7 @@ void PPU::reset()
  */
 void PPU::step()
 {
-    uint8_t ly = mmu->ram[LY];
+    uint8_t ly = mmu->get_nocheck(LY);
 
     // Reset occured
     if (ly != current_ly || ly >= MAX_LY || current_ly >= MAX_LY) {
@@ -84,7 +84,7 @@ void PPU::step()
         }
     }
 
-    mmu->ram[LY] = ly;
+    mmu->set_nocheck(LY, ly);
     current_ly = ly;
 
     // Draw (0 - 143)
@@ -158,14 +158,14 @@ void PPU::oam_search(uint8_t ly)
         uint16_t oam_address = OAM_START + (oam_id * OAM_ENTRY_SIZE);
 
         Sprite sprite;
-        sprite.y = mmu->ram[oam_address];
-        sprite.x = mmu->ram[oam_address + 1];
+        sprite.y = mmu->get_nocheck(oam_address);
+        sprite.x = mmu->get_nocheck(oam_address + 1);
 
         if (sprite.x != 0 &&
             sprite.y + TILE_WIDTH > ly + SPRITE_Y_OFFSET &&
             ly + SPRITE_Y_OFFSET >= sprite.y) {
-            sprite.tile = mmu->ram[oam_address + 2];
-            sprite.attrs = mmu->ram[oam_address + 3];
+            sprite.tile = mmu->get_nocheck(oam_address + 2);
+            sprite.attrs = mmu->get_nocheck(oam_address + 3);
 
             displayable_sprites.push_back(sprite);
         }
@@ -178,7 +178,7 @@ void PPU::oam_search(uint8_t ly)
  */
 void PPU::pixel_transfer(uint8_t ly)
 {
-    window_enabled = get_bit(mmu->ram[LCDC], BIT_WINDOW_ENABLED);
+    window_enabled = get_bit(mmu->get_nocheck(LCDC), BIT_WINDOW_ENABLED);
     clear_fifo();
     pixel_type fetching_type = BG;
 
@@ -187,8 +187,8 @@ void PPU::pixel_transfer(uint8_t ly)
     uint8_t scx = mmu->get(SCX);
 
     // Window position
-    uint8_t wy = mmu->ram[WY];
-    uint8_t wx = mmu->ram[WX] - WINDOW_X_OFFSET;
+    uint8_t wy = mmu->get_nocheck(WY);
+    uint8_t wx = mmu->get_nocheck(WX) - WINDOW_X_OFFSET;
 
     fetch(0, ly, fetching_type);
 
@@ -274,8 +274,8 @@ void PPU::fetch(size_t x, size_t ly, pixel_type type)
 void PPU::fetch_bg(size_t x, size_t ly)
 {
     // Viewport position
-    uint8_t scy = mmu->ram[SCY];
-    uint8_t scx = mmu->ram[SCX];
+    uint8_t scy = mmu->get_nocheck(SCY);
+    uint8_t scx = mmu->get_nocheck(SCX);
 
     // We want the position of the viewport)
     // We add pf_size so we get the pixels needed when the fifo arrives at those pixels
@@ -296,8 +296,8 @@ void PPU::fetch_bg(size_t x, size_t ly)
 void PPU::fetch_window(size_t x, size_t ly)
 {
     // Window position
-    uint8_t wy = mmu->ram[WY];
-    uint8_t wx = mmu->ram[WX] - WINDOW_X_OFFSET;
+    uint8_t wy = mmu->get_nocheck(WY);
+    uint8_t wx = mmu->get_nocheck(WX) - WINDOW_X_OFFSET;
 
     // Given the line/column being drawn and the position of the window
     // gets the position in the window to draw
@@ -328,8 +328,8 @@ void PPU::fetch_sprite(const Sprite &sprite, size_t ly, size_t pixel_count)
     // Data for the current line of the tile being drawn
     uint16_t tile_line_address = tile_address + TILE_LINE_SIZE * (viewport_y % TILE_HEIGHT);
 
-    uint8_t data1 = mmu->ram[tile_line_address];
-    uint8_t data2 = mmu->ram[tile_line_address + 1];
+    uint8_t data1 = mmu->get_nocheck(tile_line_address);
+    uint8_t data2 = mmu->get_nocheck(tile_line_address + 1);
 
     Pixel pixel;
 
@@ -395,7 +395,7 @@ void PPU::fetch_at(
     uint16_t map_address = base_map_address + (tile_y * MAP_WIDTH) + tile_x;
 
     // Tile index in the tileset
-    uint8_t tile_id = mmu->ram[map_address];
+    uint8_t tile_id = mmu->get_nocheck(map_address);
     if (base_tileset_address == TILE_ADDRESS_2) {
         // When tileset base address is $8800: tile ID are signed and 0 is $9000
         tile_id = mmu->get_signed(map_address) + 128;
@@ -407,8 +407,8 @@ void PPU::fetch_at(
     // Data for the current line of the tile being drawn
     uint16_t tile_line_address = tile_address + TILE_LINE_SIZE * (viewport_y % TILE_HEIGHT);
 
-    uint8_t data1 = mmu->ram[tile_line_address];
-    uint8_t data2 = mmu->ram[tile_line_address + 1];
+    uint8_t data1 = mmu->get_nocheck(tile_line_address);
+    uint8_t data2 = mmu->get_nocheck(tile_line_address + 1);
 
     // Exctract the 8 pixels for the data
     for (size_t i=0; i<TILE_WIDTH; i++) {
@@ -469,7 +469,7 @@ void PPU::update_lcd_status()
     new_status &= ~MASK_MODE;
     new_status |= (current_mode & MASK_MODE);
 
-    mmu->ram[LCD_STATUS] = new_status;
+    mmu->set_nocheck(LCD_STATUS, new_status);
 
     update_interrupts(old_status, new_status);
 }

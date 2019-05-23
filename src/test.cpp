@@ -5,6 +5,7 @@
 #include "log.h"
 #include "dmg.h"
 
+Cartridge *cart;
 MMU *mmu;
 PPU *ppu;
 CPU *cpu;
@@ -31,7 +32,7 @@ void init(uint8_t value)
     cpu->reg[L] = value;
     cpu->reg[A] = value;
 
-    mmu->set_cartridge(nullptr);
+    mmu->set_cartridge(cart);
     mmu->set(BOOT_ROM_ENABLE, 0x00);
 }
 
@@ -213,11 +214,15 @@ bool test_CPU_LD_8bit()
     ASSERT(cpu->reg[A] == 0xEE);
     ASSERT(cpu->reg[E] == 0xEE);
 
+
+    cpu->reg[H] = 0xFF;
+    cpu->reg[L] = 0x11;
+
     execute({ 0x77 });      // LD (HL), A
 
     ASSERTV(
         mmu->get(cpu->reg16(HL)) == 0xEE,
-        "A: 0x%02X HL: 0x%02X (HL): 0x%02X\n",
+        "A: 0x%02X HL: 0x%04X (HL): 0x%02X\n",
         cpu->reg[A],
         cpu->reg16(HL),
         mmu->get(cpu->reg16(HL))
@@ -242,7 +247,7 @@ bool test_CPU_LD_16bit()
         0x11, 0x22, 0x33,   // LD DE, d16
         0x21, 0x44, 0xC5,   // LD HL, d16
         0x31, 0x66, 0x77,   // LD SP, d16
-        0x08, 0x66, 0x77,   // LD (a16), SP
+        0x08, 0x66, 0xC7,   // LD (a16), SP
         0xF9,               // LD SP, HL
         0xF8, 0x14          // LD HL, SP+r8
     };
@@ -257,6 +262,9 @@ bool test_CPU_LD_16bit()
     ASSERT(cpu->PC == 9);
     cpu->step();
     ASSERT(cpu->PC == 12);
+
+    ASSERTV(cpu->reg16(SP) == 0x7766, "SP=0x%04X", cpu->reg16(SP));
+
     cpu->step();
     ASSERT(cpu->PC == 15);
 
@@ -264,7 +272,7 @@ bool test_CPU_LD_16bit()
     ASSERT(cpu->reg16(DE) == 0x3322);
     ASSERT(cpu->reg16(HL) == 0xC544);
     ASSERTV(cpu->reg16(SP) == 0x7766, "SP=0x%04X", cpu->reg16(SP));
-    ASSERT(mmu->get16(0x7766) == 0x7766);
+    ASSERTV(mmu->get16(0xC766) == 0x7766, "0xC766: 0x%04X\n", mmu->get16(0xC766));
 
     cpu->step();
     ASSERTV(cpu->PC == 16, "PC=0x%04X", cpu->PC);
@@ -910,7 +918,9 @@ bool test_CPU_Op_SP()
 
     // ADD HL, SP
     execute({ 0x21, 0xEE, 0xCC });
+    ASSERTV(cpu->reg16(HL) == 0xCCEE, "HL: 0x%04X\n", cpu->reg16(HL));
     execute({ 0x31, 0x11, 0x22 });
+    ASSERTV(cpu->reg16(SP) == 0x2211, "SP: 0x%04X\n", cpu->reg16(SP));
     execute({ 0x39 });
 
     ASSERTV(cpu->reg16(HL) == 0xEEFF, "HL: 0x%04X\n", cpu->reg16(HL));
@@ -1231,18 +1241,18 @@ bool test_BIN_RES()
         init(0x55);
         execute({ 0xCB, command });
 
-        uint8_t *l_address[] = {
-            &cpu->reg[B],
-            &cpu->reg[C],
-            &cpu->reg[D],
-            &cpu->reg[E],
-            &cpu->reg[H],
-            &cpu->reg[L],
-            (uint8_t*) mmu->at(cpu->reg16(HL)),
-            &cpu->reg[A],
+        uint8_t l_address[] = {
+            cpu->reg[B],
+            cpu->reg[C],
+            cpu->reg[D],
+            cpu->reg[E],
+            cpu->reg[H],
+            cpu->reg[L],
+            mmu->get(cpu->reg16(HL)),
+            cpu->reg[A],
         };
 
-        uint8_t value = *l_address[offset % 8];
+        uint8_t value = l_address[offset % 8];
         uint8_t mask = 1 << (offset / 8);
 
         ASSERTV((value & mask) == 0, "value=%02X mask=%02X offset=%d\n", value, mask, offset);
@@ -1258,18 +1268,18 @@ bool test_BIN_SET()
         init(0x55);
         execute({ 0xCB, command });
 
-        uint8_t *l_address[] = {
-            &cpu->reg[B],
-            &cpu->reg[C],
-            &cpu->reg[D],
-            &cpu->reg[E],
-            &cpu->reg[H],
-            &cpu->reg[L],
-            (uint8_t*) mmu->at(cpu->reg16(HL)),
-            &cpu->reg[A],
+        uint8_t l_address[] = {
+            cpu->reg[B],
+            cpu->reg[C],
+            cpu->reg[D],
+            cpu->reg[E],
+            cpu->reg[H],
+            cpu->reg[L],
+            mmu->get(cpu->reg16(HL)),
+            cpu->reg[A],
         };
 
-        uint8_t value = *l_address[offset % 8];
+        uint8_t value = l_address[offset % 8];
         uint8_t mask = 1 << (offset / 8);
 
         ASSERTV((value & mask) > 0, "value=%02X mask=%02X offset=%d\n", value, mask, offset);
@@ -1598,7 +1608,7 @@ bool test_blargg_cpu_instrs()
 
 int main(void)
 {
-
+    cart = new Cartridge();
     mmu = new MMU();
     cpu = new CPU();
     ppu = new PPU();
@@ -1613,8 +1623,7 @@ int main(void)
     timer->set_mmu(mmu);
     input->set_mmu(mmu);
 
-    Cartridge cart;
-    mmu->init(nullptr, &cart);
+    mmu->init(nullptr, cart);
     cpu->init();
     ppu->init();
     timer->init();
@@ -1664,9 +1673,12 @@ int main(void)
     test("CARTRIDGE: Read from MBC1", &test_CARTRIDGE_read_MBC1);
     test("CARTRIDGE: CPU Instrs", &test_CARTRIDGE_CPU_instrs);
 
+    delete(cart);
     delete(mmu);
-    delete(ppu);
     delete(cpu);
+    delete(ppu);
+    delete(timer);
+    delete(input);
 
     test_blargg_cpu_instrs();
 

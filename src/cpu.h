@@ -62,18 +62,22 @@ private:
     cpu_callback l_callback[MAX_OPCODES];
 
     uint8_t *get_target(size_t index);
+    uint8_t get_target_value(size_t index);
     uint8_t *get_target16(size_t index);
 
-    void ld8_mmu(uint16_t address, const uint8_t *src, size_t size, size_t clock);
 
-    void ld8(uint8_t *dst, const uint8_t *src, size_t size, size_t clock);
-    void ld16(uint8_t *dst, const uint8_t *src, size_t size, size_t clock);
+    void ld8(uint8_t *dst, uint8_t src, size_t size, size_t ticks);
+    void ld8_mmu(uint16_t address, uint8_t src, size_t size, size_t ticks);
+    void ld16(uint8_t *dst, uint8_t src_l, uint8_t src_h, size_t size, size_t ticks);
+    void ld16_mmu(uint16_t address, uint16_t src, size_t size, size_t ticks);
 
     void inc8(uint8_t *address);
+    void inc8_mmu(uint16_t address);
     void dec8(uint8_t *address);
+    void dec8_mmu(uint16_t address);
 
     void add8(uint8_t opcode);
-    void add16(uint8_t *dst, const uint8_t *src);
+    void add16(uint8_t *dst, uint8_t *src);
     void addr8(uint8_t *dst, int value);
 
     void prefix_CB(uint8_t opcode);
