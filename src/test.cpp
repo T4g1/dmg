@@ -1574,7 +1574,7 @@ bool test_CARTRIDGE_CPU_instrs()
 bool test_blargg_cpu_instrs()
 {
     // Blargg cpu instrs
-    const size_t blargg_count = 1;
+    const size_t blargg_count = 2;
     const char *cpu_instrs[] = {
         /*"tests/blargg/01-special.gb",
         "tests/blargg/02-interrupts.gb",
@@ -1588,6 +1588,7 @@ bool test_blargg_cpu_instrs()
         "tests/blargg/10-bit ops.gb",
         "tests/blargg/11-op a,(hl).gb",*/
         "tests/blargg/cpu_instrs.gb",
+        "tests/blargg/instr_timing.gb",
     };
 
     for (size_t test_id=0; test_id<blargg_count; test_id++) {

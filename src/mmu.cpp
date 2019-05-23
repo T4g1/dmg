@@ -224,11 +224,37 @@ bool MMU::set(uint16_t address, uint8_t value)
         value |= 0xE0;
     }
 
-    ram[address] = value;
+    set_nocheck(address, value);
 
     handle_callbacks(address, value);
 
     return false;
+}
+
+
+/**
+ * @brief      Same as set but does not triggers value modifications
+ *
+ * Cannot be used by the CPU or ROM code
+ * @param[in]  address  The address
+ * @param[in]  value    The value to write
+ * @return     false if the address designed a READ only memory
+ */
+void MMU::set_nocheck(uint16_t address, uint8_t value)
+{
+    ram[address] = value;
+}
+
+
+/**
+ * @brief      Gets the value at given RAM address
+ * Internal usage only! Cannot be used by CPU or ROM code
+ * @param[in]  address  The address
+ * @return     Value at that address
+ */
+uint8_t MMU::get_nocheck(uint16_t address)
+{
+    return ram[address];
 }
 
 
@@ -288,7 +314,7 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
  * @param[in]  address  The address in the DMG memory
  * @return     Pointer to the immutable value
  */
-const void *MMU::at(uint16_t address)
+const uint8_t *MMU::at(uint16_t address)
 {
     address_type identity = get_address_identity(address);
 
