@@ -37,6 +37,7 @@ bool DMG::init(const char *path_bios, const char *path_rom)
     mmu->set_ppu(ppu);
     mmu->set_timer(timer);
     mmu->set_input(input);
+    mmu->set_debugger(debugger);
     cpu->set_mmu(mmu);
     ppu->set_mmu(mmu);
     timer->set_mmu(mmu);

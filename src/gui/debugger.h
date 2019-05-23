@@ -39,6 +39,10 @@ public:
     size_t get_speed();
     void set_speed(size_t speed);
 
+    // Accessor from outside
+    void feed_memory_write(uint16_t address);
+    void feed_memory_read(uint16_t address);
+
     void set_cpu(CPU *cpu);
     void set_mmu(MMU *mmu);
     void set_dmg(DMG *dmg);

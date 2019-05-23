@@ -7,9 +7,10 @@
 #include "log.h"
 #include "ppu.h"
 #include "timer.h"
+#include "gui/debugger.h"
 
 
-MMU::MMU() : cart(nullptr), ppu(nullptr), timer(nullptr), input(nullptr)
+MMU::MMU() : cart(nullptr), ppu(nullptr), timer(nullptr), input(nullptr), debugger(nullptr)
 {
 
 }
@@ -243,6 +244,23 @@ bool MMU::set(uint16_t address, uint8_t value)
 void MMU::set_nocheck(uint16_t address, uint8_t value)
 {
     ram[address] = value;
+
+    if (debugger != nullptr) {
+        debugger->feed_memory_write(address);
+    }
+}
+
+
+uint8_t MMU::get(uint16_t address)
+{
+    address_type identity = get_address_identity(address);
+
+    // ECHO memory
+    if (identity == ECHO) {
+        address -= 0x2000;
+    }
+
+    return get_nocheck(address);
 }
 
 
@@ -254,6 +272,10 @@ void MMU::set_nocheck(uint16_t address, uint8_t value)
  */
 uint8_t MMU::get_nocheck(uint16_t address)
 {
+    if (debugger != nullptr) {
+        debugger->feed_memory_read(address);
+    }
+
     return ram[address];
 }
 
@@ -306,30 +328,6 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
         // TODO: Takes more time?
         memcpy(ram + OAM_START, ram + (value * 0x0100), OAM_SIZE);
     }
-}
-
-
-/**
- * @brief      Give the emulated address of the given DMG address
- * @param[in]  address  The address in the DMG memory
- * @return     Pointer to the immutable value
- */
-const uint8_t *MMU::at(uint16_t address)
-{
-    address_type identity = get_address_identity(address);
-
-    // ECHO memory
-    if (identity == ECHO) {
-        address -= 0x2000;
-    }
-
-    return ram + address;
-}
-
-
-uint8_t MMU::get(uint16_t address)
-{
-    return *(uint8_t*) at(address);
 }
 
 
@@ -491,4 +489,10 @@ void MMU::set_timer(Timer *timer)
 void MMU::set_input(Input *input)
 {
     this->input = input;
+}
+
+
+void MMU::set_debugger(Debugger *debugger)
+{
+    this->debugger = debugger;
 }

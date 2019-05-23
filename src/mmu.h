@@ -99,6 +99,7 @@ class MMU {
     PPU *ppu;
     Timer *timer;
     Input *input;
+    Debugger *debugger;
 
     uint8_t boot[BOOT_SIZE];
     uint8_t ram[RAM_SIZE];
@@ -115,7 +116,6 @@ public:
 
     bool set(uint16_t address, uint8_t value);
     void set_nocheck(uint16_t address, uint8_t value);
-    const uint8_t *at(uint16_t address);
     uint8_t get(uint16_t address);
     uint8_t get_nocheck(uint16_t address);
     uint16_t get16(uint16_t address);
@@ -139,6 +139,7 @@ public:
     void set_ppu(PPU *ppu);
     void set_timer(Timer *timer);
     void set_input(Input *input);
+    void set_debugger(Debugger *debugger);
 
     friend class Debugger;
 };

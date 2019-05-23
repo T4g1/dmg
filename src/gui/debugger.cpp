@@ -778,6 +778,26 @@ void Debugger::set_speed(size_t speed)
 }
 
 
+/**
+ * @brief      Called by MMU when a write occurs
+ * @param[in]  address  The address at which we wrote
+ */
+void Debugger::feed_memory_write(uint16_t /*address*/)
+{
+    // TODO: Break if needed
+}
+
+
+/**
+ * @brief      Called when a read occurs
+ * @param[in]  address  The address at which we read
+ */
+void Debugger::feed_memory_read(uint16_t /*address*/)
+{
+    // TODO: Break if needed
+}
+
+
 void Debugger::set_cpu(CPU *cpu)
 {
     this->cpu = cpu;
