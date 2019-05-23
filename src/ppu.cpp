@@ -178,6 +178,7 @@ void PPU::oam_search(uint8_t ly)
  */
 void PPU::pixel_transfer(uint8_t ly)
 {
+    window_enabled = get_bit(mmu->ram[LCDC], BIT_WINDOW_ENABLED);
     clear_fifo();
     pixel_type fetching_type = BG;
 
@@ -186,8 +187,8 @@ void PPU::pixel_transfer(uint8_t ly)
     uint8_t scx = mmu->get(SCX);
 
     // Window position
-    //uint8_t wy = mmu->get(WY);
-    uint8_t wx = mmu->get(WX);
+    uint8_t wy = mmu->ram[WY];
+    uint8_t wx = mmu->ram[WX] - WINDOW_X_OFFSET;
 
     fetch(0, ly, fetching_type);
 
@@ -198,7 +199,7 @@ void PPU::pixel_transfer(uint8_t ly)
 
     for (size_t x=0; x<LINE_X_COUNT; x++) {
         // We want to draw the window
-        if (x == wx && window_enabled) {
+        if (window_enabled && x == wx && ly >= wy) {
             clear_fifo();
             fetching_type = WINDOW;
         }
@@ -296,7 +297,7 @@ void PPU::fetch_window(size_t x, size_t ly)
 {
     // Window position
     uint8_t wy = mmu->ram[WY];
-    uint8_t wx = mmu->ram[WX];
+    uint8_t wx = mmu->ram[WX] - WINDOW_X_OFFSET;
 
     // Given the line/column being drawn and the position of the window
     // gets the position in the window to draw

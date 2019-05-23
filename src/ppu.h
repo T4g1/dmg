@@ -48,6 +48,7 @@
 
 #define SPRITE_X_OFFSET     8       // Sprite is hidden until X >= 8
 #define SPRITE_Y_OFFSET     16      // Sprite is hidden until Y >= 16
+#define WINDOW_X_OFFSET     7       // Window is offseted on X axis
 
 // Clock timing
 #define CLOCK_OAM_SEARCH        20
