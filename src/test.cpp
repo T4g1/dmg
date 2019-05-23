@@ -1613,7 +1613,8 @@ int main(void)
     timer->set_mmu(mmu);
     input->set_mmu(mmu);
 
-    mmu->init(nullptr, nullptr);
+    Cartridge cart;
+    mmu->init(nullptr, &cart);
     cpu->init();
     ppu->init();
     timer->init();

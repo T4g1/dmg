@@ -13,6 +13,10 @@
 
 bool DMG::init(const char *path_bios, const char *path_rom)
 {
+    if (path_bios != nullptr && strlen(path_bios) == 0) {
+        path_bios = nullptr;
+    }
+
     // Setup SDL
     if (SDL_Init(SDL_INIT_EVERYTHING) < 0) {
         error("Unable to initialize SDL\n");
