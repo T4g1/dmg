@@ -1595,7 +1595,7 @@ bool test_blargg_cpu_instrs()
         fprintf(stdout, "BLARGG: %s: ", path_rom);
 
         DMG dmg;
-        dmg.init(nullptr, cpu_instrs[test_id]);
+        dmg.init("bios/dmg_boot.bin", cpu_instrs[test_id]);
         dmg.set_palette('1');
         dmg.set_speed(5000);
         dmg.run();
