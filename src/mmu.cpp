@@ -220,9 +220,6 @@ bool MMU::set(uint16_t address, uint8_t value)
 
     // Interrupts
     else if (address == IF_ADDRESS) {
-        // IF cannot triggers if IE corresponding bit is not set
-        //value &= ram[IE_ADDRESS]; // TODO: Why was this needed?
-
         // First three bit always set
         value |= 0xE0;
     }

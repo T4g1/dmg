@@ -13,8 +13,10 @@
 
 bool DMG::init(const char *path_bios, const char *path_rom)
 {
+    no_boot = false;
     if (path_bios != nullptr && strlen(path_bios) == 0) {
         path_bios = nullptr;
+        no_boot = true;
     }
 
     // Setup SDL
@@ -52,12 +54,10 @@ bool DMG::init(const char *path_bios, const char *path_rom)
     running &= input->init();
     running &= debugger->init();
 
-    if (path_bios == nullptr) {
-        no_boot();
-    }
-
     system_clock = 0;
     set_speed(DEFAULT_SPEED);
+
+    reset();
 
     return running;
 }
@@ -166,6 +166,10 @@ void DMG::reset()
     ppu->reset();
     timer->reset();
     input->reset();
+
+    if (no_boot) {
+        fake_boot();
+    }
 }
 
 
@@ -181,7 +185,7 @@ void quit()
 /**
  * @brief      Set the program to works without BOOT rom
  */
-void DMG::no_boot()
+void DMG::fake_boot()
 {
     cpu->PC = 0x0100;
 

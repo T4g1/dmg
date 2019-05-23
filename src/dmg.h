@@ -31,6 +31,7 @@ class DMG {
     Debugger *debugger;
 
     bool running;
+    bool no_boot;
 
     size_t system_clock;
 
@@ -41,7 +42,7 @@ public:
     void handle_events();
     void reset();
 
-    void no_boot();
+    void fake_boot();
     void set_palette(char palette_index);
     void set_speed(size_t speed);
 };
