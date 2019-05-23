@@ -22,8 +22,21 @@ make clean; make
 Test with `./test`
 
 # Tests
+## Blarggs
 
-## Blarggs Cpu Instruction
+|# |name               |state             |
+|- |-                  |-                 |
+|01|cgb_sound          |:no_entry_sign:   |
+|02|cpu_instrs         |:heavy_check_mark:|
+|03|dmg_sound          |:x:               |
+|04|halt_bug           |:grey_question:   |
+|05|instr_timing       |:heavy_check_mark:|
+|06|interrupt_time     |:x:               |
+|07|mem_timing-2       |:grey_question:   |
+|08|mem_timing         |:grey_question:   |
+|09|oam_bug            |:grey_question:   |
+
+### Blarggs Cpu Instruction
 
 |# |name               |state             |
 |- |-                  |-                 |
@@ -38,6 +51,8 @@ Test with `./test`
 |09|op r,r             |:heavy_check_mark:|
 |10|bit ops            |:heavy_check_mark:|
 |11|op a,(hl)          |:heavy_check_mark:|
+
+
 
 # TODO
 

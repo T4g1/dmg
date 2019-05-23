@@ -875,13 +875,15 @@ void CPU::inc(uint8_t opcode)
         clock += 8;
         return inc16(get_target16(opcode >> 4));
     /* Inc 8-bit registers */
+    case 0x34:
+        clock += 8;     // INC (HL) takes 8 extra clock cycle (total 12)
+        __attribute__ ((fallthrough));
     case 0x04:
     case 0x0C:
     case 0x14:
     case 0x1C:
     case 0x24:
     case 0x2C:
-    case 0x34:
     case 0x3C:
         clock += 4;
         return inc8(get_target((opcode - 0x04) / 0x08));
@@ -901,13 +903,15 @@ void CPU::dec(uint8_t opcode)
         clock += 8;
         return dec16(get_target16(opcode >> 4));
     /* Dec 8-bit registers */
+    case 0x35:
+        clock += 8;     // DEC (HL) takes 8 extra clock cycle (total 12)
+        __attribute__ ((fallthrough));
     case 0x05:
     case 0x0D:
     case 0x15:
     case 0x1D:
     case 0x25:
     case 0x2D:
-    case 0x35:
     case 0x3D:
         clock += 4;
         return dec8(get_target((opcode - 0x05) / 0x08));
@@ -1213,7 +1217,12 @@ void CPU::prefix_CB(uint8_t opcode)
     size_t ticks = 8;
     /* Addressing (HL) takes 8 additional cycles */
     if (opcode % 8 == 6) {
-        ticks += 8;
+        ticks = 16;
+        // Except for 0x46, 0x56, 0x66, 0x76 and 0x4E, 0x5E, 0x6E, 0x7E
+        if ((((opcode & 0x0F) == 0x06 || (opcode & 0x0F) == 0x0E)) &&
+            opcode > 0x40 && opcode < 0x80) {
+            ticks = 12;
+        }
     }
 
     PC += 2;
