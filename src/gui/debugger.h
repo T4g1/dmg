@@ -81,6 +81,9 @@ public:
     void set_dmg(DMG *dmg);
     void set_ppu(PPU *ppu);
 
+    void save();
+    void load();
+
 private:
     bool running;
     int execution_speed;

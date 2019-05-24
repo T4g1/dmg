@@ -5,6 +5,8 @@
 #include "imgui_impl_opengl3.h"
 #include "imgui_memory_editor.h"
 #include <GL/gl3w.h>
+#include <iostream>
+#include <fstream>
 
 #include "../utils.h"
 #include "../dmg.h"
@@ -119,6 +121,8 @@ bool Debugger::init()
     running = true;
     last_refresh = 0;
 
+    load();
+
     return true;
 }
 
@@ -219,6 +223,8 @@ void Debugger::quit()
 
     sdl_window = nullptr;
     running = false;
+
+    save();
 }
 
 
@@ -963,6 +969,45 @@ void Debugger::feed_memory_read(uint16_t address)
             return;
         }
     }
+}
+
+
+/**
+ * @brief      Save breakpoints for next session
+ */
+void Debugger::save()
+{
+    std::ofstream file;
+    file.open(".breakpoints", std::ios::binary);
+
+    for (auto breakpoint : breakpoints) {
+        file.write(reinterpret_cast<const char*>(&breakpoint), sizeof(Breakpoint));
+    }
+
+    file.close();
+}
+
+
+/**
+ * @brief      Loads breakpoints from previous session
+ */
+void Debugger::load()
+{
+    std::ifstream file;
+    file.open(".breakpoints", std::ios::binary);
+
+    while (!file.eof()) {
+        int c = file.peek();
+        if (c == EOF) {
+            break;
+        }
+
+        Breakpoint breakpoint;
+        file.read(reinterpret_cast<char*>(&breakpoint), sizeof(Breakpoint));
+        breakpoints.push_back(breakpoint);
+    }
+
+    file.close();
 }
 
 
