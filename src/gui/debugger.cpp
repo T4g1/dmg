@@ -109,6 +109,9 @@ bool Debugger::init()
     // Setup Dear ImGui style
     ImGui::StyleColorsDark();
 
+    ImGuiStyle& style = ImGui::GetStyle();
+    style.FrameBorderSize = 1.0f;
+
     // Setup Platform/Renderer bindings
     ImGui_ImplSDL2_InitForOpenGL(sdl_window, gl_context);
     ImGui_ImplOpenGL3_Init(GLSL_VERSION);
@@ -504,6 +507,7 @@ void Debugger::display_VRAM_status()
 
         if (ImGui::BeginTabBar("tabs_bar", ImGuiTabBarFlags_None))
         {
+            ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1,1));
             if (ImGui::BeginTabItem("Tiles"))
             {
                 ImGui::BeginChild("tiles_container", ImVec2(
@@ -515,37 +519,24 @@ void Debugger::display_VRAM_status()
                 glDeleteTextures(TOTAL_TILE_COUNT, vram_tilemap);
 
                 ImGuiStyle& style = ImGui::GetStyle();
-                style.ItemSpacing.x = 1;
-                style.ItemSpacing.y = 1;
 
                 for (size_t tile_id=0; tile_id<TOTAL_TILE_COUNT; tile_id++) {
                     uint8_t pixels[RGB_TILE_SIZE];
                     ppu->draw_tile(pixels, tile_id);
                     vram_tilemap[tile_id] = create_texture(pixels, TILE_WIDTH, TILE_HEIGHT);
 
-                    ImGui::Image(
-                        (ImTextureID)(intptr_t)vram_tilemap[tile_id],
-                        ImVec2(DISPLAY_TILE_WIDTH, DISPLAY_TILE_HEIGHT)
-                    );
+                    ImageTimeHoverable((ImTextureID)(intptr_t)vram_tilemap[tile_id]);
                     ImGui::NextColumn();
                 }
-
-                style.ItemSpacing.x = 8;
-                style.ItemSpacing.y = 4;
-                /*
-                if (ImGui::IsItemHovered())
-                {
-                    ImGui::BeginTooltip();
-                    // TODO: Zoom
-                    ImGui::EndTooltip();
-                }
-                */
 
                 ImGui::Columns(1, "boolean", false);
 
                 ImGui::EndChild();
                 ImGui::EndTabItem();
             }
+
+            ImGui::PopStyleVar();
+
             ImGui::EndTabBar();
         }
 
@@ -834,6 +825,30 @@ void Debugger::ColorBoolean(bool condition)
         ImGuiColorEditFlags_NoDragDrop |
         ImGuiColorEditFlags_NoOptions
     );
+}
+
+
+void Debugger::ImageTimeHoverable(ImTextureID texture)
+{
+    ImGui::Image(texture, ImVec2(DISPLAY_TILE_WIDTH, DISPLAY_TILE_HEIGHT));
+
+    if (ImGui::IsItemHovered())
+    {
+        ImGui::BeginTooltip();
+        float region_sz = 32.0f;
+        float zoom = 4.0f;
+        ImVec2 uv0 = ImVec2(0.0f, 0.f);
+        ImVec2 uv1 = ImVec2(1.0f, 1.0f);
+        ImGui::Image(
+            texture,
+            ImVec2(region_sz * zoom, region_sz * zoom),
+            uv0,
+            uv1,
+            ImVec4(1.0f, 1.0f, 1.0f, 1.0f),
+            ImVec4(1.0f, 1.0f, 1.0f, 0.5f)
+        );
+        ImGui::EndTooltip();
+    }
 }
 
 

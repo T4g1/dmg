@@ -83,6 +83,7 @@ private:
 
     uint16_t translate(char buffer[], size_t size, uint16_t address);
     void ColorBoolean(bool condition);
+    void ImageTimeHoverable(ImTextureID texture);
 
     void display_memory();
     void display_registers();
