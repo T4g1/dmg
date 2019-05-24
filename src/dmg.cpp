@@ -47,7 +47,10 @@ bool DMG::init(const char *path_bios, const char *path_rom)
     debugger->set_ppu(ppu);
     debugger->set_dmg(this);
 
-    running  = cart.load(path_rom);
+    // Bad cartridge are a correct use case
+    cart.load(path_rom);
+
+    running  = true;
     running &= mmu->init(path_bios, &cart);
     running &= cpu->init();
     running &= ppu->init();

@@ -23,13 +23,13 @@ bool Cartridge::load(const char *path_rom)
 {
     debug("Loading cartridge ROM: %s\n", path_rom);
 
-    delete mbc;
-
     FILE *f = fopen(path_rom, "rb");
     if (f == NULL) {
         error("Unable to read provided cartridge ROM file\n");
         return false;
     }
+
+    delete mbc;
 
     uint8_t memory_bank[MBC_SIZE];
     size_t address = 0;     //!< Address in the memory bank being read
