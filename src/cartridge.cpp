@@ -29,8 +29,6 @@ bool Cartridge::load(const char *path_rom)
         return false;
     }
 
-    delete mbc;
-
     uint8_t memory_bank[MBC_SIZE];
     size_t address = 0;     //!< Address in the memory bank being read
     size_t mb_index = 0;    //!< Index of memory bank
@@ -43,6 +41,8 @@ bool Cartridge::load(const char *path_rom)
         if (mb_index == 0) {
             uint8_t cartridge_type = memory_bank[CARTRIDGE_TYPE_ADDRESS];
             uint8_t rom_type = memory_bank[ROM_SIZE_ADDRESS];
+
+            delete mbc;
 
             if (cartridge_type == CART_TYPE_ROM_ONLY) {
                 mbc = new NoMBC();
