@@ -518,8 +518,6 @@ void Debugger::display_VRAM_status()
 
                 glDeleteTextures(TOTAL_TILE_COUNT, vram_tilemap);
 
-                ImGuiStyle& style = ImGui::GetStyle();
-
                 for (size_t tile_id=0; tile_id<TOTAL_TILE_COUNT; tile_id++) {
                     uint8_t pixels[RGB_TILE_SIZE];
                     ppu->draw_tile(pixels, tile_id);
@@ -836,7 +834,7 @@ void Debugger::ImageTimeHoverable(ImTextureID texture)
     {
         ImGui::BeginTooltip();
         float region_sz = 32.0f;
-        float zoom = 4.0f;
+        float zoom = 2.0f;
         ImVec2 uv0 = ImVec2(0.0f, 0.f);
         ImVec2 uv1 = ImVec2(1.0f, 1.0f);
         ImGui::Image(
@@ -878,9 +876,15 @@ void Debugger::feed_memory_write(uint16_t /*address*/)
  * @brief      Called when a read occurs
  * @param[in]  address  The address at which we read
  */
-void Debugger::feed_memory_read(uint16_t /*address*/)
+void Debugger::feed_memory_read(uint16_t address)
 {
-    // TODO: Break if needed
+    if (!breakpoint_set) {
+        return;
+    }
+
+    if (address == breakpoint) {
+        suspend_dmg = true;
+    }
 }
 
 
