@@ -126,6 +126,8 @@ public:
     void set_palette(size_t palette_index);
     void set_mmu(MMU *mmu);
 
+    void draw_tile(uint8_t buffer[], size_t tile_id);
+
 private:
     MMU *mmu;
 

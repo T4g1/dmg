@@ -86,6 +86,26 @@ uint16_t char_to_hex(const char *value)
     return result;
 }
 
+
+/**
+ * @brief      Get the pixel at given index from the data given
+ * @param[in]  data1  First data row of that tile line
+ * @param[in]  data2  Second data row of that tile line
+ * @param[in]  index  The index of the pixel [0, 7]
+ * @return     The pixel value.
+ */
+uint8_t get_pixel_value(uint8_t data1, uint8_t data2, size_t index)
+{
+    // 8 first bit (data1) = low bit of data for the pixels
+    // 8 last bit (data2) = high bit of data for the pixels
+    // b7 b6 b5 b4 b3 b2 b1 b0 so 7 - index to get correct bit
+    size_t low = get_bit(data1, 7 - index);
+    size_t high = get_bit(data2, 7 - index);
+
+    return (high << 1) + low;
+}
+
+
 void set_pixel(SDL_Surface *surface, size_t x, size_t y, Uint32 color)
 {
     Uint32 *pixels = (Uint32 *) surface->pixels;
@@ -99,13 +119,14 @@ void set_pixel(SDL_Surface *surface, size_t x, size_t y, Uint32 color)
  * @param      data data to use for pixels array of [3] for RGB
  * @return     ImGui texture ID
  */
-GLuint create_texture(float data[], size_t width, size_t height)
+GLuint create_texture(uint8_t data[], size_t width, size_t height)
 {
     GLuint textureID;
     glGenTextures(1, &textureID);
 
     glBindTexture(GL_TEXTURE_2D, textureID);
-    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_FLOAT, data);
+    glPixelStorei(GL_UNPACK_ALIGNMENT, 1);
+    glTexImage2D(GL_TEXTURE_2D, 0, GL_RGB, width, height, 0, GL_RGB, GL_UNSIGNED_BYTE, data);
 
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MIN_FILTER, GL_NEAREST);
     glTexParameteri(GL_TEXTURE_2D, GL_TEXTURE_MAG_FILTER, GL_NEAREST);

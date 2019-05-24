@@ -348,19 +348,13 @@ void PPU::fetch_sprite(const Sprite &sprite, size_t ly, size_t pixel_count)
     for (size_t i=0; i<pixel_count; i++) {
         uint8_t index = (TILE_WIDTH - pixel_count) + i;
 
-        // 8 first bit (data1) = low bit of data for the pixels
-        // 8 last bit (data2) = high bit of data for the pixels
-        // b7 b6 b5 b4 b3 b2 b1 b0 so 7 - index to get correct bit
-        size_t low = get_bit(data1, 7 - index);
-        size_t high = get_bit(data2, 7 - index);
         if (get_bit(sprite.attrs, BIT_SPRITE_X_FLIP)) {
-            low = get_bit(data1, index);
-            high = get_bit(data2, index);
+            pixel.value = get_pixel_value(data1, data2, 7 - index);
+        } else {
+            pixel.value = get_pixel_value(data1, data2, index);
         }
 
         Pixel current_pixel = pixel_fifo[(pf_index + i) % FIFO_SIZE];
-
-        pixel.value = (high << 1) + low;
 
         // Sprite with lowest X is on top
         if (current_pixel.type == SPRITE_OBP0 ||
@@ -411,14 +405,8 @@ void PPU::fetch_at(
 
     // Exctract the 8 pixels for the data
     for (size_t i=0; i<TILE_WIDTH; i++) {
-        // 8 first bit (data1) = low bit of data for the pixels
-        // 8 last bit (data2) = high bit of data for the pixels
-        // b7 b6 b5 b4 b3 b2 b1 b0 so 7 - i to get correct bit
-        size_t low = get_bit(data1, 7 - i);
-        size_t high = get_bit(data2, 7 - i);
-
         Pixel pixel;
-        pixel.value = (high << 1) + low;
+        pixel.value = get_pixel_value(data1, data2, i);
         pixel.type = BG;    // Only used for palette so same as WINDOW here
 
         pixel_fifo[(pf_index + pf_size++) % FIFO_SIZE] = pixel;
@@ -635,4 +623,38 @@ void PPU::set_palette(size_t palette_index)
 void PPU::set_mmu(MMU *mmu)
 {
     this->mmu = mmu;
+}
+
+
+/**
+ * @brief      Draw each tile information as a RGB float for OpenGL in the given buffer
+ * Assumes buffer is TILE_WIDTH * TILE_HEIGHT * 3 (RGB) in size
+ * @param      buffer   The buffer
+ * @param[in]  tile_id  The tile identifier
+ */
+void PPU::draw_tile(uint8_t buffer[], size_t tile_id)
+{
+    uint16_t tile_address = TILE_ADDRESS_1 + (tile_id * TILE_SIZE);
+
+    for (size_t y=0; y<TILE_HEIGHT; y++) {
+        uint16_t line_address = tile_address + (y * TILE_LINE_SIZE);
+
+        uint8_t data1 = mmu->get_nocheck(line_address);
+        uint8_t data2 = mmu->get_nocheck(line_address + 1);
+
+        for (size_t x=0; x<TILE_WIDTH; x++) {
+            uint8_t pixel = get_pixel_value(data1, data2, x);
+
+            size_t index = (y * TILE_WIDTH) + x;
+            index *= 3;     // Three color component
+
+            SDL_GetRGB(
+                palette[pixel],
+                pixel_format,
+                &buffer[index + 0],
+                &buffer[index + 1],
+                &buffer[index + 2]
+            );
+        }
+    }
 }

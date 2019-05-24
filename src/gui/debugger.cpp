@@ -22,10 +22,10 @@ Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr), ppu(nullptr)
     suspend_dmg = false;
     step_dmg = false;
 
-    breakpoint = 0;
-    breakpoint_string[0] = '0';
+    breakpoint = 0x8010;
+    breakpoint_string[0] = '8';
     breakpoint_string[1] = '0';
-    breakpoint_string[2] = '0';
+    breakpoint_string[2] = '1';
     breakpoint_string[3] = '0';
     breakpoint_string[4] = '\0';
 
@@ -33,7 +33,9 @@ Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr), ppu(nullptr)
 
     sdl_window = nullptr;
 
-    vram_tilemap = 0;
+    for (size_t tile_id=0; tile_id<TOTAL_TILE_COUNT; tile_id++) {
+        vram_tilemap[tile_id] = 0;
+    }
 
     execution_speed = DEFAULT_SPEED;
 }
@@ -299,8 +301,10 @@ void Debugger::display_execution()
         ImGui::SameLine();
         ColorBoolean(breakpoint_set);
 
+        ImGui::SetNextItemWidth(100);
         ImGui::DragInt("Speed", &execution_speed, 0.25f, 1, 5000, "%d");
 
+        ImGui::SetNextItemWidth(100);
         ImGui::InputText("Breakpoint", breakpoint_string, 5, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
 
         if (breakpoint_set) {
@@ -495,27 +499,54 @@ void Debugger::display_VRAM_status()
 {
     const char *title = "VRAM Status";
 
-    //GLuint tilemap = ppu->tilemap_to_texture();
-    float pixels [] = {1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f,
-                           1.0f, 0.0f, 0.0f, 1.0f, 0.0f, 0.0f
-    };
-
-    if (vram_tilemap != 0) {
-        glDeleteTextures(1, &vram_tilemap);
-    }
-
-    vram_tilemap = create_texture(pixels, 2, 2);
-
-    ImGuiIO& io = ImGui::GetIO();
     if (ImGui::Begin(title)) {
         ImGui::BeginChild("status");
 
-        ImGui::Image((ImTextureID)(intptr_t)vram_tilemap, ImVec2(50, 50));
-        if (ImGui::IsItemHovered())
+        if (ImGui::BeginTabBar("tabs_bar", ImGuiTabBarFlags_None))
         {
-            ImGui::BeginTooltip();
-            // TODO: Zoom
-            ImGui::EndTooltip();
+            if (ImGui::BeginTabItem("Tiles"))
+            {
+                ImGui::BeginChild("tiles_container", ImVec2(
+                    (DISPLAY_TILE_WIDTH + 1) * TILE_PER_COLUMN,
+                    (DISPLAY_TILE_HEIGHT + 1) * TILE_PER_ROW * TILESETS
+                ));
+                ImGui::Columns(TILE_PER_COLUMN, "boolean", false);
+
+                glDeleteTextures(TOTAL_TILE_COUNT, vram_tilemap);
+
+                ImGuiStyle& style = ImGui::GetStyle();
+                style.ItemSpacing.x = 1;
+                style.ItemSpacing.y = 1;
+
+                for (size_t tile_id=0; tile_id<TOTAL_TILE_COUNT; tile_id++) {
+                    uint8_t pixels[RGB_TILE_SIZE];
+                    ppu->draw_tile(pixels, tile_id);
+                    vram_tilemap[tile_id] = create_texture(pixels, TILE_WIDTH, TILE_HEIGHT);
+
+                    ImGui::Image(
+                        (ImTextureID)(intptr_t)vram_tilemap[tile_id],
+                        ImVec2(DISPLAY_TILE_WIDTH, DISPLAY_TILE_HEIGHT)
+                    );
+                    ImGui::NextColumn();
+                }
+
+                style.ItemSpacing.x = 8;
+                style.ItemSpacing.y = 4;
+                /*
+                if (ImGui::IsItemHovered())
+                {
+                    ImGui::BeginTooltip();
+                    // TODO: Zoom
+                    ImGui::EndTooltip();
+                }
+                */
+
+                ImGui::Columns(1, "boolean", false);
+
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+            ImGui::EndTabBar();
         }
 
         ImGui::EndChild();

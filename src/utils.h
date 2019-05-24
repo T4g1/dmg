@@ -21,7 +21,8 @@ void dec16(uint8_t *address);
 void inc16(uint8_t *address);
 uint16_t char_to_hex(const char *value);
 
+uint8_t get_pixel_value(uint8_t data1, uint8_t data2, size_t index);
 void set_pixel(SDL_Surface *surface, size_t x, size_t y, Uint32 color);
-GLuint create_texture(float data[], size_t width, size_t height);
+GLuint create_texture(uint8_t data[], size_t width, size_t height);
 
 #endif /* UTILS_H */

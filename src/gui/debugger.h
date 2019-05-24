@@ -5,8 +5,21 @@
 #include <SDL2/SDL.h>
 #include "imgui.h"
 
-#define DEBUGGER_WIDTH        800
-#define DEBUGGER_HEIGHT       600
+#define DEBUGGER_WIDTH          800
+#define DEBUGGER_HEIGHT         600
+
+#define TILESETS                3
+
+// Draw an array of tiles with those dimensions
+#define TILE_PER_ROW            8
+#define TILE_PER_COLUMN         16
+
+#define DISPLAY_TILE_WIDTH      TILE_WIDTH * 2
+#define DISPLAY_TILE_HEIGHT     TILE_HEIGHT * 2
+
+#define TOTAL_TILE_COUNT        TILESETS * TILE_PER_ROW * TILE_PER_COLUMN
+#define RGB_TILE_SIZE           TILE_WIDTH * TILE_HEIGHT * 3
+
 
 #define TRANSLATION(increment, fmt, ...) \
     snprintf(buffer, size, fmt, ##__VA_ARGS__); return increment;
@@ -66,7 +79,7 @@ private:
 
     char breakpoint_string[5];
 
-    GLuint vram_tilemap;
+    GLuint vram_tilemap[TOTAL_TILE_COUNT];
 
     uint16_t translate(char buffer[], size_t size, uint16_t address);
     void ColorBoolean(bool condition);
