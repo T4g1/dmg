@@ -582,8 +582,6 @@ const char *PPU::get_current_mode()
     default:
     case V_BLANK: return "V-Blank";
     }
-
-    return "";
 }
 
 

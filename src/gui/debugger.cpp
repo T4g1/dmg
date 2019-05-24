@@ -22,15 +22,6 @@ Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr), ppu(nullptr)
     suspend_dmg = false;
     step_dmg = false;
 
-    breakpoint = 0x8010;
-    breakpoint_string[0] = '8';
-    breakpoint_string[1] = '0';
-    breakpoint_string[2] = '1';
-    breakpoint_string[3] = '0';
-    breakpoint_string[4] = '\0';
-
-    breakpoint_set = false;
-
     sdl_window = nullptr;
 
     for (size_t tile_id=0; tile_id<TOTAL_TILE_COUNT; tile_id++) {
@@ -38,6 +29,15 @@ Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr), ppu(nullptr)
     }
 
     execution_speed = DEFAULT_SPEED;
+
+    show_execution = false;
+    show_memory = false;
+    show_vram = false;
+    show_ppu = false;
+    show_cpu = false;
+    show_breakpoints = false;
+
+    breakpoints.clear();
 }
 
 
@@ -131,13 +131,6 @@ bool Debugger::update()
 {
     dmg->set_speed(execution_speed);
 
-    breakpoint = char_to_hex(breakpoint_string);
-
-    bool breakpoint_reached = breakpoint_set && cpu->PC == breakpoint;
-    if (breakpoint_reached) {
-        suspend_dmg = true;
-    }
-
     return suspend_dmg && !step_dmg;
 }
 
@@ -157,11 +150,25 @@ void Debugger::draw()
     ImGui_ImplSDL2_NewFrame(sdl_window);
     ImGui::NewFrame();
 
-    display_memory();
-    display_registers();
-    display_execution();
-    display_PPU_status();
-    display_VRAM_status();
+    if (ImGui::BeginMainMenuBar())
+    {
+        ToggleButton("CPU", &show_cpu);
+        ToggleButton("Memory", &show_memory);
+        ToggleButton("Execution", &show_execution);
+        ToggleButton("Breakpoints", &show_breakpoints);
+        ToggleButton("PPU", &show_ppu);
+        ToggleButton("VRAM", &show_vram);
+        ToggleButton("Demo", &show_demo); // DEBUG
+    }
+    ImGui::EndMainMenuBar();
+
+    if (show_cpu) display_registers();
+    if (show_memory) display_memory();
+    if (show_execution) display_execution();
+    if (show_breakpoints) display_breakpoints();
+    if (show_ppu) display_PPU_status();
+    if (show_vram) display_VRAM_status();
+    if (show_demo) ImGui::ShowDemoWindow(&show_demo); // DEBUG
 
     // Rendering
     ImGui::Render();
@@ -228,7 +235,7 @@ void Debugger::display_memory()
 {
     const char *title = "Memory";
 
-    ImGui::Begin(title);
+    ImGui::Begin(title, &show_memory);
 
     memoryViewer.DrawContents(mmu, mmu->ram, 0x10000);
 
@@ -241,9 +248,13 @@ void Debugger::display_memory()
  */
 void Debugger::display_registers()
 {
+    if (!show_cpu) {
+        return;
+    }
+
     const char *title = "Registers";
 
-    if (ImGui::Begin(title)) {
+    if (ImGui::Begin(title, &show_cpu)) {
         ImGui::BeginChild("registers");
 
         ImGui::Text("PC: 0x%04X", cpu->PC);
@@ -286,12 +297,12 @@ void Debugger::display_registers()
  */
 void Debugger::display_execution()
 {
-    const size_t buffer_size = 75;
     const char *title = "Execution";
 
+    const size_t buffer_size = 75;
     char buffer[buffer_size];
 
-    if (ImGui::Begin(title)) {
+    if (ImGui::Begin(title, &show_execution)) {
         ImGui::BeginChild("execution");
 
         ImGui::Columns(1, "control1", false);
@@ -300,25 +311,8 @@ void Debugger::display_execution()
         ImGui::SameLine();
         ColorBoolean(suspend_dmg);
 
-        ImGui::Text("Breakpoint activated:");
-        ImGui::SameLine();
-        ColorBoolean(breakpoint_set);
-
         ImGui::SetNextItemWidth(100);
         ImGui::DragInt("Speed", &execution_speed, 0.25f, 1, 5000, "%d");
-
-        ImGui::SetNextItemWidth(100);
-        ImGui::InputText("Breakpoint", breakpoint_string, 5, ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
-
-        if (breakpoint_set) {
-            if (ImGui::Button("Disable breakpoint")) {
-                breakpoint_set = false;
-            }
-        } else {
-            if (ImGui::Button("Enable breakpoint")) {
-                breakpoint_set = true;
-            }
-        }
 
         ImGui::Columns(3, "control2", false);
 
@@ -421,10 +415,9 @@ void Debugger::display_execution()
  */
 void Debugger::display_PPU_status()
 {
-
     const char *title = "PPU Status";
 
-    if (ImGui::Begin(title)) {
+    if (ImGui::Begin(title, &show_ppu)) {
         ImGui::BeginChild("status");
 
         ImGui::Columns(2, "boolean", false);
@@ -436,7 +429,7 @@ void Debugger::display_PPU_status()
 
         ImGui::Text("Mode:");
         ImGui::NextColumn();
-        ImGui::Text(ppu->get_current_mode());
+        ImGui::Text("%s", ppu->get_current_mode());
         ImGui::NextColumn();
 
         ImGui::Columns(1, "boolean", false);
@@ -501,8 +494,15 @@ void Debugger::display_PPU_status()
 void Debugger::display_VRAM_status()
 {
     const char *title = "VRAM Status";
-
-    if (ImGui::Begin(title)) {
+    ImGuiWindowFlags flags = ImGuiWindowFlags_NoScrollbar | ImGuiWindowFlags_NoResize;
+    ImGui::SetNextWindowSizeConstraints(
+        ImVec2(
+            (DISPLAY_TILE_WIDTH + 1) * TILE_PER_COLUMN,
+            (DISPLAY_TILE_HEIGHT + 1) * TILE_PER_ROW * TILESETS
+        ),
+        ImVec2(FLT_MAX, FLT_MAX)
+    );
+    if (ImGui::Begin(title, &show_vram, flags)) {
         ImGui::BeginChild("status");
 
         if (ImGui::BeginTabBar("tabs_bar", ImGuiTabBarFlags_None))
@@ -510,10 +510,7 @@ void Debugger::display_VRAM_status()
             ImGui::PushStyleVar(ImGuiStyleVar_ItemSpacing, ImVec2(1,1));
             if (ImGui::BeginTabItem("Tiles"))
             {
-                ImGui::BeginChild("tiles_container", ImVec2(
-                    (DISPLAY_TILE_WIDTH + 1) * TILE_PER_COLUMN,
-                    (DISPLAY_TILE_HEIGHT + 1) * TILE_PER_ROW * TILESETS
-                ));
+                ImGui::BeginChild("tiles_container");
                 ImGui::Columns(TILE_PER_COLUMN, "boolean", false);
 
                 glDeleteTextures(TOTAL_TILE_COUNT, vram_tilemap);
@@ -539,6 +536,64 @@ void Debugger::display_VRAM_status()
         }
 
         ImGui::EndChild();
+    }
+
+    ImGui::End();
+}
+
+
+/**
+ * @brief      Display breakpoint settings
+ */
+void Debugger::display_breakpoints()
+{
+    const char *title = "Breakpoints";
+
+    const ImU16 step1 = 0x0001;
+    const ImU16 step10 = 0x0010;
+    static ImU16 breakpoint_address = 0x0000;
+
+    if (ImGui::Begin(title, &show_breakpoints)) {
+        ImGui::SetNextItemWidth(100);
+        ImGui::InputScalar("Address", ImGuiDataType_U16, &breakpoint_address, &step1, &step10, "%04X", ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
+        ImGui::SameLine();
+        if (ImGui::Button("Add")) {
+            bool unique = true;
+            // Not already in the list
+            for (auto breakpoint : breakpoints) {
+                if (breakpoint.address == breakpoint_address) {
+                    unique = false;
+                }
+            }
+
+            if (unique) {
+                Breakpoint breakpoint = {
+                    .address = (uint16_t)breakpoint_address,
+                    .read = false,
+                    .write = false
+                };
+
+                breakpoints.push_back(breakpoint);
+            }
+        }
+        ImGui::Separator();
+        ImGui::Columns(4, "breakpoints", false);
+
+        for (size_t i=0; i<breakpoints.size(); i++) {
+            Breakpoint *breakpoint = &breakpoints[i];
+            ImGui::PushID(breakpoint);
+
+            ImGui::Text("0x%04X", breakpoint->address); ImGui::NextColumn();
+            ToggleButton("read", &breakpoint->read); ImGui::NextColumn();
+            ToggleButton("write", &breakpoint->write); ImGui::NextColumn();
+            if (ImGui::Button("Delete")) {
+                breakpoints.erase(breakpoints.begin() + i);
+            }
+            ImGui::NextColumn();
+            ImGui::PopID();
+        }
+
+        ImGui::Columns(1);
     }
 
     ImGui::End();
@@ -826,6 +881,25 @@ void Debugger::ColorBoolean(bool condition)
 }
 
 
+void Debugger::ToggleButton(const char *text, bool *boolean)
+{
+    ImVec4 active = ImVec4(0.0f, 1.0f, 0.0f, 0.3f);
+    ImVec4 inactive = ImVec4(1.0f, 0.0f, 0.0f, 0.3f);
+
+    if (*boolean) {
+        ImGui::PushStyleColor(ImGuiCol_Button, active);
+    } else {
+        ImGui::PushStyleColor(ImGuiCol_Button, inactive);
+    }
+
+    if (ImGui::Button(text)) {
+        *boolean = !*boolean;
+    }
+
+    ImGui::PopStyleColor(1);
+}
+
+
 void Debugger::ImageTimeHoverable(ImTextureID texture)
 {
     ImGui::Image(texture, ImVec2(DISPLAY_TILE_WIDTH, DISPLAY_TILE_HEIGHT));
@@ -866,9 +940,14 @@ void Debugger::set_speed(size_t speed)
  * @brief      Called by MMU when a write occurs
  * @param[in]  address  The address at which we wrote
  */
-void Debugger::feed_memory_write(uint16_t /*address*/)
+void Debugger::feed_memory_write(uint16_t address)
 {
-    // TODO: Break if needed
+    for (auto breakpoint : breakpoints) {
+        if (breakpoint.write && breakpoint.address == address) {
+            suspend_dmg = true;
+            return;
+        }
+    }
 }
 
 
@@ -878,12 +957,11 @@ void Debugger::feed_memory_write(uint16_t /*address*/)
  */
 void Debugger::feed_memory_read(uint16_t address)
 {
-    if (!breakpoint_set) {
-        return;
-    }
-
-    if (address == breakpoint) {
-        suspend_dmg = true;
+    for (auto breakpoint : breakpoints) {
+        if (breakpoint.read && breakpoint.address == address) {
+            suspend_dmg = true;
+            return;
+        }
     }
 }
 
