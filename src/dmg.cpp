@@ -121,7 +121,13 @@ void DMG::process()
         system_clock = cpu->clock;
     }
 
-    // TODO: Prevent clock overflow by substracting some value from them all
+    // FIXME: THis may not be necessary given size limit of size_t
+    // TODO: Check i does not affect timing
+    if (system_clock > 0x100000000) {
+        timer->clock -= 0x80000000;
+        cpu->clock -= 0x80000000;
+        ppu->clock -= 0x80000000;
+    }
 }
 
 

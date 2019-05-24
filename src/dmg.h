@@ -45,6 +45,8 @@ public:
     void fake_boot();
     void set_palette(char palette_index);
     void set_speed(size_t speed);
+
+    friend class Debugger;
 };
 
 #endif /* DMG_H */

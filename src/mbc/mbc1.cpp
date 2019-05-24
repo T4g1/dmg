@@ -33,17 +33,17 @@ void MBC1::init()
 
 
 /**
- * @brief      Give access to the requested address in the correct memory bank
+ * @brief      Give value from MBC
  * @param[in]  address  Requested address
  * @return     Address to an immutable value
  */
-const void *MBC1::at(uint16_t address)
+uint8_t MBC1::get(uint16_t address)
 {
     if (address <= ROM0_END) {
-        return &memory[address % MBC_SIZE];
+        return memory[address % MBC_SIZE];
     }
 
-    return &memory[(get_selected_rom_bank() * MBC_SIZE) + (address % MBC_SIZE)];
+    return memory[(get_selected_rom_bank() * MBC_SIZE) + (address % MBC_SIZE)];
 }
 
 

@@ -313,6 +313,7 @@ void Debugger::display_execution()
 
         ImGui::Columns(1, "control1", false);
 
+        ImGui::Text("Clock: %zu", dmg->system_clock);
         ImGui::Text("Suspended:");
         ImGui::SameLine();
         ColorBoolean(suspend_dmg);

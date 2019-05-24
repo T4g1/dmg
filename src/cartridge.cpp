@@ -90,11 +90,11 @@ bool Cartridge::load(const char *path_rom)
 /**
  * @brief      Give access to the ROM of the cartridge using the MBC
  * @param[in]  address  Requested address
- * @return     Constant pointer to the address requested
+ * @return     Value
  */
-const void *Cartridge::at(uint16_t address)
+uint8_t Cartridge::get(uint16_t address)
 {
-    return mbc->at(address);
+    return mbc->get(address);
 }
 
 
@@ -106,6 +106,7 @@ bool Cartridge::set(uint16_t address, uint8_t value)
 size_t Cartridge::get_bank_count(uint8_t rom_type)
 {
     switch(rom_type) {
+    default:
     case 0x00: return 2;
     case 0x01: return 4;
     case 0x02: return 8;
@@ -117,10 +118,7 @@ size_t Cartridge::get_bank_count(uint8_t rom_type)
     case 0x52: return 72;
     case 0x53: return 80;
     case 0x54: return 96;
-    default: return 0;
     }
-
-    return 0;
 }
 
 

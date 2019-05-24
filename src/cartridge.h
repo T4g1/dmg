@@ -25,7 +25,7 @@ public:
     Cartridge();
 
     bool load(const char *path_rom);
-    const void *at(uint16_t address);
+    uint8_t get(uint16_t address);
     bool set(uint16_t address, uint8_t value);
 
     static size_t get_bank_count(uint8_t rom_type);

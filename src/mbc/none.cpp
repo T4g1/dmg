@@ -17,9 +17,9 @@ void NoMBC::init()
 }
 
 
-const void *NoMBC::at(uint16_t address)
+uint8_t NoMBC::get(uint16_t address)
 {
-    return &memory[address % ROM_SIZE];
+    return memory[address % ROM_SIZE];
 }
 
 

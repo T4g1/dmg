@@ -1491,7 +1491,7 @@ bool test_CARTRIDGE_read_MBC1()
     ASSERT(cart.load("tests/fake_rom.gb"));
 
     mmu->set_cartridge(&cart);
-    ASSERT(*(uint8_t *)cart.at(0x0104) == 0xCE);
+    ASSERT(cart.get(0x0104) == 0xCE);
 
     ASSERT(mmu->get(0x0104) == 0xCE);
 

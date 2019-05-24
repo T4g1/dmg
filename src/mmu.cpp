@@ -325,8 +325,9 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
 
     // OAM transfer
     else if (address == OAM_TRANSFER) {
-        // TODO: Takes more time?
-        memcpy(ram + OAM_START, ram + (value * 0x0100), OAM_SIZE);
+        for (uint16_t i=0; i<OAM_SIZE; i++) {
+            set_nocheck(OAM_START + i, get_nocheck((value * 0x0100) + i));
+        }
     }
 }
 
@@ -439,7 +440,7 @@ void MMU::update_ram()
         memcpy(ram, cart->mbc->memory, MBC_SIZE);
 
         for (uint16_t i=MBC_SIZE; i<MBC_SIZE * 2; i++) {
-            ram[i] = *(uint8_t*) cart->at(i);
+            set_nocheck(i, cart->get(i));
         }
     }
 
