@@ -206,24 +206,9 @@ bool MMU::set(uint16_t address, uint8_t value)
     if (address == LCD_STATUS) {
         // Cannot overwrite on Mode and coincidence flag
         value &= 0b01111000;
-        value |= 0b10000000;
-    }
-    else if (address == LY) {
-        // Writting to LY reset the counter
-        value = 0;
     }
 
-    // Joypad
-    else if (address == JOYPAD) {
-        // Last two bytes always 1
-        value |= 0b11000000;
-    }
-
-    // Interrupts
-    else if (address == IF_ADDRESS) {
-        // First three bit always set
-        value |= 0xE0;
-    }
+    value = memory_masks(address, value);
 
     set_nocheck(address, value);
 
@@ -260,7 +245,9 @@ uint8_t MMU::get(uint16_t address)
         address -= 0x2000;
     }
 
-    return get_nocheck(address);
+    uint8_t value = get_nocheck(address);
+
+    return memory_masks(address, value);
 }
 
 
@@ -277,6 +264,35 @@ uint8_t MMU::get_nocheck(uint16_t address)
     }
 
     return ram[address];
+}
+
+
+/**
+ * @brief      Apply mask on some values
+ * Example: unused bits of IF should always read/set to 1
+ */
+uint8_t MMU::memory_masks(uint16_t address, uint8_t value)
+{
+
+    // LCD_STATUS
+    if (address == LCD_STATUS) {
+        // Last bit unused
+        value |= 0b10000000;
+    }
+
+    // Joypad
+    else if (address == JOYPAD) {
+        // Last two bytes always 1
+        value |= 0b11000000;
+    }
+
+    // Interrupts
+    else if (address == IF_ADDRESS) {
+        // Last three bit always set
+        value |= 0xE0;
+    }
+
+    return value;
 }
 
 

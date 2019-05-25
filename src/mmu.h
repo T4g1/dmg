@@ -48,6 +48,8 @@
 
 // Registers addresses
 #define JOYPAD              0xFF00      // Joypad
+#define SB                  0xFF01      // Serial transfert data
+#define SC                  0xFF02      // Serial transfer control
 #define DIV                 0xFF04      // Divider (timer)
 #define TIMA                0xFF05      // Timer counter
 #define TMA                 0xFF06      // Timer modulo
@@ -106,6 +108,7 @@ class MMU {
 
     address_type get_address_identity(uint16_t address);
 
+    uint8_t memory_masks(uint16_t address, uint8_t value);
     void handle_callbacks(uint16_t address, uint8_t value);
 
 public:
