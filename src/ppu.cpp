@@ -119,7 +119,10 @@ void PPU::step()
     else if (ly < MAX_LY) {
         // V-Blank interrupt
         if (ly == LINE_Y_COUNT) {
-            mmu->trigger_interrupt(INT_V_BLANK_MASK);
+            // Don't trigger interrupt when LCD is OFF
+            if (lcd_enabled) {
+                mmu->trigger_interrupt(INT_V_BLANK_MASK);
+            }
 
             SDL_UpdateWindowSurface(sdl_window);
         }
