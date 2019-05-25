@@ -165,7 +165,7 @@ void PPU::oam_search(uint8_t ly)
         sprite.x = mmu->get_nocheck(oam_address + 1);
 
         if (sprite.x != 0 &&
-            sprite.y + TILE_WIDTH > ly + SPRITE_Y_OFFSET &&
+            sprite.y + (uint8_t)sprite_height > ly + SPRITE_Y_OFFSET &&
             ly + SPRITE_Y_OFFSET >= sprite.y) {
             sprite.tile = mmu->get_nocheck(oam_address + 2);
             sprite.attrs = mmu->get_nocheck(oam_address + 3);
@@ -317,18 +317,23 @@ void PPU::fetch_window(size_t x, size_t ly)
  */
 void PPU::fetch_sprite(const Sprite &sprite, size_t ly, size_t pixel_count)
 {
+    // Line of the tile we want
     size_t viewport_y = ly - (sprite.y - SPRITE_Y_OFFSET);
 
     if (get_bit(sprite.attrs, BIT_SPRITE_Y_FLIP)) {
-        viewport_y = (TILE_HEIGHT - 1) - viewport_y;
+        viewport_y = (sprite_height - 1) - viewport_y;
     }
 
-    // Address of the tile in the tileset
-// TODO: Handle SPRITE_HEIGHT (ignore last bit)
-    uint16_t tile_address = SPRITE_TILE_ADDRESS + (sprite.tile * TILE_SIZE);
+    // Address of the tile in the tileset (mask last bit when sprite height is 16)
+    uint8_t tile = sprite.tile;
+    if (sprite_height == 16) {
+        tile &= 0xFE;
+    }
+
+    uint16_t tile_address = SPRITE_TILE_ADDRESS + (tile * TILE_SIZE);
 
     // Data for the current line of the tile being drawn
-    uint16_t tile_line_address = tile_address + TILE_LINE_SIZE * (viewport_y % TILE_HEIGHT);
+    uint16_t tile_line_address = tile_address + TILE_LINE_SIZE * (viewport_y % sprite_height);
 
     uint8_t data1 = mmu->get_nocheck(tile_line_address);
     uint8_t data2 = mmu->get_nocheck(tile_line_address + 1);
