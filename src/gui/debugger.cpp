@@ -39,6 +39,7 @@ Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr), ppu(nullptr)
     show_cpu = false;
     show_breakpoints = false;
 
+    breakpoint_activated = false;
     breakpoints.clear();
 }
 
@@ -561,6 +562,7 @@ void Debugger::display_breakpoints()
     static ImU16 breakpoint_address = 0x0000;
 
     if (ImGui::Begin(title, &show_breakpoints)) {
+        ToggleButton("Toggle breakpoints", &breakpoint_activated);
         ImGui::SetNextItemWidth(100);
         ImGui::InputScalar("Address", ImGuiDataType_U16, &breakpoint_address, &step1, &step10, "%04X", ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_CharsUppercase);
         ImGui::SameLine();

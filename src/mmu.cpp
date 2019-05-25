@@ -237,7 +237,7 @@ void MMU::set_nocheck(uint16_t address, uint8_t value)
 {
     ram[address] = value;
 
-    if (debugger != nullptr) {
+    if (debugger != nullptr && debugger->breakpoint_activated) {
         debugger->feed_memory_write(address);
     }
 }
@@ -266,7 +266,7 @@ uint8_t MMU::get(uint16_t address)
  */
 uint8_t MMU::get_nocheck(uint16_t address)
 {
-    if (debugger != nullptr) {
+    if (debugger != nullptr && debugger->breakpoint_activated) {
         debugger->feed_memory_read(address);
     }
 

@@ -56,6 +56,7 @@ public:
     bool suspend_dmg;
     bool step_dmg;
 
+    bool breakpoint_activated;
     std::vector<Breakpoint> breakpoints;
 
     Debugger();
