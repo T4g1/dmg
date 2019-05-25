@@ -14,6 +14,7 @@
 class MBC {
 public:
     uint8_t *memory;
+    uint8_t *ram;
 
     virtual ~MBC() = default;
 

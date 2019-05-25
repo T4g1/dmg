@@ -190,6 +190,13 @@ bool MMU::set(uint16_t address, uint8_t value)
     else if (identity == ROM0 || identity == ROM1) {
         cart->set(address, value);
         update_ram();
+        return true;
+    }
+
+    // Write to External RAM are passed to cartridge
+    else if (identity == SRAM) {
+        cart->set(address, value);
+        update_ram();
     }
 
     // Writting to CRASH is ignored on DMG
@@ -453,10 +460,17 @@ void MMU::update_ram()
 {
     // Put ROM in RAM
     if (cart) {
+        // Set ROM 0
         memcpy(ram, cart->mbc->memory, MBC_SIZE);
 
+        // Set ROM N
         for (uint16_t i=MBC_SIZE; i<MBC_SIZE * 2; i++) {
             set_nocheck(i, cart->get(i));
+        }
+
+        // Set SRAM
+        for (uint16_t i=0; i<RAM_MBC_SIZE; i++) {
+            set_nocheck(SRAM_START + i, cart->get(SRAM_START + i));
         }
     }
 

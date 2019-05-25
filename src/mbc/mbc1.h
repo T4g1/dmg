@@ -23,17 +23,20 @@
  * Give access to 4 memory banks (32Kbits of ROM).
  */
 class MBC1 : public MBC {
-    size_t mbc_count;
+    size_t rom_mbc_count;
+    size_t ram_mbc_count;
 
     bool rom_mode_selected;
+    bool ram_enabled;
 
     uint8_t rom_bank_select;
     uint8_t ram_bank_select;
 
     size_t get_selected_rom_bank();
+    size_t get_selected_ram_bank();
 
 public:
-    MBC1(size_t bank_count);
+    MBC1(size_t rom_mbc_count, size_t ram_mbc_count);
     ~MBC1();
 
     void init();

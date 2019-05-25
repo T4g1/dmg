@@ -17,7 +17,8 @@ public:
     uint8_t get(uint16_t address);
     bool set(uint16_t address, uint8_t value);
 
-    static size_t get_bank_count(uint8_t rom_type);
+    static size_t get_rom_bank_count(uint8_t rom_type);
+    static size_t get_ram_bank_count(uint8_t ram_type);
 };
 
 #endif /* CARTRIDGE_H */

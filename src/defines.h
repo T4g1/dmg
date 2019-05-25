@@ -32,6 +32,7 @@
 #define BOOT_SIZE           0x0100
 #define OAM_SIZE            0xA0
 #define MBC_SIZE            0x4000  // 16kB
+#define RAM_MBC_SIZE        0x2000  // 8kB
 
 // Memory locations addresses
 #define BOOT_START          0x0000

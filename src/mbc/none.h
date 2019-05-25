@@ -7,6 +7,7 @@
 class NoMBC : public MBC {
 public:
     NoMBC();
+    ~NoMBC();
 
     void init();
     uint8_t get(uint16_t address);

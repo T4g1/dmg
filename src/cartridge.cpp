@@ -42,6 +42,7 @@ bool Cartridge::load(const char *path_rom)
         if (mb_index == 0) {
             uint8_t cartridge_type = memory_bank[CARTRIDGE_TYPE_ADDRESS];
             uint8_t rom_type = memory_bank[ROM_SIZE_ADDRESS];
+            uint8_t ram_type = memory_bank[RAM_SIZE_ADDRESS];
 
             delete mbc;
 
@@ -52,8 +53,9 @@ bool Cartridge::load(const char *path_rom)
             else if (cartridge_type == CART_TYPE_MBC1 ||
                      cartridge_type == CART_TYPE_MBC1_RAM ||
                      cartridge_type == CART_TYPE_MBC1_RAM_BATTERY) {
-                size_t bank_count = Cartridge::get_bank_count(rom_type);
-                mbc = new MBC1(bank_count);
+                size_t rom_bank_count = Cartridge::get_rom_bank_count(rom_type);
+                size_t ram_bank_count = Cartridge::get_ram_bank_count(ram_type);
+                mbc = new MBC1(rom_bank_count, ram_bank_count);
             }
 
             else {
@@ -104,7 +106,7 @@ bool Cartridge::set(uint16_t address, uint8_t value)
     return mbc->set(address, value);
 }
 
-size_t Cartridge::get_bank_count(uint8_t rom_type)
+size_t Cartridge::get_rom_bank_count(uint8_t rom_type)
 {
     switch(rom_type) {
     default:
@@ -119,6 +121,14 @@ size_t Cartridge::get_bank_count(uint8_t rom_type)
     case 0x52: return 72;
     case 0x53: return 80;
     case 0x54: return 96;
+    }
+}
+
+size_t Cartridge::get_ram_bank_count(uint8_t ram_type)
+{
+    switch(ram_type) {
+    default:
+    return 0;
     }
 }
 
