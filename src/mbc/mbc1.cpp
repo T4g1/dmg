@@ -34,9 +34,6 @@ void MBC1::init()
 {
     memory = new uint8_t[rom_mbc_count * MBC_SIZE];
     ram = new uint8_t[ram_mbc_count * RAM_MBC_SIZE];
-    ram[0] = 0x11;
-    ram[1] = 0x22;
-    ram[2] = 0x33;
 }
 
 
