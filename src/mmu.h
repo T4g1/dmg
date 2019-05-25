@@ -19,7 +19,8 @@ class Debugger;
  * @brief      Memory Map Unit
  */
 class MMU {
-    Cartridge *cart;
+    Cartridge cart;
+
     PPU *ppu;
     Timer *timer;
     Input *input;
@@ -37,7 +38,7 @@ class MMU {
 public:
     MMU();
 
-    bool init(const char *path_bios, Cartridge *cart);
+    bool init(std::string boot_path, std::string rom_path);
     void reset();
 
     bool set(uint16_t address, uint8_t value);
@@ -47,11 +48,11 @@ public:
     uint16_t get16(uint16_t address);
     int8_t get_signed(uint16_t address);
 
-    bool load(const char *filepath);
+    bool load_boot(std::string filepath);
+    bool load_rom(std::string filepath);
     bool load(uint8_t *program, size_t size, uint16_t dst);
     bool load(uint8_t *program, size_t size);
 
-    void set_cartridge(Cartridge *cart);
     void set_boot_rom_enable(uint8_t value);
 
     void set_booted(bool value);

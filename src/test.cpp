@@ -32,8 +32,7 @@ void init(uint8_t value)
     cpu->reg[L] = value;
     cpu->reg[A] = value;
 
-    mmu->set_cartridge(cart);
-    mmu->set(BOOT_ROM_ENABLE, 0x00);
+    mmu->reset();
 }
 
 /**
@@ -1467,12 +1466,10 @@ bool test_CARTRIDGE_post_boot()
     init(0x00);
 
     Cartridge cart;
-    ASSERT(cart.load("tests/fake_rom.gb"));
+    ASSERT(mmu->load_rom("tests/fake_rom.gb"));
 
     uint8_t program[] = { 0x00 };
     mmu->load(program, 1);
-
-    mmu->set_cartridge(&cart);
 
     ASSERTV(mmu->get(0x0000) == 0x00, "0x0000: 0x%02X\n", mmu->get(0x0000));
 
@@ -1487,11 +1484,7 @@ bool test_CARTRIDGE_read_MBC1()
 {
     init(0x00);
 
-    Cartridge cart;
-    ASSERT(cart.load("tests/fake_rom.gb"));
-
-    mmu->set_cartridge(&cart);
-    ASSERT(cart.get(0x0104) == 0xCE);
+    ASSERT(mmu->load_rom("tests/fake_rom.gb"));
 
     ASSERT(mmu->get(0x0104) == 0xCE);
 
@@ -1510,10 +1503,7 @@ bool test_CARTRIDGE_CPU_instrs()
 {
     init(0x00);
 
-    Cartridge cart;
-    ASSERT(cart.load("tests/blargg/cpu_instrs.gb"));
-
-    mmu->set_cartridge(&cart);
+    ASSERT(mmu->load_rom("tests/blargg/cpu_instrs.gb"));
 
     cpu->PC = 0x0100;
     cpu->step();
@@ -1624,7 +1614,7 @@ int main(void)
     timer->set_mmu(mmu);
     input->set_mmu(mmu);
 
-    mmu->init(nullptr, cart);
+    mmu->init("", "");
     cpu->init();
     ppu->init();
     timer->init();

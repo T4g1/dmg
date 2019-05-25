@@ -18,8 +18,6 @@ bool Timer::init()
         return false;
     }
 
-    reset();
-
     return true;
 }
 

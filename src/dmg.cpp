@@ -12,6 +12,12 @@
 #include "dmg.h"
 
 
+DMG::~DMG()
+{
+    SDL_Quit();
+}
+
+
 bool DMG::init(const char *bios_path, const char *rom_path)
 {
     this->bios_path = "";
@@ -29,8 +35,6 @@ bool DMG::init(const char *bios_path, const char *rom_path)
         error("Unable to initialize SDL\n");
         return false;
     }
-
-    atexit(quit);
 
     mmu = new MMU();
     cpu = new CPU();
@@ -52,11 +56,18 @@ bool DMG::init(const char *bios_path, const char *rom_path)
     debugger->set_ppu(ppu);
     debugger->set_dmg(this);
 
-    running = debugger->init();
+    running  = true;
+    running &= mmu->init(this->bios_path, this->rom_path);
+    running &= cpu->init();
+    running &= ppu->init();
+    running &= timer->init();
+    running &= input->init();
+    running &= debugger->init();
 
+    set_palette(palette);
     set_speed(DEFAULT_SPEED);
 
-    load_rom(rom_path);
+    reset();
 
     return running;
 }
@@ -187,16 +198,15 @@ void DMG::handle_events()
 
 void DMG::reset()
 {
-    load_rom(rom_path);
-}
+    mmu->reset();
+    cpu->reset();
+    ppu->reset();
+    timer->reset();
+    input->reset();
 
-
-/**
- * @brief      Cleanup
- */
-void quit()
-{
-    SDL_Quit();
+    if (no_boot) {
+        fake_boot();
+    }
 }
 
 
@@ -237,21 +247,9 @@ void DMG::set_speed(size_t speed)
 void DMG::load_rom(std::string filepath)
 {
     rom_path = filepath;
+    mmu->load_rom(rom_path);
 
-    // Bad cartridge are a correct use case
-    cart.load(rom_path);
-
-    running &= mmu->init(bios_path.c_str(), &cart);
-    running &= cpu->init();
-    running &= ppu->init();
-    running &= timer->init();
-    running &= input->init();
-
-    set_palette(palette);
-
-    if (bios_path.size() <= 0) {
-        fake_boot();
-    }
+    reset();
 }
 
 

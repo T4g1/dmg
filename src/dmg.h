@@ -7,18 +7,13 @@
 #include "cpu.h"
 #include "input.h"
 #include "timer.h"
-#include "cartridge.h"
 #include "gui/debugger.h"
-
-
-void quit();
 
 
 /**
  * @brief      DMG Emulator
  */
 class DMG {
-    Cartridge cart;
     MMU *mmu;
     CPU *cpu;
     PPU *ppu;
@@ -38,6 +33,8 @@ class DMG {
     size_t palette;
 
 public:
+    ~DMG();
+
     bool init(const char *bios_path, const char *rom_path);
     int run();
     void process();

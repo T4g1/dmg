@@ -4,12 +4,18 @@
 #include "log.h"
 #include "utils.h"
 
+
 PPU::PPU() : mmu(nullptr)
 {
     sdl_screen = nullptr;
     sdl_window = nullptr;
 }
 
+
+/**
+ * @brief      Graphic initialization, run only once per run
+ * @return     true success
+ */
 bool PPU::init()
 {
     if (mmu == nullptr) {
@@ -40,14 +46,15 @@ bool PPU::init()
 
     pixel_format = sdl_screen->format;
 
-    reset();
-
     set_palette(0);
 
     return true;
 }
 
 
+/**
+ * @brief      Sets game data for a fresh starts
+ */
 void PPU::reset()
 {
     lcd_enabled = false;

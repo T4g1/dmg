@@ -10,13 +10,13 @@
 #include "gui/debugger.h"
 
 
-MMU::MMU() : cart(nullptr), ppu(nullptr), timer(nullptr), input(nullptr), debugger(nullptr)
+MMU::MMU() : ppu(nullptr), timer(nullptr), input(nullptr), debugger(nullptr)
 {
 
 }
 
 
-bool MMU::init(const char *path_bios, Cartridge *cartridge)
+bool MMU::init(std::string boot_path, std::string rom_path)
 {
     if (ppu == nullptr) {
         error("No PPU linked with MMU\n");
@@ -33,20 +33,8 @@ bool MMU::init(const char *path_bios, Cartridge *cartridge)
         return false;
     }
 
-    if (cartridge == nullptr) {
-        error("No cartridge given!\n");
-        return false;
-    }
-
-    if (path_bios != nullptr) {
-        load(path_bios);
-    }
-
-    booted = false;
-
-    set_cartridge(cartridge);
-
-    reset();
+    load_boot(boot_path);
+    load_rom(rom_path);
 
     return true;
 }
@@ -186,14 +174,14 @@ bool MMU::set(uint16_t address, uint8_t value)
 
     // Write to ROM are passed to cartridge
     else if (identity == ROM0 || identity == ROM1) {
-        cart->set(address, value);
+        cart.set(address, value);
         update_ram();
         return true;
     }
 
     // Write to External RAM are passed to cartridge
-    else if (identity == SRAM && cart->has_ram()) {
-        cart->set(address, value);
+    else if (identity == SRAM && cart.has_ram()) {
+        cart.set(address, value);
         update_ram();
     }
 
@@ -369,22 +357,33 @@ int8_t MMU::get_signed(uint16_t address)
 
 
 /**
+ * @brief      Loads game
+ * @param[in]  filepath  The filepath of the game rom
+ * @return     true on success
+ */
+bool MMU::load_rom(std::string filepath)
+{
+    return cart.load(filepath);
+}
+
+
+/**
  * @brief      Loads boot ROM
  * @param[in]  path_rom     Where the ROM is
  * @return     { description_of_the_return_value }
  */
-bool MMU::load(const char *path_rom)
+bool MMU::load_boot(std::string filepath)
 {
     booted = false;
 
-    info("Loading boot ROM: %s\n", path_rom);
+    info("Loading boot ROM: %s\n", filepath.c_str());
 
-    if (strlen(path_rom) <= 0) {
+    if (filepath.size() <= 0) {
         info("No BOOT rom given\n");
         return false;
     }
 
-    FILE *f = fopen(path_rom, "rb");
+    FILE *f = fopen(filepath.c_str(), "rb");
     if (f == NULL) {
         error("Unable to read provided boot ROM file\n");
         return false;
@@ -434,18 +433,6 @@ bool MMU::load(uint8_t *program, size_t size)
 
 
 /**
- * @brief      Plugs a cartridge inside the memory
- * @param      cart  Cartridge to be used
- */
-void MMU::set_cartridge(Cartridge *cart)
-{
-    this->cart = cart;
-
-    update_ram();
-}
-
-
-/**
  * @brief      Allows to control if BOOT is readable or not
  * @param[in]  value  The value 0x01 indicate boot is no longer needed
  */
@@ -463,20 +450,17 @@ void MMU::set_boot_rom_enable(uint8_t value)
  */
 void MMU::update_ram()
 {
-    // Put ROM in RAM
-    if (cart) {
-        // Set ROM 0
-        memcpy(ram, cart->mbc->memory, MBC_SIZE);
+    // Set ROM 0
+    memcpy(ram, cart.mbc->memory, MBC_SIZE);
 
-        // Set ROM N
-        for (uint16_t i=MBC_SIZE; i<MBC_SIZE * 2; i++) {
-            set_nocheck(i, cart->get(i));
-        }
+    // Set ROM N
+    for (uint16_t i=MBC_SIZE; i<MBC_SIZE * 2; i++) {
+        set_nocheck(i, cart.get(i));
+    }
 
-        // Set SRAM
-        for (uint16_t i=0; i<RAM_MBC_SIZE; i++) {
-            set_nocheck(SRAM_START + i, cart->get(SRAM_START + i));
-        }
+    // Set SRAM
+    for (uint16_t i=0; i<RAM_MBC_SIZE; i++) {
+        set_nocheck(SRAM_START + i, cart.get(SRAM_START + i));
     }
 
     // Put BOOT in RAM

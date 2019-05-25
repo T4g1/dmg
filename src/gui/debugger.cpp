@@ -234,7 +234,10 @@ void Debugger::quit()
     ImGui_ImplSDL2_Shutdown();
     ImGui::DestroyContext();
 
-    SDL_GL_DeleteContext(gl_context);
+    if (gl_context != nullptr) {
+        SDL_GL_DeleteContext(gl_context);
+    }
+
     SDL_DestroyWindow(sdl_window);
 
     sdl_window = nullptr;

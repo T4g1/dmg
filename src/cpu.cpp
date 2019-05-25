@@ -291,8 +291,6 @@ bool CPU::init()
         return false;
     }
 
-    reset();
-
     return true;
 }
 

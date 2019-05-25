@@ -18,8 +18,6 @@ bool Input::init()
         return false;
     }
 
-    reset();
-
     return true;
 }
 
