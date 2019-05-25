@@ -4,11 +4,7 @@
 #include <stdlib.h>
 #include <stdint.h>
 
-// Timer Control masks
-#define TIMER_START         0b00000100
-#define INPUT_CLOCK         0b00000011
-
-#define DIV_FREQUENCY       256
+#include "defines.h"
 
 
 class MMU;

@@ -3,14 +3,8 @@
 
 #include <SDL2/SDL.h>
 
+#include "defines.h"
 #include "mmu.h"
-
-#define SELECT_BUTTON_KEY_MASKS       0b00100000
-#define SELECT_DIRECTION_KEY_MASKS    0b00010000
-#define KEY_DOWN_START      3
-#define KEY_UP_SELECT       2
-#define KEY_LEFT_B          1
-#define KEY_RIGHT_A         0
 
 
 /**

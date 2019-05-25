@@ -3,8 +3,6 @@
 
 #include "../mbc.h"
 
-#define ROM_SIZE        0x8000
-
 
 class NoMBC : public MBC {
 public:

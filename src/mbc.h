@@ -4,8 +4,6 @@
 #include <stdint.h>
 #include <stddef.h>
 
-#define MBC_SIZE        0x4000  // 16Kb
-
 
 /**
  * @brief      Abstract class to Memory Bank controllers

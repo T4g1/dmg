@@ -1,18 +1,7 @@
 #ifndef CARTRIDGE_H
 #define CARTRIDGE_H
 
-#include <stdint.h>
-
 #include "mbc.h"
-
-#define CARTRIDGE_TYPE_ADDRESS          0x0147
-#define ROM_SIZE_ADDRESS                0x0148
-#define RAM_SIZE_ADDRESS                0x0149
-
-#define CART_TYPE_ROM_ONLY              0x00
-#define CART_TYPE_MBC1                  0x01
-#define CART_TYPE_MBC1_RAM              0x02
-#define CART_TYPE_MBC1_RAM_BATTERY      0x03
 
 
 /**

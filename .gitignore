@@ -7,3 +7,4 @@ dmg
 test
 imgui.ini
 .breakpoints
+tests/mooneye/*

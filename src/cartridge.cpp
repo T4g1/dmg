@@ -1,5 +1,6 @@
 #include "cartridge.h"
 
+#include "defines.h"
 #include "log.h"
 
 #include "mbc/none.h"

@@ -1,15 +1,12 @@
 #ifndef CPU_H
 #define CPU_H
 
-#include <inttypes.h>
 #include <stdbool.h>
 #include <cstddef>
 
+#include "defines.h"
 #include "mmu.h"
 #include "gui/debugger.h"
-
-#define MAX_OPCODES         256
-#define REGISTER_COUNT  10  //<! 8x8-bit for standard registers + 2x8-bit for SP (16-bit)
 
 // 8-Bits registers
 #define A               0   //<! Accumulator
@@ -27,19 +24,6 @@
 #define DE              D
 #define HL              H
 #define SP              8   //<! Stack Pointer
-
-// Flags
-#define FZ               7  //<! Zero Flag
-#define FN               6  //<! Add/Sub Flag
-#define FH               5  //<! Half Carry Flag
-#define FC               4  //<! Carry Flag
-
-// Interrupts
-#define INT_V_BLANK_MASK     0b00000001
-#define INT_LCD_STAT_MASK    0b00000010
-#define INT_TIMER_MASK       0b00000100
-#define INT_SERIAL_MASK      0b00001000
-#define INT_JOYPAD_MASK      0b00010000
 
 class CPU;
 typedef void (CPU::*cpu_callback)(uint8_t opcode);
