@@ -59,15 +59,12 @@ Test with `./test`
 * [x] Implement Z80 instruction set
 * [-] Implement interupts
     * [x] V-Blank
-    * [ ] LCD Stat
+    * [x] LCD Stat
     * [x] Timer
     * [ ] Serial
     * [x] Joypad
 * [x] Implement MMU
-* [-] Implement PPU
-    * [x] Draw background
-    * [x] Draw window
-    * [x] Draw sprites
+* [x] Implement PPU
 * [x] Implement inputs
 * [ ] Sound!
 
@@ -75,4 +72,5 @@ Test with `./test`
 
 ![Debugger](img/debugger.png)
 ![Debugger](img/tetris.png)
+![Debugger](img/tetris2.png)
 ![Debugger](img/super_mario.png)
