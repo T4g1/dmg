@@ -14,6 +14,13 @@
 
 DMG::~DMG()
 {
+    delete mmu;
+    delete cpu;
+    delete ppu;
+    delete timer;
+    delete input;
+    delete debugger;
+
     SDL_Quit();
 }
 
@@ -90,9 +97,6 @@ int DMG::run()
 
         handle_events();
     }
-
-    debugger->quit();
-    ppu->quit();
 
     return EXIT_SUCCESS;
 }

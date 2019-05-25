@@ -12,6 +12,12 @@ PPU::PPU() : mmu(nullptr)
 }
 
 
+PPU::~PPU()
+{
+    quit();
+}
+
+
 /**
  * @brief      Graphic initialization, run only once per run
  * @return     true success

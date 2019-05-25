@@ -64,6 +64,7 @@ public:
 
 
     Debugger();
+    ~Debugger();
 
     bool init();
     bool update();

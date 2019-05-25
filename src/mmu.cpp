@@ -12,7 +12,13 @@
 
 MMU::MMU() : ppu(nullptr), timer(nullptr), input(nullptr), debugger(nullptr)
 {
+    cart = new Cartridge();
+}
 
+
+MMU::~MMU()
+{
+    delete cart;
 }
 
 
@@ -174,14 +180,14 @@ bool MMU::set(uint16_t address, uint8_t value)
 
     // Write to ROM are passed to cartridge
     else if (identity == ROM0 || identity == ROM1) {
-        cart.set(address, value);
+        cart->set(address, value);
         update_ram();
         return true;
     }
 
     // Write to External RAM are passed to cartridge
-    else if (identity == SRAM && cart.has_ram()) {
-        cart.set(address, value);
+    else if (identity == SRAM && cart->has_ram()) {
+        cart->set(address, value);
         update_ram();
     }
 
@@ -363,7 +369,7 @@ int8_t MMU::get_signed(uint16_t address)
  */
 bool MMU::load_rom(std::string filepath)
 {
-    return cart.load(filepath);
+    return cart->load(filepath);
 }
 
 
@@ -451,16 +457,16 @@ void MMU::set_boot_rom_enable(uint8_t value)
 void MMU::update_ram()
 {
     // Set ROM 0
-    memcpy(ram, cart.mbc->memory, MBC_SIZE);
+    memcpy(ram, cart->mbc->memory, MBC_SIZE);
 
     // Set ROM N
     for (uint16_t i=MBC_SIZE; i<MBC_SIZE * 2; i++) {
-        set_nocheck(i, cart.get(i));
+        set_nocheck(i, cart->get(i));
     }
 
     // Set SRAM
     for (uint16_t i=0; i<RAM_MBC_SIZE; i++) {
-        set_nocheck(SRAM_START + i, cart.get(SRAM_START + i));
+        set_nocheck(SRAM_START + i, cart->get(SRAM_START + i));
     }
 
     // Put BOOT in RAM

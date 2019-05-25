@@ -14,6 +14,7 @@ public:
     MBC *mbc;
 
     Cartridge();
+    ~Cartridge();
 
     bool load(std::string rom_path);
     uint8_t get(uint16_t address);

@@ -25,8 +25,8 @@ MBC1::MBC1(size_t rom_mbc_count, uint8_t ram_type)
 
 MBC1::~MBC1()
 {
-    delete memory;
-    delete ram;
+    delete[] memory;
+    delete[] ram;
 }
 
 
@@ -49,7 +49,8 @@ uint8_t MBC1::get(uint16_t address)
     } else if (address <= ROM1_END) {
         return memory[(get_selected_rom_bank() * MBC_SIZE) + (address % MBC_SIZE)];
     } else if (ram_enabled) {
-        return ram[(get_selected_ram_bank() * RAM_MBC_SIZE) + (address % RAM_MBC_SIZE)];
+        address = (address - SRAM_START) % RAM_MBC_SIZE;
+        return ram[(get_selected_ram_bank() * RAM_MBC_SIZE) + address];
     } else {
         return 0;
     }
@@ -105,7 +106,8 @@ bool MBC1::set(uint16_t address, uint8_t value)
 
     // Write to RAM
     else if (address >= SRAM_START && address <= SRAM_END) {
-        ram[(get_selected_ram_bank() * RAM_MBC_SIZE) + (address % RAM_MBC_SIZE)] = value;
+        address = (address - SRAM_START) % RAM_MBC_SIZE;
+        ram[(get_selected_ram_bank() * RAM_MBC_SIZE) + address] = value;
     }
 
     return true;
@@ -138,15 +140,5 @@ size_t MBC1::get_selected_rom_bank()
  */
 size_t MBC1::get_selected_ram_bank()
 {
-    size_t lower = rom_bank_select;
-    if (lower == 0) {
-        lower = 1;
-    }
-
-    size_t higher = 0;
-    if (rom_mode_selected) {
-        higher = ram_bank_select;
-    }
-
-    return (higher << 5) + lower;
+    return ram_bank_select;
 }

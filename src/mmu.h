@@ -19,8 +19,7 @@ class Debugger;
  * @brief      Memory Map Unit
  */
 class MMU {
-    Cartridge cart;
-
+    Cartridge *cart;
     PPU *ppu;
     Timer *timer;
     Input *input;
@@ -37,6 +36,7 @@ class MMU {
 
 public:
     MMU();
+    ~MMU();
 
     bool init(std::string boot_path, std::string rom_path);
     void reset();

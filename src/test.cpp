@@ -1664,12 +1664,12 @@ int main(void)
     test("CARTRIDGE: Read from MBC1", &test_CARTRIDGE_read_MBC1);
     test("CARTRIDGE: CPU Instrs", &test_CARTRIDGE_CPU_instrs);
 
-    delete(cart);
-    delete(mmu);
-    delete(cpu);
-    delete(ppu);
-    delete(timer);
-    delete(input);
+    delete cart;
+    delete mmu;
+    delete cpu;
+    delete ppu;
+    delete timer;
+    delete input;
 
     test_blargg_cpu_instrs();
 

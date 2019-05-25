@@ -43,6 +43,12 @@ Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr), ppu(nullptr)
 }
 
 
+Debugger::~Debugger()
+{
+    quit();
+}
+
+
 bool Debugger::init()
 {
     if (cpu == nullptr) {

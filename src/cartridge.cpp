@@ -15,6 +15,12 @@ Cartridge::Cartridge()
 }
 
 
+Cartridge::~Cartridge()
+{
+    delete mbc;
+}
+
+
 /**
  * @brief      Load the cartridge ROM
  * @param[in]  path_rom  The path to the ROM

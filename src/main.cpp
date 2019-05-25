@@ -63,13 +63,17 @@ int main(int argc, char *argv[])
         }
     }
 
-    DMG dmg;
-    if (!dmg.init(boot.c_str(), rom.c_str())) {
+    DMG *dmg = new DMG();
+    if (!dmg->init(boot.c_str(), rom.c_str())) {
         return EXIT_FAILURE;
     }
 
     uint8_t palette_id = palette.c_str()[0] - '0';
-    dmg.set_palette(palette_id);
+    dmg->set_palette(palette_id);
 
-    return dmg.run();
+    int status = dmg->run();
+
+    delete dmg;
+
+    return status;
 }

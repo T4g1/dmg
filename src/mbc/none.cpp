@@ -14,8 +14,8 @@ NoMBC::NoMBC()
 
 NoMBC::~NoMBC()
 {
-    delete memory;
-    delete ram;
+    delete[] memory;
+    delete[] ram;
 }
 
 

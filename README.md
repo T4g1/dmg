@@ -74,3 +74,4 @@ Test with `./test`
 ![Debugger](img/tetris.png)
 ![Debugger](img/tetris2.png)
 ![Debugger](img/super_mario.png)
+![Debugger](img/zelda.png)

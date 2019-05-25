@@ -18,6 +18,7 @@ public:
     size_t clock;
 
     PPU();
+    ~PPU();
 
     bool init();
     void reset();
