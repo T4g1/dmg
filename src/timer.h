@@ -3,6 +3,8 @@
 
 #include <stdlib.h>
 #include <stdint.h>
+#include <iostream>
+#include <fstream>
 
 #include "defines.h"
 
@@ -37,6 +39,9 @@ public:
     void set_TIMA(uint8_t value);
 
     void set_mmu(MMU *mmu);
+
+    void serialize(std::ofstream &file);
+    void deserialize(std::ifstream &file);
 };
 
 #endif /* TIMER_H */

@@ -659,3 +659,75 @@ void PPU::draw_tile(uint8_t buffer[], size_t tile_id)
         }
     }
 }
+
+
+void PPU::serialize(std::ofstream &file)
+{
+    file.write(reinterpret_cast<char*>(&lcd_enabled), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&window_enabled), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&sprites_enabled), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&background_enabled), sizeof(bool));
+
+    file.write(reinterpret_cast<char*>(bg_palette), sizeof(uint8_t) * PALETTE_SIZE);
+    file.write(reinterpret_cast<char*>(sprite_palette), sizeof(uint8_t) * SPRITE_PALETTE_COUNT * PALETTE_SIZE);
+
+    file.write(reinterpret_cast<char*>(&sprite_height), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&pf_size), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&pf_index), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&clock), sizeof(size_t));
+
+    file.write(reinterpret_cast<char*>(&pixel_fifo), sizeof(Pixel) * FIFO_SIZE);
+
+    file.write(reinterpret_cast<char*>(&bg_window_tile_data_address), sizeof(uint16_t));
+    file.write(reinterpret_cast<char*>(&bg_map_address), sizeof(uint16_t));
+    file.write(reinterpret_cast<char*>(&window_map_address), sizeof(uint16_t));
+
+    file.write(reinterpret_cast<char*>(&current_ly), sizeof(uint8_t));
+
+    file.write(reinterpret_cast<char*>(&current_mode), sizeof(ppu_mode));
+
+    file.write(reinterpret_cast<char*>(&current_mode), sizeof(ppu_mode));
+
+    size_t displayable_sprites_count = displayable_sprites.size();
+    file.write(reinterpret_cast<char*>(&displayable_sprites_count), sizeof(size_t));
+    for (auto sprite : displayable_sprites) {
+        file.write(reinterpret_cast<const char*>(&sprite), sizeof(Sprite));
+    }
+}
+
+
+void PPU::deserialize(std::ifstream &file)
+{
+    file.read(reinterpret_cast<char*>(&lcd_enabled), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&window_enabled), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&sprites_enabled), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&background_enabled), sizeof(bool));
+
+    file.read(reinterpret_cast<char*>(bg_palette), sizeof(uint8_t) * PALETTE_SIZE);
+    file.read(reinterpret_cast<char*>(sprite_palette), sizeof(uint8_t) * SPRITE_PALETTE_COUNT * PALETTE_SIZE);
+
+    file.read(reinterpret_cast<char*>(&sprite_height), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&pf_size), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&pf_index), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&clock), sizeof(size_t));
+
+    file.read(reinterpret_cast<char*>(&pixel_fifo), sizeof(Pixel) * FIFO_SIZE);
+
+    file.read(reinterpret_cast<char*>(&bg_window_tile_data_address), sizeof(uint16_t));
+    file.read(reinterpret_cast<char*>(&bg_map_address), sizeof(uint16_t));
+    file.read(reinterpret_cast<char*>(&window_map_address), sizeof(uint16_t));
+
+    file.read(reinterpret_cast<char*>(&current_ly), sizeof(uint8_t));
+
+    file.read(reinterpret_cast<char*>(&current_mode), sizeof(ppu_mode));
+
+    file.read(reinterpret_cast<char*>(&current_mode), sizeof(ppu_mode));
+
+    size_t displayable_sprites_count;
+    file.read(reinterpret_cast<char*>(&displayable_sprites_count), sizeof(size_t));
+    for (size_t i=0; i<displayable_sprites_count; i++) {
+        Sprite sprite;
+        file.read(reinterpret_cast<char*>(&sprite), sizeof(Sprite));
+        displayable_sprites.push_back(sprite);
+    }
+}

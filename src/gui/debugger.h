@@ -6,6 +6,8 @@
 #include <vector>
 #include "imgui.h"
 
+#define DEBUGGER_SAVE           "saves/.breakpoins"
+
 #define DEBUGGER_WIDTH          800
 #define DEBUGGER_HEIGHT         600
 
@@ -65,7 +67,8 @@ public:
     bool update();
     void draw();
     void handle_event(SDL_Event *event);
-    void close();
+    void show();
+    void hide();
     void quit();
 
     Uint32 get_window_id();

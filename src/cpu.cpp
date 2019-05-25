@@ -1500,3 +1500,37 @@ void CPU::set_mmu(MMU *mmu)
 {
     this->mmu = mmu;
 }
+
+
+void CPU::serialize(std::ofstream &file)
+{
+    file.write(reinterpret_cast<char*>(&IME), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&halted), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&halt_aborted), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&halt_bug), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&ei_requested), sizeof(bool));
+
+    file.write(reinterpret_cast<char*>(&ei_delay), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&clock), sizeof(size_t));
+
+    file.write(reinterpret_cast<char*>(&PC), sizeof(uint16_t));
+
+    file.write(reinterpret_cast<char*>(reg), sizeof(uint8_t) * REGISTER_COUNT);
+}
+
+
+void CPU::deserialize(std::ifstream &file)
+{
+    file.read(reinterpret_cast<char*>(&IME), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&halted), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&halt_aborted), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&halt_bug), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&ei_requested), sizeof(bool));
+
+    file.read(reinterpret_cast<char*>(&ei_delay), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&clock), sizeof(size_t));
+
+    file.read(reinterpret_cast<char*>(&PC), sizeof(uint16_t));
+
+    file.read(reinterpret_cast<char*>(reg), sizeof(uint8_t) * REGISTER_COUNT);
+}

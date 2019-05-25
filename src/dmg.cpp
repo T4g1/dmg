@@ -2,6 +2,8 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
+#include <iostream>
+#include <fstream>
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
@@ -148,15 +150,17 @@ void DMG::handle_events()
             input->handle(&event);
         }
 
-        if (event.type == SDL_QUIT) {
+        switch(event.type) {
+        case SDL_QUIT:
             running = false;
-        } else if (event.type == SDL_WINDOWEVENT) {
+            break;
+        case SDL_WINDOWEVENT:
             switch(event.window.event) {
             case SDL_WINDOWEVENT_CLOSE:
                 Uint32 window_id = event.window.windowID;
 
                 if (window_id == debugger->get_window_id()) {
-                    debugger->close();
+                    debugger->hide();
                 }
 
                 if (window_id == ppu->get_window_id()) {
@@ -164,6 +168,17 @@ void DMG::handle_events()
                 }
                 break;
             }
+            break;
+        case SDL_KEYDOWN:
+            switch(event.key.keysym.sym){
+            case SDLK_F3:   // Save state
+                save_state();
+                break;
+            case SDLK_F5:   // Load state
+                load_state();
+                break;
+            }
+            break;
         }
     }
 }
@@ -221,4 +236,46 @@ void DMG::set_palette(char palette_index)
 void DMG::set_speed(size_t speed)
 {
     debugger->set_speed(speed);
+}
+
+
+/**
+ * @brief      Save game state
+ */
+void DMG::save_state()
+{
+    std::ofstream file;
+    file.open("state0.sav", std::ios::binary);
+
+    cpu->serialize(file);
+    mmu->serialize(file);
+    ppu->serialize(file);
+    timer->serialize(file);
+    // TODO: input
+
+    file.close();
+}
+
+
+/**
+ * @brief      Loads game state
+ */
+void DMG::load_state()
+{
+    std::ifstream file;
+    file.open("state0.sav", std::ios::binary);
+
+    while (!file.eof()) {
+        int c = file.peek();
+        if (c == EOF) {
+            break;
+        }
+
+        cpu->deserialize(file);
+        mmu->deserialize(file);
+        ppu->deserialize(file);
+        timer->deserialize(file);
+    }
+
+    file.close();
 }

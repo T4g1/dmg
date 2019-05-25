@@ -2,6 +2,8 @@
 #define MMU_H
 
 #include <cstddef>
+#include <iostream>
+#include <fstream>
 
 #include "defines.h"
 #include "cartridge.h"
@@ -17,13 +19,13 @@ class Debugger;
  * @brief      Memory Map Unit
  */
 class MMU {
-    bool booted;
     Cartridge *cart;
     PPU *ppu;
     Timer *timer;
     Input *input;
     Debugger *debugger;
 
+    bool booted;
     uint8_t boot[BOOT_SIZE];
     uint8_t ram[RAM_SIZE];
 
@@ -64,6 +66,9 @@ public:
     void set_timer(Timer *timer);
     void set_input(Input *input);
     void set_debugger(Debugger *debugger);
+
+    void serialize(std::ofstream &file);
+    void deserialize(std::ifstream &file);
 
     friend class Debugger;
 };

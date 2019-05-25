@@ -3,6 +3,8 @@
 
 #include <stdbool.h>
 #include <cstddef>
+#include <iostream>
+#include <fstream>
 
 #include "defines.h"
 #include "mmu.h"
@@ -97,17 +99,17 @@ private:
     friend class Debugger;
 
 public:
-    CPU();
-
-    bool init();
-    void reset();
-    bool step();
-
     size_t clock;
 
     // TODO: Force F flag to be always 0-3 at 0
     uint8_t reg[REGISTER_COUNT];
     uint16_t PC;                    //<! Program Counter
+
+    CPU();
+
+    bool init();
+    void reset();
+    bool step();
 
     void set_flag(size_t flag, bool value);
     bool get_flag(size_t flag);
@@ -115,6 +117,9 @@ public:
     uint16_t reg16(size_t i);
 
     void set_mmu(MMU *mmu);
+
+    void serialize(std::ofstream &file);
+    void deserialize(std::ifstream &file);
 };
 
 #endif /* CPU_H */

@@ -110,3 +110,25 @@ void Timer::set_mmu(MMU *mmu)
 {
     this->mmu = mmu;
 }
+
+
+void Timer::serialize(std::ofstream &file)
+{
+    file.write(reinterpret_cast<char*>(&enabled), sizeof(bool));
+
+    file.write(reinterpret_cast<char*>(&clock_select), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&last_increment), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&last_div_increment), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&clock), sizeof(size_t));
+}
+
+
+void Timer::deserialize(std::ifstream &file)
+{
+    file.read(reinterpret_cast<char*>(&enabled), sizeof(bool));
+
+    file.read(reinterpret_cast<char*>(&clock_select), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&last_increment), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&last_div_increment), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&clock), sizeof(size_t));
+}

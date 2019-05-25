@@ -3,6 +3,8 @@
 
 #include <SDL2/SDL.h>
 #include <list>
+#include <iostream>
+#include <fstream>
 
 #include "defines.h"
 #include "mmu.h"
@@ -13,14 +15,14 @@
  */
 class PPU {
 public:
+    size_t clock;
+
     PPU();
 
     bool init();
     void reset();
     void step();
     void quit();
-
-    size_t clock;
 
     void set_lcdc(uint8_t lcdc);
     void set_bgp(uint8_t value);
@@ -35,6 +37,9 @@ public:
 
     void draw_tile(uint8_t buffer[], size_t tile_id);
 
+    void serialize(std::ofstream &file);
+    void deserialize(std::ifstream &file);
+
 private:
     MMU *mmu;
 
@@ -44,6 +49,7 @@ private:
 
     Uint32 color_lcd_disabled;
     Uint32 palette[PALETTE_SIZE];
+
     uint8_t bg_palette[PALETTE_SIZE];
     uint8_t sprite_palette[SPRITE_PALETTE_COUNT][PALETTE_SIZE];
 

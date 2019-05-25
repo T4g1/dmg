@@ -149,7 +149,6 @@ void Debugger::draw()
     }
 
     ImGuiIO& io = ImGui::GetIO();
-    ImVec4 clear_color = ImVec4(0.45f, 0.55f, 0.60f, 1.00f);
 
     ImGui_ImplOpenGL3_NewFrame();
     ImGui_ImplSDL2_NewFrame(sdl_window);
@@ -179,7 +178,7 @@ void Debugger::draw()
     ImGui::Render();
     SDL_GL_MakeCurrent(sdl_window, gl_context);
     glViewport(0, 0, (int)io.DisplaySize.x, (int)io.DisplaySize.y);
-    glClearColor(clear_color.x, clear_color.y, clear_color.z, clear_color.w);
+    glClearColor(0.45f, 0.55f, 0.60f, 1.00f);
     glClear(GL_COLOR_BUFFER_BIT);
     ImGui_ImplOpenGL3_RenderDrawData(ImGui::GetDrawData());
     SDL_GL_SwapWindow(sdl_window);
@@ -195,7 +194,13 @@ void Debugger::handle_event(SDL_Event *event)
     switch(event->type) {
     case SDL_KEYDOWN:
         switch(event->key.keysym.sym){
-        case SDLK_F1:
+        case SDLK_F1:   // Show debugger
+            show();
+            break;
+        case SDLK_F2:   // Activate breakpoints
+            breakpoint_activated = !breakpoint_activated;
+            break;
+        case SDLK_F9:   // Resume/Break process
             suspend_dmg = !suspend_dmg;
             break;
         }
@@ -204,7 +209,13 @@ void Debugger::handle_event(SDL_Event *event)
 }
 
 
-void Debugger::close()
+void Debugger::show()
+{
+    SDL_ShowWindow(sdl_window);
+}
+
+
+void Debugger::hide()
 {
     SDL_HideWindow(sdl_window);
 }
@@ -981,7 +992,7 @@ void Debugger::feed_memory_read(uint16_t address)
 void Debugger::save()
 {
     std::ofstream file;
-    file.open(".breakpoints", std::ios::binary);
+    file.open(DEBUGGER_SAVE, std::ios::binary);
 
     for (auto breakpoint : breakpoints) {
         file.write(reinterpret_cast<const char*>(&breakpoint), sizeof(Breakpoint));
@@ -997,7 +1008,7 @@ void Debugger::save()
 void Debugger::load()
 {
     std::ifstream file;
-    file.open(".breakpoints", std::ios::binary);
+    file.open(DEBUGGER_SAVE, std::ios::binary);
 
     while (!file.eof()) {
         int c = file.peek();

@@ -94,7 +94,6 @@ void Input::handle(SDL_Event *event)
         break;
 
     case SDL_KEYUP:
-        code = event->key.keysym.sym;
         switch(event->key.keysym.sym){
         case SDLK_LEFT:     left_pressed = false;   break;
         case SDLK_RIGHT:    right_pressed = false;  break;
@@ -167,4 +166,16 @@ void Input::should_interrupt(size_t key)
 void Input::set_mmu(MMU *mmu)
 {
     this->mmu = mmu;
+}
+
+
+void Input::serialize(std::ofstream &/*file*/)
+{
+    // No need to save state for those
+}
+
+
+void Input::deserialize(std::ifstream &/*file*/)
+{
+    // No need to load state for those
 }

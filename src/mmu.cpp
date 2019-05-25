@@ -527,3 +527,21 @@ void MMU::set_debugger(Debugger *debugger)
 {
     this->debugger = debugger;
 }
+
+
+void MMU::serialize(std::ofstream &file)
+{
+    file.write(reinterpret_cast<char*>(&booted), sizeof(bool));
+
+    file.write(reinterpret_cast<char*>(boot), sizeof(uint8_t) * BOOT_SIZE);
+    file.write(reinterpret_cast<char*>(ram), sizeof(uint8_t) * RAM_SIZE);
+}
+
+
+void MMU::deserialize(std::ifstream &file)
+{
+    file.read(reinterpret_cast<char*>(&booted), sizeof(bool));
+
+    file.read(reinterpret_cast<char*>(boot), sizeof(uint8_t) * BOOT_SIZE);
+    file.read(reinterpret_cast<char*>(ram), sizeof(uint8_t) * RAM_SIZE);
+}

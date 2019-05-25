@@ -41,6 +41,9 @@ public:
     void set_palette(char palette_index);
     void set_speed(size_t speed);
 
+    void save_state();
+    void load_state();
+
     friend class Debugger;
 };
 

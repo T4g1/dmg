@@ -2,6 +2,8 @@
 #define INPUT_H
 
 #include <SDL2/SDL.h>
+#include <iostream>
+#include <fstream>
 
 #include "defines.h"
 #include "mmu.h"
@@ -13,8 +15,6 @@
 class Input {
     MMU *mmu;
 
-    // Indicates that we need to update registers, key status was changed
-    bool dirty;
     bool interrupt_request;
     SDL_Keycode last_key;
 
@@ -41,6 +41,9 @@ public:
     void set_key(uint8_t *joypad, size_t key, bool pressed);
 
     void set_mmu(MMU *mmu);
+
+    void serialize(std::ofstream &file);
+    void deserialize(std::ifstream &file);
 };
 
 #endif /* INPUT_H */

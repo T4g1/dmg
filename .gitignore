@@ -9,3 +9,4 @@ imgui.ini
 .breakpoints
 tests/mooneye/*
 *.out.*
+saves/*
