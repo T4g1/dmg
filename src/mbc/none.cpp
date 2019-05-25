@@ -8,7 +8,7 @@
 
 NoMBC::NoMBC()
 {
-
+    ram_size = 0;
 }
 
 

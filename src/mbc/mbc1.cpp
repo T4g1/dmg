@@ -6,11 +6,12 @@
 #include "../log.h"
 
 
-MBC1::MBC1(size_t rom_mbc_count, size_t ram_mbc_count)
+MBC1::MBC1(size_t rom_mbc_count, uint8_t ram_type)
 {
-    debug("MBC1 ROM: %zu banks RAM: %zu banks\n", rom_mbc_count, ram_mbc_count);
+    debug("MBC1 ROM: %zu banks RAM: 0x%02X\n", rom_mbc_count, ram_type);
     this->rom_mbc_count = rom_mbc_count;
-    this->ram_mbc_count = ram_mbc_count;
+    this->ram_size = Cartridge::get_ram_size(ram_type);
+    this->ram_mbc_count = Cartridge::get_ram_bank_count(ram_type);
 
     rom_mbc_count = 0;
 

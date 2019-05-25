@@ -54,8 +54,7 @@ bool Cartridge::load(const char *path_rom)
                      cartridge_type == CART_TYPE_MBC1_RAM ||
                      cartridge_type == CART_TYPE_MBC1_RAM_BATTERY) {
                 size_t rom_bank_count = Cartridge::get_rom_bank_count(rom_type);
-                size_t ram_bank_count = Cartridge::get_ram_bank_count(ram_type);
-                mbc = new MBC1(rom_bank_count, ram_bank_count);
+                mbc = new MBC1(rom_bank_count, ram_type);
             }
 
             else {
@@ -106,6 +105,18 @@ bool Cartridge::set(uint16_t address, uint8_t value)
     return mbc->set(address, value);
 }
 
+
+bool Cartridge::has_ram()
+{
+    return mbc->ram_size > 0;
+}
+
+
+/**
+ * @brief      Get amount of bank needed for ROM
+ * @param[in]  ram_type  The ram type
+ * @return     The ram size.
+ */
 size_t Cartridge::get_rom_bank_count(uint8_t rom_type)
 {
     switch(rom_type) {
@@ -124,11 +135,36 @@ size_t Cartridge::get_rom_bank_count(uint8_t rom_type)
     }
 }
 
+
+/**
+ * @brief      Get amount of bank needed for RAM
+ * @param[in]  ram_type  The ram type
+ * @return     The ram size.
+ */
 size_t Cartridge::get_ram_bank_count(uint8_t ram_type)
 {
     switch(ram_type) {
+    default: return 1;
+    case 03: return 4;
+    case 06: return 16;
+    }
+}
+
+
+/**
+ * @brief      Get size of RAM in bytes
+ * @param[in]  ram_type  The ram type
+ * @return     The ram size.
+ */
+size_t Cartridge::get_ram_size(uint8_t ram_type)
+{
+    switch(ram_type) {
     default:
-    return 0;
+    case 00: return 0;
+    case 01: return 1;
+    case 02: return 8;
+    case 03: return 32;
+    case 06: return 128;
     }
 }
 

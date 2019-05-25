@@ -16,6 +16,8 @@ public:
     uint8_t *memory;
     uint8_t *ram;
 
+    size_t ram_size;
+
     virtual ~MBC() = default;
 
     virtual void init() = 0;

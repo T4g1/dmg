@@ -36,7 +36,7 @@ class MBC1 : public MBC {
     size_t get_selected_ram_bank();
 
 public:
-    MBC1(size_t rom_mbc_count, size_t ram_mbc_count);
+    MBC1(size_t rom_mbc_count, uint8_t ram_type);
     ~MBC1();
 
     void init();

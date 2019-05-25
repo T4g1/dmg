@@ -194,7 +194,7 @@ bool MMU::set(uint16_t address, uint8_t value)
     }
 
     // Write to External RAM are passed to cartridge
-    else if (identity == SRAM) {
+    else if (identity == SRAM && cart->has_ram()) {
         cart->set(address, value);
         update_ram();
     }
