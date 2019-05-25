@@ -142,11 +142,10 @@
 #define WINDOW_X_OFFSET     7       // Window is offseted on X axis
 
 // Clock timing
-#define CLOCK_OAM_SEARCH        20
-#define CLOCK_PIXEL_TRANSFER    43
-#define CLOCK_H_BLANK           51
-// TODO: Fix timing so this hack isn't required to run super mario
-#define CLOCK_V_BLANK           CLOCK_OAM_SEARCH + CLOCK_PIXEL_TRANSFER + CLOCK_H_BLANK * 10
+#define CLOCK_OAM_SEARCH        20 * 4
+#define CLOCK_PIXEL_TRANSFER    43 * 4
+#define CLOCK_H_BLANK           51 * 4
+#define CLOCK_V_BLANK           CLOCK_OAM_SEARCH + CLOCK_PIXEL_TRANSFER + CLOCK_H_BLANK
 
 #define MAP_WIDTH            32
 #define MAP_HEIGHT           32
