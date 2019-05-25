@@ -63,15 +63,13 @@ int main(int argc, char *argv[])
         }
     }
 
-    info("BIOS: %s\n", boot.c_str());
-    info("ROM: %s\n", rom.c_str());
-
     DMG dmg;
     if (!dmg.init(boot.c_str(), rom.c_str())) {
         return EXIT_FAILURE;
     }
 
-    dmg.set_palette(palette.c_str()[0]);
+    uint8_t palette_id = palette.c_str()[0] - '0';
+    dmg.set_palette(palette_id);
 
     return dmg.run();
 }

@@ -1,6 +1,5 @@
 #include "debugger.h"
 
-#include "imgui.h"
 #include "imgui_impl_sdl.h"
 #include "imgui_impl_opengl3.h"
 #include "imgui_memory_editor.h"
@@ -174,6 +173,8 @@ void Debugger::draw()
     if (show_vram) display_VRAM_status();
     if (show_demo) ImGui::ShowDemoWindow(&show_demo); // DEBUG
 
+    display_load_game();
+
     // Rendering
     ImGui::Render();
     SDL_GL_MakeCurrent(sdl_window, gl_context);
@@ -202,6 +203,9 @@ void Debugger::handle_event(SDL_Event *event)
             break;
         case SDLK_F9:   // Resume/Break process
             suspend_dmg = !suspend_dmg;
+            break;
+        case SDLK_F10:  // Load another rom
+            fileDialog.Open();
             break;
         }
         break;
@@ -617,6 +621,20 @@ void Debugger::display_breakpoints()
     }
 
     ImGui::End();
+}
+
+
+/**
+ * @brief      Displays a file dialog to load a rom
+ */
+void Debugger::display_load_game()
+{
+    fileDialog.Display();
+
+    if(fileDialog.HasSelected()) {
+        dmg->load_rom(fileDialog.GetSelected().string());
+        fileDialog.ClearSelected();
+    }
 }
 
 

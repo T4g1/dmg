@@ -1,6 +1,8 @@
 #ifndef CARTRIDGE_H
 #define CARTRIDGE_H
 
+#include <iostream>
+
 #include "mbc.h"
 
 
@@ -13,7 +15,7 @@ public:
 
     Cartridge();
 
-    bool load(const char *path_rom);
+    bool load(std::string rom_path);
     uint8_t get(uint16_t address);
     bool set(uint16_t address, uint8_t value);
 

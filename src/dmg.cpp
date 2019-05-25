@@ -2,7 +2,6 @@
 #include <stdlib.h>
 #include <stdbool.h>
 #include <SDL2/SDL.h>
-#include <iostream>
 #include <fstream>
 #include "imgui.h"
 #include "imgui_impl_sdl.h"
@@ -13,12 +12,16 @@
 #include "dmg.h"
 
 
-bool DMG::init(const char *path_bios, const char *path_rom)
+bool DMG::init(const char *bios_path, const char *rom_path)
 {
-    no_boot = false;
-    if (path_bios != nullptr && strlen(path_bios) == 0) {
-        path_bios = nullptr;
-        no_boot = true;
+    this->bios_path = "";
+    if (bios_path != nullptr) {
+        this->bios_path = bios_path;
+    }
+
+    this->rom_path = "";
+    if (rom_path != nullptr) {
+        this->rom_path = rom_path;
     }
 
     // Setup SDL
@@ -49,21 +52,11 @@ bool DMG::init(const char *path_bios, const char *path_rom)
     debugger->set_ppu(ppu);
     debugger->set_dmg(this);
 
-    // Bad cartridge are a correct use case
-    cart.load(path_rom);
+    running = debugger->init();
 
-    running  = true;
-    running &= mmu->init(path_bios, &cart);
-    running &= cpu->init();
-    running &= ppu->init();
-    running &= timer->init();
-    running &= input->init();
-    running &= debugger->init();
-
-    system_clock = 0;
     set_speed(DEFAULT_SPEED);
 
-    reset();
+    load_rom(rom_path);
 
     return running;
 }
@@ -99,6 +92,8 @@ int DMG::run()
  */
 void DMG::process()
 {
+    update_system_clock();
+
     input->update();
 
     if (system_clock >= cpu->clock) {
@@ -115,9 +110,15 @@ void DMG::process()
         timer->step();
     }
 
-    //system_clock += 4;
+    update_system_clock();
+}
 
-    // Update system clock
+
+/**
+ * @brief      Set system clock to the lowest clock
+ */
+void DMG::update_system_clock()
+{
     system_clock = timer->clock;
     if (ppu->clock < system_clock) {
         system_clock = ppu->clock;
@@ -186,15 +187,7 @@ void DMG::handle_events()
 
 void DMG::reset()
 {
-    mmu->reset();
-    cpu->reset();
-    ppu->reset();
-    timer->reset();
-    input->reset();
-
-    if (no_boot) {
-        fake_boot();
-    }
+    load_rom(rom_path);
 }
 
 
@@ -223,13 +216,11 @@ void DMG::fake_boot()
  * @param[in]  palette_index  0 default green
  *                            1 black/white
  */
-void DMG::set_palette(char palette_index)
+void DMG::set_palette(size_t palette_index)
 {
-    if (palette_index < '0' || palette_index > '9') {
-        return;
-    }
+    palette = palette_index;
 
-    ppu->set_palette(palette_index - '0');
+    ppu->set_palette(palette);
 }
 
 
@@ -240,18 +231,49 @@ void DMG::set_speed(size_t speed)
 
 
 /**
+ * @brief      Loads the given ROM
+ * @param[in]  filepath  The filepath
+ */
+void DMG::load_rom(std::string filepath)
+{
+    rom_path = filepath;
+
+    // Bad cartridge are a correct use case
+    cart.load(rom_path);
+
+    running &= mmu->init(bios_path.c_str(), &cart);
+    running &= cpu->init();
+    running &= ppu->init();
+    running &= timer->init();
+    running &= input->init();
+
+    set_palette(palette);
+
+    if (bios_path.size() <= 0) {
+        fake_boot();
+    }
+}
+
+
+std::string DMG::get_save_name()
+{
+    return rom_path + ".state0.sav";
+}
+
+
+/**
  * @brief      Save game state
  */
 void DMG::save_state()
 {
     std::ofstream file;
-    file.open("state0.sav", std::ios::binary);
+    file.open(get_save_name(), std::ios::binary);
 
     cpu->serialize(file);
     mmu->serialize(file);
     ppu->serialize(file);
     timer->serialize(file);
-    // TODO: input
+    input->serialize(file);
 
     file.close();
 }
@@ -263,7 +285,7 @@ void DMG::save_state()
 void DMG::load_state()
 {
     std::ifstream file;
-    file.open("state0.sav", std::ios::binary);
+    file.open(get_save_name(), std::ios::binary);
 
     while (!file.eof()) {
         int c = file.peek();
@@ -275,6 +297,7 @@ void DMG::load_state()
         mmu->deserialize(file);
         ppu->deserialize(file);
         timer->deserialize(file);
+        input->deserialize(file);
     }
 
     file.close();

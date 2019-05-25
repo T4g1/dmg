@@ -39,9 +39,7 @@ bool MMU::init(const char *path_bios, Cartridge *cartridge)
     }
 
     if (path_bios != nullptr) {
-        if (!load(path_bios)) {
-            return false;
-        }
+        load(path_bios);
     }
 
     booted = false;
@@ -377,7 +375,14 @@ int8_t MMU::get_signed(uint16_t address)
  */
 bool MMU::load(const char *path_rom)
 {
+    booted = false;
+
     info("Loading boot ROM: %s\n", path_rom);
+
+    if (strlen(path_rom) <= 0) {
+        info("No BOOT rom given\n");
+        return false;
+    }
 
     FILE *f = fopen(path_rom, "rb");
     if (f == NULL) {

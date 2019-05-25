@@ -10,3 +10,4 @@ imgui.ini
 tests/mooneye/*
 *.out.*
 saves/*
+*.sav

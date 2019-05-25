@@ -5,8 +5,9 @@
 #include <SDL2/SDL.h>
 #include <vector>
 #include "imgui.h"
+#include "imfilebrowser.h"
 
-#define DEBUGGER_SAVE           "saves/.breakpoins"
+#define DEBUGGER_SAVE           ".breakpoints"
 
 #define DEBUGGER_WIDTH          800
 #define DEBUGGER_HEIGHT         600
@@ -61,6 +62,7 @@ public:
     bool breakpoint_activated;
     std::vector<Breakpoint> breakpoints;
 
+
     Debugger();
 
     bool init();
@@ -87,6 +89,7 @@ public:
 
     void save();
     void load();
+ ImGui::FileBrowser fileDialog;
 
 private:
     bool running;
@@ -117,6 +120,7 @@ private:
     void display_PPU_status();
     void display_VRAM_status();
     void display_breakpoints();
+    void display_load_game();
 };
 
 #endif /* DEBUGGER_H */

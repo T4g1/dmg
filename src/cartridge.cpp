@@ -20,11 +20,11 @@ Cartridge::Cartridge()
  * @param[in]  path_rom  The path to the ROM
  * @return     true if the ROM is correctly loaded
  */
-bool Cartridge::load(const char *path_rom)
+bool Cartridge::load(std::string rom_path)
 {
-    debug("Loading cartridge ROM: %s\n", path_rom);
+    info("Loading cartridge ROM: %s\n", rom_path.c_str());
 
-    FILE *f = fopen(path_rom, "rb");
+    FILE *f = fopen(rom_path.c_str(), "rb");
     if (f == NULL) {
         error("Unable to read provided cartridge ROM file\n");
         return false;

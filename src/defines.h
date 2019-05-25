@@ -93,6 +93,7 @@
 #define BOOT_ROM_ENABLE     0xFF50      // Booted status
 #define IE_ADDRESS          0xFFFF      // Interrupt Enable
 
+#define GAME_TITLE_ADDRESS              0x134
 #define CARTRIDGE_TYPE_ADDRESS          0x0147
 #define ROM_SIZE_ADDRESS                0x0148
 #define RAM_SIZE_ADDRESS                0x0149

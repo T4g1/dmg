@@ -1,8 +1,8 @@
 CC        = g++
-CXXFLAGS  = -std=c++11 -Wall -Wextra -I. -g -ggdb
+CXXFLAGS  = -std=c++17 -Wall -Wextra -I. -g -ggdb
 
 LINKER    = g++
-LFLAGS    = -Wall -I. -lm -lSDL2 -lGL -ldl
+LFLAGS    = -Wall -I. -lm -lSDL2 -lGL -ldl -lstdc++fs
 
 SRCDIR    = src
 OBJDIR    = src

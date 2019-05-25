@@ -1,6 +1,8 @@
 #ifndef DMG_H
 #define DMG_H
 
+#include <iostream>
+
 #include "ppu.h"
 #include "cpu.h"
 #include "input.h"
@@ -30,17 +32,27 @@ class DMG {
 
     size_t system_clock;
 
+    std::string bios_path;
+    std::string rom_path;
+
+    size_t palette;
+
 public:
-    bool init(const char *path_bios, const char *path_rom);
+    bool init(const char *bios_path, const char *rom_path);
     int run();
     void process();
     void handle_events();
     void reset();
 
+    void update_system_clock();
+
     void fake_boot();
-    void set_palette(char palette_index);
+    void set_palette(size_t palette_index);
     void set_speed(size_t speed);
 
+    void load_rom(std::string filepath);
+
+    std::string get_save_name();
     void save_state();
     void load_state();
 
