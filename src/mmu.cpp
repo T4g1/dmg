@@ -536,6 +536,8 @@ void MMU::serialize(std::ofstream &file)
 
     file.write(reinterpret_cast<char*>(boot), sizeof(uint8_t) * BOOT_SIZE);
     file.write(reinterpret_cast<char*>(ram), sizeof(uint8_t) * RAM_SIZE);
+
+    cart->serialize(file);
 }
 
 
@@ -545,4 +547,6 @@ void MMU::deserialize(std::ifstream &file)
 
     file.read(reinterpret_cast<char*>(boot), sizeof(uint8_t) * BOOT_SIZE);
     file.read(reinterpret_cast<char*>(ram), sizeof(uint8_t) * RAM_SIZE);
+
+    cart->deserialize(file);
 }

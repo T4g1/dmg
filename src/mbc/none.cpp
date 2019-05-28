@@ -54,3 +54,19 @@ bool NoMBC::set(uint16_t address, uint8_t value)
 
     return true;
 }
+
+
+void NoMBC::serialize(std::ofstream &file)
+{
+    file.write(reinterpret_cast<char*>(memory), sizeof(uint8_t) * ROM_SIZE);
+    file.write(reinterpret_cast<char*>(ram), sizeof(uint8_t) * RAM_MBC_SIZE);
+}
+
+
+void NoMBC::deserialize(std::ifstream &file)
+{
+    init();
+
+    file.read(reinterpret_cast<char*>(memory), sizeof(uint8_t) * ROM_SIZE);
+    file.read(reinterpret_cast<char*>(ram), sizeof(uint8_t) * RAM_MBC_SIZE);
+}

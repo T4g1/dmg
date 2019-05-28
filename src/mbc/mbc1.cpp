@@ -10,7 +10,6 @@ MBC1::MBC1(size_t rom_mbc_count, uint8_t ram_type)
 {
     debug("MBC1 ROM: %zu banks RAM: 0x%02X\n", rom_mbc_count, ram_type);
     this->rom_mbc_count = rom_mbc_count;
-    this->ram_size = Cartridge::get_ram_size(ram_type);
     this->ram_mbc_count = Cartridge::get_ram_bank_count(ram_type);
 
     rom_mbc_count = 0;
@@ -34,6 +33,8 @@ void MBC1::init()
 {
     memory = new uint8_t[rom_mbc_count * MBC_SIZE];
     ram = new uint8_t[ram_mbc_count * RAM_MBC_SIZE];
+
+    ram_size = ram_mbc_count * RAM_MBC_SIZE;
 }
 
 
@@ -141,4 +142,38 @@ size_t MBC1::get_selected_rom_bank()
 size_t MBC1::get_selected_ram_bank()
 {
     return ram_bank_select;
+}
+
+
+void MBC1::serialize(std::ofstream &file)
+{
+    file.write(reinterpret_cast<char*>(&rom_mbc_count), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&ram_mbc_count), sizeof(size_t));
+
+    file.write(reinterpret_cast<char*>(&rom_mode_selected), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&ram_enabled), sizeof(bool));
+
+    file.write(reinterpret_cast<char*>(&rom_bank_select), sizeof(uint8_t));
+    file.write(reinterpret_cast<char*>(&ram_bank_select), sizeof(uint8_t));
+
+    file.write(reinterpret_cast<char*>(memory), sizeof(uint8_t) * rom_mbc_count * MBC_SIZE);
+    file.write(reinterpret_cast<char*>(ram), sizeof(uint8_t) * ram_mbc_count * RAM_MBC_SIZE);
+}
+
+
+void MBC1::deserialize(std::ifstream &file)
+{
+    file.read(reinterpret_cast<char*>(&rom_mbc_count), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&ram_mbc_count), sizeof(size_t));
+
+    file.read(reinterpret_cast<char*>(&rom_mode_selected), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&ram_enabled), sizeof(bool));
+
+    file.read(reinterpret_cast<char*>(&rom_bank_select), sizeof(uint8_t));
+    file.read(reinterpret_cast<char*>(&ram_bank_select), sizeof(uint8_t));
+
+    init();
+
+    file.read(reinterpret_cast<char*>(memory), sizeof(uint8_t) * rom_mbc_count * MBC_SIZE);
+    file.read(reinterpret_cast<char*>(ram), sizeof(uint8_t) * ram_mbc_count * RAM_MBC_SIZE);
 }

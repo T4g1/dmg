@@ -10,6 +10,13 @@
 Cartridge::Cartridge()
 {
     // Default empty random cartridge
+    cartridge_type = CART_TYPE_ROM_ONLY;
+    rom_type = 0;
+    ram_type = 0;
+
+    rom_path = "";
+    has_battery = false;
+
     mbc = new NoMBC();
     mbc->init();
 }
@@ -17,6 +24,11 @@ Cartridge::Cartridge()
 
 Cartridge::~Cartridge()
 {
+    // Save RAM content
+    if (has_battery) {
+        save_ram();
+    }
+
     delete mbc;
 }
 
@@ -29,6 +41,7 @@ Cartridge::~Cartridge()
 bool Cartridge::load(std::string rom_path)
 {
     info("Loading cartridge ROM: %s\n", rom_path.c_str());
+    this->rom_path = rom_path;
 
     FILE *f = fopen(rom_path.c_str(), "rb");
     if (f == NULL) {
@@ -46,24 +59,26 @@ bool Cartridge::load(std::string rom_path)
 
         // First memory bank: We need the type of MBC to use
         if (mb_index == 0) {
-            uint8_t cartridge_type = memory_bank[CARTRIDGE_TYPE_ADDRESS];
-            uint8_t rom_type = memory_bank[ROM_SIZE_ADDRESS];
-            uint8_t ram_type = memory_bank[RAM_SIZE_ADDRESS];
+            cartridge_type = memory_bank[CARTRIDGE_TYPE_ADDRESS];
+            rom_type = memory_bank[ROM_SIZE_ADDRESS];
+            ram_type = memory_bank[RAM_SIZE_ADDRESS];
+
+            size_t rom_bank_count = Cartridge::get_rom_bank_count(rom_type);
 
             delete mbc;
 
-            if (cartridge_type == CART_TYPE_ROM_ONLY) {
+            switch(cartridge_type) {
+            case CART_TYPE_ROM_ONLY:
                 mbc = new NoMBC();
-            }
-
-            else if (cartridge_type == CART_TYPE_MBC1 ||
-                     cartridge_type == CART_TYPE_MBC1_RAM ||
-                     cartridge_type == CART_TYPE_MBC1_RAM_BATTERY) {
-                size_t rom_bank_count = Cartridge::get_rom_bank_count(rom_type);
+                break;
+            case CART_TYPE_MBC1_RAM_BATTERY:
+                has_battery = true;
+                __attribute__ ((fallthrough));
+            case CART_TYPE_MBC1:
+            case CART_TYPE_MBC1_RAM:
                 mbc = new MBC1(rom_bank_count, ram_type);
-            }
-
-            else {
+                break;
+            default:
                 error("Please implement cartridge type 0x%02X\n", cartridge_type);
                 return false;
             }
@@ -74,6 +89,10 @@ bool Cartridge::load(std::string rom_path)
             }
 
             mbc->init();
+
+            if (has_battery) {
+                load_ram();
+            }
         }
 
         if (!mbc->load(mb_index, memory_bank)) {
@@ -118,6 +137,47 @@ bool Cartridge::has_ram()
 }
 
 
+std::string Cartridge::get_save_name()
+{
+    return rom_path + ".sav";
+}
+
+
+/**
+ * @brief      Saves RAM content (battery like)
+ */
+void Cartridge::save_ram()
+{
+    info("Save game to %s\n", get_save_name().c_str());
+
+    std::ofstream file;
+    file.open(get_save_name(), std::ios::binary);
+
+    file.write(reinterpret_cast<const char*>(mbc->ram), sizeof(uint8_t) * mbc->ram_size);
+
+    file.close();
+}
+
+
+/**
+ * @brief      Load RAM content (battery like)
+ */
+void Cartridge::load_ram()
+{
+    info("Load game from %s\n", get_save_name().c_str());
+
+    std::ifstream file;
+    file.open(get_save_name(), std::ios::binary);
+    if (!file.is_open()) {
+        return;
+    }
+
+    file.read(reinterpret_cast<char*>(mbc->ram), sizeof(uint8_t) * mbc->ram_size );
+
+    file.close();
+}
+
+
 /**
  * @brief      Get amount of bank needed for ROM
  * @param[in]  ram_type  The ram type
@@ -158,7 +218,7 @@ size_t Cartridge::get_ram_bank_count(uint8_t ram_type)
 
 
 /**
- * @brief      Get size of RAM in bytes
+ * @brief      Get size of RAM in kilo-bytes
  * @param[in]  ram_type  The ram type
  * @return     The ram size.
  */
@@ -172,6 +232,48 @@ size_t Cartridge::get_ram_size(uint8_t ram_type)
     case 03: return 32;
     case 06: return 128;
     }
+}
+
+
+void Cartridge::serialize(std::ofstream &file)
+{
+    file.write(reinterpret_cast<char*>(&cartridge_type), sizeof(uint8_t));
+    file.write(reinterpret_cast<char*>(&rom_type), sizeof(uint8_t));
+    file.write(reinterpret_cast<char*>(&ram_type), sizeof(uint8_t));
+
+    file.write(reinterpret_cast<char*>(&rom_path), sizeof(std::string));
+    file.write(reinterpret_cast<char*>(&has_battery), sizeof(bool));
+
+    mbc->serialize(file);
+}
+
+
+void Cartridge::deserialize(std::ifstream &file)
+{
+    delete mbc;
+
+    file.read(reinterpret_cast<char*>(&cartridge_type), sizeof(uint8_t));
+    file.read(reinterpret_cast<char*>(&rom_type), sizeof(uint8_t));
+    file.read(reinterpret_cast<char*>(&ram_type), sizeof(uint8_t));
+
+    file.read(reinterpret_cast<char*>(&rom_path), sizeof(std::string));
+    file.read(reinterpret_cast<char*>(&has_battery), sizeof(bool));
+
+    size_t rom_bank_count = Cartridge::get_rom_bank_count(rom_type);
+
+    switch(cartridge_type) {
+    case CART_TYPE_ROM_ONLY:
+        mbc = new NoMBC();
+        break;
+    case CART_TYPE_MBC1:
+    case CART_TYPE_MBC1_RAM:
+    case CART_TYPE_MBC1_RAM_BATTERY:
+    default:
+        mbc = new MBC1(rom_bank_count, ram_type);
+        break;
+    }
+
+    mbc->deserialize(file);
 }
 
 
