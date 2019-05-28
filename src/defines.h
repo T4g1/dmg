@@ -79,6 +79,27 @@
 #define TMA                 0xFF06      // Timer modulo
 #define TAC                 0xFF07      // Timer control
 #define IF_ADDRESS          0xFF0F      // Interrupt Flag
+#define NR10                0xFF10      // Channel 1 - Sweep register
+#define NR11                0xFF11      // Channel 1 - Wave/Sound
+#define NR12                0xFF12      // Channel 1 - Volume Envelope
+#define NR13                0xFF13      // Channel 1 - Frequency lo
+#define NR14                0xFF14      // Channel 1 - Frequency hi
+#define NR21                0xFF16      // Channel 2 - Wave/Sound
+#define NR22                0xFF17      // Channel 2 - Volume Envelope
+#define NR23                0xFF18      // Channel 2 - Frequency lo
+#define NR24                0xFF19      // Channel 2 - Frequency hi
+#define NR30                0xFF1A      // Channel 3 - Sound on/off
+#define NR31                0xFF1B      // Channel 3 - Sound length
+#define NR32                0xFF1C      // Channel 3 - Output level
+#define NR33                0xFF1D      // Channel 3 - Frequency lo
+#define NR34                0xFF1E      // Channel 3 - Frequency hi
+#define NR41                0xFF20      // Channel 4 - Sound length
+#define NR42                0xFF21      // Channel 4 - Volume Envelope
+#define NR43                0xFF22      // Channel 4 - Frequency lo
+#define NR44                0xFF23      // Channel 4 - Frequency hi
+#define NR50                0xFF24      // Channel control
+#define NR51                0xFF25      // Selection of sound output
+#define NR52                0xFF26      // Sound on/off
 #define LCDC                0xFF40      // LCD Control register
 #define LCD_STATUS          0xFF41      // Status of the LCD
 #define SCY                 0xFF42      // Viewport Y position
