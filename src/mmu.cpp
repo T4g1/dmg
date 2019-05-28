@@ -467,12 +467,12 @@ void MMU::update_ram()
 
     // Set ROM N
     for (uint16_t i=MBC_SIZE; i<MBC_SIZE * 2; i++) {
-        set_nocheck(i, cart->get(i));
+        ram[i] = cart->get(i);
     }
 
     // Set SRAM
     for (uint16_t i=0; i<RAM_MBC_SIZE; i++) {
-        set_nocheck(SRAM_START + i, cart->get(SRAM_START + i));
+        ram[SRAM_START + i] = cart->get(SRAM_START + i);
     }
 
     // Put BOOT in RAM

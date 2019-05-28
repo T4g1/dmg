@@ -1264,7 +1264,7 @@ bool test_BIN_SET()
 {
     for (uint8_t offset=0; offset<64; offset++) {
         unsigned char command = 0xC0 + offset;
-        init(0x55);
+        init(0x99);
         execute({ 0xCB, command });
 
         uint8_t l_address[] = {
