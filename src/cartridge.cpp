@@ -29,7 +29,15 @@ Cartridge::~Cartridge()
         save_ram();
     }
 
+    clear_mbc();
+}
+
+
+void Cartridge::clear_mbc()
+{
     delete mbc;
+
+    mbc = nullptr;
 }
 
 
@@ -65,7 +73,7 @@ bool Cartridge::load(std::string rom_path)
 
             size_t rom_bank_count = Cartridge::get_rom_bank_count(rom_type);
 
-            delete mbc;
+            clear_mbc();
 
             switch(cartridge_type) {
             case CART_TYPE_ROM_ONLY:
@@ -240,8 +248,6 @@ void Cartridge::serialize(std::ofstream &file)
     file.write(reinterpret_cast<char*>(&cartridge_type), sizeof(uint8_t));
     file.write(reinterpret_cast<char*>(&rom_type), sizeof(uint8_t));
     file.write(reinterpret_cast<char*>(&ram_type), sizeof(uint8_t));
-
-    file.write(reinterpret_cast<char*>(&rom_path), sizeof(std::string));
     file.write(reinterpret_cast<char*>(&has_battery), sizeof(bool));
 
     mbc->serialize(file);
@@ -250,13 +256,11 @@ void Cartridge::serialize(std::ofstream &file)
 
 void Cartridge::deserialize(std::ifstream &file)
 {
-    delete mbc;
+    clear_mbc();
 
     file.read(reinterpret_cast<char*>(&cartridge_type), sizeof(uint8_t));
     file.read(reinterpret_cast<char*>(&rom_type), sizeof(uint8_t));
     file.read(reinterpret_cast<char*>(&ram_type), sizeof(uint8_t));
-
-    file.read(reinterpret_cast<char*>(&rom_path), sizeof(std::string));
     file.read(reinterpret_cast<char*>(&has_battery), sizeof(bool));
 
     size_t rom_bank_count = Cartridge::get_rom_bank_count(rom_type);

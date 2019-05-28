@@ -33,6 +33,8 @@ class DMG {
     size_t palette;
 
 public:
+    size_t save_slot;
+
     ~DMG();
 
     bool init(const char *bios_path, const char *rom_path);
@@ -50,6 +52,8 @@ public:
     void load_rom(std::string filepath);
 
     std::string get_save_name();
+    void select_prev_save_slot();
+    void select_next_save_slot();
     void save_state();
     void load_state();
 

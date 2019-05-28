@@ -14,12 +14,19 @@
 
 DMG::~DMG()
 {
-    delete mmu;
-    delete cpu;
-    delete ppu;
-    delete timer;
-    delete input;
     delete debugger;
+    delete input;
+    delete timer;
+    delete ppu;
+    delete cpu;
+    delete mmu;
+
+    debugger = nullptr;
+    input = nullptr;
+    timer = nullptr;
+    ppu = nullptr;
+    cpu = nullptr;
+    mmu = nullptr;
 
     SDL_Quit();
 }
@@ -75,6 +82,8 @@ bool DMG::init(const char *bios_path, const char *rom_path)
     set_speed(DEFAULT_SPEED);
 
     reset();
+
+    save_slot = 0;
 
     return running;
 }
@@ -190,6 +199,9 @@ void DMG::handle_events()
             case SDLK_F3:   // Save state
                 save_state();
                 break;
+            case SDLK_F4:   // Next slot
+                select_next_save_slot();
+                break;
             case SDLK_F5:   // Load state
                 load_state();
                 break;
@@ -259,7 +271,33 @@ void DMG::load_rom(std::string filepath)
 
 std::string DMG::get_save_name()
 {
-    return rom_path + ".state0.sav";
+    return rom_path + ".state" + std::to_string(save_slot) + ".sav";
+}
+
+
+/**
+ * @brief      Selects previous save slots
+ */
+void DMG::select_prev_save_slot()
+{
+    if (save_slot == 0) {
+        save_slot = SAVE_SLOT_COUNT;
+    }
+
+    save_slot -= 1;
+}
+
+
+/**
+ * @brief      Selects next save slots
+ */
+void DMG::select_next_save_slot()
+{
+    save_slot += 1;
+
+    if (save_slot >= SAVE_SLOT_COUNT) {
+        save_slot = 0;
+    }
 }
 
 

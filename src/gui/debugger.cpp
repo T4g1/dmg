@@ -168,6 +168,14 @@ void Debugger::draw()
         ToggleButton("PPU", &show_ppu);
         ToggleButton("VRAM", &show_vram);
         ToggleButton("Demo", &show_demo); // DEBUG
+
+        if (ImGui::Button("<")) {
+            dmg->select_prev_save_slot();
+        }
+        ImGui::Text("Save slot #%zu", dmg->save_slot);
+        if (ImGui::Button(">")) {
+            dmg->select_next_save_slot();
+        }
     }
     ImGui::EndMainMenuBar();
 
