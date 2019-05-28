@@ -5,9 +5,28 @@
 
 Sound::Sound() : mmu(nullptr)
 {
+    // Sound control
+    activated = false;
+    vin_so1 = false;
+    vin_so2 = false;
+    pulse_a_so1 = false;
+    pulse_a_so2 = false;
+    pulse_b_so1 = false;
+    pulse_b_so2 = false;
+    wave_so1 = false;
+    wave_so2 = false;
+    noise_so1 = false;
+    noise_so2 = false;
+    so1_level = 0;
+    so2_level = 0;
+
+    // Wave - Channel 3
     wave_playback = false;
     wave_length = 0;
     wave_output_level = 0;
+    wave_frequency = 0;
+    wave_restart = false;
+    wave_length_limited = false;
 }
 
 
@@ -55,6 +74,69 @@ void Sound::serialize(std::ofstream &/*file*/)
 void Sound::deserialize(std::ifstream &/*file*/)
 {
     // TODO
+}
+
+
+/*******************************************************************************
+ *
+ * CONTROL
+ *
+ ******************************************************************************/
+
+
+/**
+ * @brief      Set level and Vin output
+ * @param[in]  value  The value of those things
+ */
+void Sound::set_NR50(uint8_t value)
+{
+    vin_so1 = value & 0b10000000;
+    vin_so2 = value & 0b00001000;
+
+    so1_level = (value & 0b01110000) >> 4;
+    so2_level = value & 0b00000111;
+
+    if (vin_so1) {
+        info("Vin to SO1\n");
+    }
+
+    if (vin_so2) {
+        info("Vin to SO2\n");
+    }
+
+    info("SO1 level: %zu\n", so1_level);
+    info("SO2 level: %zu\n", so2_level);
+}
+
+
+/**
+ * @brief      All channels outputs
+ * @param[in]  value  The value
+ */
+void Sound::set_NR51(uint8_t value)
+{
+    noise_so2 = value & 0b10000000;
+    wave_so2 = value & 0b01000000;
+    pulse_b_so2 = value & 0b001000000;
+    pulse_a_so2 = value & 0b000100000;
+    noise_so1 = value & 0b00001000;
+    wave_so1 = value & 0b00000100;
+    pulse_b_so1 = value & 0b00000010;
+    pulse_a_so1 = value & 0b00000001;
+
+    info("Sound outputs sets\n");
+}
+
+
+void Sound::set_NR52(uint8_t value)
+{
+    activated = value & 0b10000000;
+
+    if (activated) {
+        info("Sound activated\n");
+    } else {
+        info("Sound de-activated\n");
+    }
 }
 
 
@@ -116,13 +198,50 @@ void Sound::set_NR32(uint8_t value)
 }
 
 
-void Sound::set_NR33(uint8_t /*value*/)
+/**
+ * @brief      Lower 8bits of the frequency
+ * @param[in]  value  Value of those lower 8 bits
+ */
+void Sound::set_NR33(uint8_t value)
 {
+    wave_frequency = (wave_frequency & 0x0700) + value;
 
+    info("Wave frequency raw: %u\n", wave_frequency);
 }
 
 
-void Sound::set_NR34(uint8_t /*value*/)
+/**
+ * @brief      Set wave frequency hi and control wave flags
+ * @param[in]  value Value of that
+ */
+void Sound::set_NR34(uint8_t value)
 {
+    wave_restart = value & 0b10000000;
+    wave_length_limited = value & 0b01000000;
 
+    uint16_t frequency_hi = (value & 0b00000111) << 8;
+    uint16_t frequency_lo = (wave_frequency & 0x00FF);
+    wave_frequency = frequency_hi + frequency_lo;
+
+    if (wave_restart) {
+        info("Wave restarts!\n");
+    }
+
+    if (wave_length_limited) {
+        info("Wave will fade out after given length\n");
+    } else {
+        info("Wave will not fade out\n");
+    }
+
+    info("Wave frequency raw: %u\n", wave_frequency);
+}
+
+
+/**
+ * @brief      Wave frequency needs conversion to be in Hz
+ * @return     The wave frequency.in Hz
+ */
+size_t Sound::get_wave_frequency()
+{
+    return 0x10000 / (0x0800 - wave_frequency);
 }

@@ -214,6 +214,11 @@ bool MMU::set(uint16_t address, uint8_t value)
         value &= 0b01111000;
     }
 
+    // Sound Control
+    else if (address == NR52) {
+        value &= 0xF0;
+    }
+
     value = memory_masks(address, value);
 
     set_nocheck(address, value);
@@ -346,6 +351,15 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
         for (uint16_t i=0; i<OAM_SIZE; i++) {
             set_nocheck(OAM_START + i, get_nocheck((value * 0x0100) + i));
         }
+    }
+
+    // Sound Control
+    else if (address == NR50) {
+        sound->set_NR50(value);
+    } else if (address == NR51) {
+        sound->set_NR51(value);
+    } else if (address == NR52) {
+        sound->set_NR52(value);
     }
 
     // Sound - Channel 3
