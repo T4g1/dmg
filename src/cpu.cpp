@@ -1175,6 +1175,9 @@ void CPU::nop(uint8_t /*opcode*/)
 
 void CPU::prefix_CB(uint8_t opcode)
 {
+    // Get BIT opcode on (HL) have unique ticks and source register is not modified afterwards
+    bool is_getbit_hl = false;
+
     opcode = mmu->get(PC + 1);
     size_t index = opcode % 8;
     uint8_t value = get_target_value(index);
@@ -1252,6 +1255,11 @@ void CPU::prefix_CB(uint8_t opcode)
         set_flag(FZ, get_bit(value, offset) == 0);
         set_flag(FN, 0);
         set_flag(FH, 1);
+
+        // Except for 0x46, 0x56, 0x66, 0x76 and 0x4E, 0x5E, 0x6E, 0x7E (HL)
+        if ((opcode & 0x0F) == 0x06 || (opcode & 0x0F) == 0x0E) {
+            is_getbit_hl = true;
+        }
     }
     /* Set and Reset */
     else {
@@ -1261,11 +1269,10 @@ void CPU::prefix_CB(uint8_t opcode)
     size_t ticks = 8;
     /* Addressing (HL) takes 8 additional cycles */
     if (opcode % 8 == 6) {
-        ticks = 16;
-        // Except for 0x46, 0x56, 0x66, 0x76 and 0x4E, 0x5E, 0x6E, 0x7E
-        if ((((opcode & 0x0F) == 0x06 || (opcode & 0x0F) == 0x0E)) &&
-            opcode > 0x40 && opcode < 0x80) {
+        if (is_getbit_hl) {
             ticks = 12;
+        } else {
+            ticks = 16;
         }
     }
 
@@ -1274,7 +1281,9 @@ void CPU::prefix_CB(uint8_t opcode)
 
     // (HL) case
     if (index == 6) {
-        mmu->set(reg16(HL), value);
+        if (!is_getbit_hl) {
+            mmu->set(reg16(HL), value);
+        }
     } else {
         uint8_t *register_address = get_target(index);
         *register_address = value;
