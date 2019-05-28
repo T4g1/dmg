@@ -369,7 +369,13 @@ int8_t MMU::get_signed(uint16_t address)
  */
 bool MMU::load_rom(std::string filepath)
 {
-    return cart->load(filepath);
+    if (!cart->load(filepath)) {
+        return false;
+    }
+
+    update_ram();
+
+    return true;
 }
 
 

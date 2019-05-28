@@ -1506,9 +1506,9 @@ bool test_CARTRIDGE_CPU_instrs()
     ASSERT(mmu->load_rom("tests/blargg/cpu_instrs.gb"));
 
     cpu->PC = 0x0100;
-    cpu->step();
-    cpu->step();
-    cpu->step();
+    cpu->step(); ASSERTV(cpu->PC == 0x0101, "PC: 0x%04X\n", cpu->PC);
+    cpu->step(); ASSERTV(cpu->PC == 0x0637, "PC: 0x%04X\n", cpu->PC);
+    cpu->step(); ASSERTV(cpu->PC == 0x0430, "PC: 0x%04X\n", cpu->PC);
     cpu->step();
     cpu->step();
     cpu->step();
@@ -1528,7 +1528,7 @@ bool test_CARTRIDGE_CPU_instrs()
     cpu->step();
     cpu->step();
 
-    ASSERTV(cpu->PC == 0x0456, "PC: %04X\n", cpu->PC);
+    ASSERTV(cpu->PC == 0x0456, "PC: 0x%04X\n", cpu->PC);
 
     cpu->step();
 
