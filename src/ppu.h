@@ -90,6 +90,8 @@ private:
     void update_lcd_status();
     void update_interrupts(uint8_t old_status, uint8_t new_status);
 
+    uint8_t get_wx();
+
     friend class Debugger;
 };
 

@@ -202,8 +202,6 @@ void PPU::pixel_transfer(uint8_t ly)
     uint8_t scx = mmu->get(SCX);
 
     // Window position
-    uint8_t wy = mmu->get_nocheck(WY);
-    uint8_t wx = mmu->get_nocheck(WX) - WINDOW_X_OFFSET;
 
     fetch(0, ly, fetching_type);
 
@@ -214,7 +212,9 @@ void PPU::pixel_transfer(uint8_t ly)
 
     for (size_t x=0; x<LINE_X_COUNT; x++) {
         // We want to draw the window
-        if (window_enabled && x == wx && ly >= wy) {
+        uint8_t wy = mmu->get_nocheck(WY);
+        uint8_t wx = get_wx();
+        if (window_enabled && x >= wx && ly >= wy && fetching_type != WINDOW) {
             clear_fifo();
             fetching_type = WINDOW;
         }
@@ -312,11 +312,11 @@ void PPU::fetch_window(size_t x, size_t ly)
 {
     // Window position
     uint8_t wy = mmu->get_nocheck(WY);
-    uint8_t wx = mmu->get_nocheck(WX) - WINDOW_X_OFFSET;
+    uint8_t wx = get_wx();
 
     // Given the line/column being drawn and the position of the window
     // gets the position in the window to draw
-    size_t window_x = x - wx;
+    size_t window_x = (x + pf_size) - wx;
     size_t window_y = ly - wy;
 
     fetch_at(window_map_address, bg_window_tile_data_address, window_x, window_y);
@@ -636,6 +636,22 @@ void PPU::set_palette(size_t palette_index)
         palette[2] = SDL_MapRGB(pixel_format,  60,  90,  85);
         palette[3] = SDL_MapRGB(pixel_format,  60,  80,  75);
     }
+}
+
+
+/**
+ * @brief      Get corrected WX value
+ * @return     The wx value
+ */
+uint8_t PPU::get_wx()
+{
+    uint8_t wx = mmu->get_nocheck(WX);
+
+    if (wx < WINDOW_X_OFFSET) {
+        return 0;
+    }
+
+    return wx - WINDOW_X_OFFSET;
 }
 
 
