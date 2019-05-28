@@ -326,22 +326,18 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
     // BG Palette
     else if (address == BGP) {
         ppu->set_bgp(value);
-    }
-    else if (address == OBP0) {
+    } else if (address == OBP0) {
         ppu->set_obp(0, value);
-    }
-    else if (address == OBP1) {
+    } else if (address == OBP1) {
         ppu->set_obp(1, value);
     }
 
     // Timer
     else if (address == DIV) {
         timer->set_DIV(value);
-    }
-    else if (address == TAC) {
+    } else if (address == TAC) {
         timer->set_TAC(value);
-    }
-    else if (address == TIMA) {
+    } else if (address == TIMA) {
         timer->set_TIMA(value);
     }
 
@@ -350,6 +346,19 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
         for (uint16_t i=0; i<OAM_SIZE; i++) {
             set_nocheck(OAM_START + i, get_nocheck((value * 0x0100) + i));
         }
+    }
+
+    // Sound - Channel 3
+    else if (address == NR30) {
+        sound->set_NR30(value);
+    } else if (address == NR31) {
+        sound->set_NR31(value);
+    } else if (address == NR32) {
+        sound->set_NR32(value);
+    } else if (address == NR33) {
+        sound->set_NR33(value);
+    } else if (address == NR34) {
+        sound->set_NR34(value);
     }
 }
 
