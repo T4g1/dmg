@@ -15,6 +15,7 @@
 DMG::~DMG()
 {
     delete debugger;
+    delete sound;
     delete input;
     delete timer;
     delete ppu;
@@ -22,6 +23,7 @@ DMG::~DMG()
     delete mmu;
 
     debugger = nullptr;
+    sound = nullptr;
     input = nullptr;
     timer = nullptr;
     ppu = nullptr;
@@ -55,16 +57,19 @@ bool DMG::init(const char *bios_path, const char *rom_path)
     ppu = new PPU();
     timer = new Timer();
     input = new Input();
+    sound = new Sound();
     debugger = new Debugger();
 
     mmu->set_ppu(ppu);
     mmu->set_timer(timer);
     mmu->set_input(input);
+    mmu->set_sound(sound);
     mmu->set_debugger(debugger);
     cpu->set_mmu(mmu);
     ppu->set_mmu(mmu);
     timer->set_mmu(mmu);
     input->set_mmu(mmu);
+    sound->set_mmu(mmu);
     debugger->set_cpu(cpu);
     debugger->set_mmu(mmu);
     debugger->set_ppu(ppu);
@@ -76,6 +81,7 @@ bool DMG::init(const char *bios_path, const char *rom_path)
     running &= ppu->init();
     running &= timer->init();
     running &= input->init();
+    running &= sound->init();
     running &= debugger->init();
 
     set_palette(palette);
@@ -219,6 +225,7 @@ void DMG::reset()
     ppu->reset();
     timer->reset();
     input->reset();
+    sound->reset();
 
     if (no_boot) {
         fake_boot();
@@ -314,6 +321,7 @@ void DMG::save_state()
     ppu->serialize(file);
     timer->serialize(file);
     input->serialize(file);
+    sound->serialize(file);
 
     file.close();
 }
@@ -341,6 +349,7 @@ void DMG::load_state()
         ppu->deserialize(file);
         timer->deserialize(file);
         input->deserialize(file);
+        sound->deserialize(file);
     }
 
     file.close();

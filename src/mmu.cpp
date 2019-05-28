@@ -7,10 +7,12 @@
 #include "log.h"
 #include "ppu.h"
 #include "timer.h"
+#include "input.h"
+#include "sound.h"
 #include "gui/debugger.h"
 
 
-MMU::MMU() : ppu(nullptr), timer(nullptr), input(nullptr), debugger(nullptr)
+MMU::MMU() : ppu(nullptr), timer(nullptr), input(nullptr), sound(nullptr), debugger(nullptr)
 {
     cart = new Cartridge();
 }
@@ -36,6 +38,11 @@ bool MMU::init(std::string boot_path, std::string rom_path)
 
     if (input == nullptr) {
         error("No Input linked with MMU\n");
+        return false;
+    }
+
+    if (sound == nullptr) {
+        error("No Sound linked with MMU\n");
         return false;
     }
 
@@ -521,6 +528,12 @@ void MMU::set_timer(Timer *timer)
 void MMU::set_input(Input *input)
 {
     this->input = input;
+}
+
+
+void MMU::set_sound(Sound *sound)
+{
+    this->sound = sound;
 }
 
 
