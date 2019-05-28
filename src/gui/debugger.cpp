@@ -1036,6 +1036,9 @@ void Debugger::load()
 {
     std::ifstream file;
     file.open(DEBUGGER_SAVE, std::ios::binary);
+    if (!file.is_open()) {
+        return;
+    }
 
     while (!file.eof()) {
         int c = file.peek();

@@ -288,6 +288,9 @@ void DMG::load_state()
 {
     std::ifstream file;
     file.open(get_save_name(), std::ios::binary);
+    if (!file.is_open()) {
+        return;
+    }
 
     while (!file.eof()) {
         int c = file.peek();
