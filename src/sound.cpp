@@ -120,7 +120,7 @@ void Sound::downsample()
         SDL_PauseAudioDevice(audio_device, 0);
 
         while (SDL_GetQueuedAudioSize(audio_device) > SOUND_DOWNSAMPLE_BUFFER_SIZE * 2) {
-            SDL_Delay(10);
+            SDL_Delay(5);
         }
 
         sample_count = 0;
@@ -262,11 +262,6 @@ void Sound::wave_update()
         wave_length_counter = 0;
     }
 
-    // Mute Wave
-    if (!wave_playback) {
-
-    }
-
     if (wave_restart) {
         wave_restart = false;
 
@@ -299,7 +294,13 @@ void Sound::wave_update()
             wave_output = value >> SOUND_WAVE_REG_SIZE;
         }
 
-        //info("Wave out: 0x%02X\n", wave_output);
+        wave_output = wave_output >> wave_output_level; // Apply sound level
+        wave_output *= 256 / 16.0; // So we use the full 8bit range
+
+        // Mute Wave
+        if (!wave_playback) {
+            wave_output = 0;
+        }
     }
 }
 
@@ -400,5 +401,5 @@ void Sound::set_NR34(uint8_t value)
  */
 size_t Sound::get_wave_frequency()
 {
-    return (2048- wave_frequency) * 2;
+    return ((2048- wave_frequency) * 2) * SOUND_CLOCK_STEP;
 }
