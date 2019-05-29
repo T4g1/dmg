@@ -28,6 +28,24 @@ Sound::Sound() : mmu(nullptr)
     so1_level = 0;
     so2_level = 0;
 
+    // Wave - Channel 1
+    pa_sweep_time = 0;
+    pa_sweep_decrease = false;
+    pa_sweep_shift = 0;
+    pa_wave_duty = 0;
+    pa_length = 0;
+    pa_volume = 0;
+    pa_envelope_increase = false;
+    pa_envelope_count = 0;
+    pa_frequency = 0;
+    pa_restart = false;
+    pa_length_limited = false;
+    pa_length_counter = 0;
+
+    pa_output = 0;
+    pa_frequency_timer = 0;
+    pa_position = 0;
+
     // Wave - Channel 3
     wave_playback = false;
     wave_length = 0;
@@ -100,8 +118,10 @@ void Sound::step()
 
 void Sound::update()
 {
+    pulse_a_update();
+    //pulse_b_update();
     wave_update();
-    // TODO: Other channel
+    //noise_update();
 }
 
 
@@ -112,7 +132,10 @@ void Sound::downsample()
 {
     last_downsample += SOUND_CLOCK_DOWNSAMPLE;
 
-    sample[sample_count++] = wave_output;
+    sample[sample_count]  = pa_output;
+    sample[sample_count] += wave_output;
+
+    sample_count += 1;
 
     // Buffer full, send to audio
     if (sample_count >= SOUND_DOWNSAMPLE_BUFFER_SIZE) {
@@ -140,7 +163,7 @@ void Sound::frame_sequencer()
     // TODO: Same for other channels
 
     if (current_step == 7) {
-        // TODO: Clock the enveloppe
+        pulse_a_enveolope_update();
     } else if (current_step == 2 || current_step == 6) {
         // TODO: Clock sweep
     }
@@ -246,6 +269,196 @@ bool Sound::is_power_on()
 
 /*******************************************************************************
  *
+ * CHANNEL 1 - PULSE A
+ *
+ ******************************************************************************/
+
+
+/**
+ * @brief      Update output of pulse A
+ */
+void Sound::pulse_a_update()
+{
+    // Duty look-up table
+    const bool dutys[SOUND_PULSE_A_DUTY_COUNT][SOUND_PULSE_A_DUTY_SIZE] = {
+        {false, true,  true,  true,  true,  true,  true,  true},
+        {false, false, true,  true,  true,  true,  true,  true},
+        {false, false, false, false, true,  true,  true,  true},
+        {false, false, false, false, false, false, true,  true}
+    };
+
+    // Length
+    if (pa_length_limited && pa_length_counter >= pa_length) {
+        pa_length_counter = 0;
+    }
+
+    if (pa_restart) {
+        pa_restart = false;
+
+        mmu->set_nocheck(NR52, mmu->get(NR52) | SOUND_PULSE_A_ON_FLAG);
+
+        pa_position = 0;
+    }
+
+    // Step the duty position
+    static size_t steps = 0;
+    steps += SOUND_CLOCK_STEP;
+    if (pa_frequency_timer >= steps) {
+        pa_frequency_timer -= steps;
+    } else {
+        steps -= pa_frequency_timer;
+        pa_frequency_timer = 0;
+    }
+
+    if (pa_frequency_timer <= 0) {
+        pa_frequency_timer = get_pulse_a_frequency();
+
+        pa_position = (pa_position + 1) % SOUND_PULSE_A_DUTY_SIZE;
+
+        // Generate the output
+        pa_output = dutys[pa_wave_duty][pa_position] * pa_volume;
+    }
+}
+
+
+/**
+ * @brief      Adjust envelope
+ */
+void Sound::pulse_a_enveolope_update()
+{
+    if (pa_envelope_count == 0) {
+        return;
+    }
+
+    if (pa_envelope_increase) {
+        pa_volume += 1;
+
+        // Overflow
+        if (pa_volume > 0x0F) {
+            pa_volume = 0x0F;
+        }
+    } else {
+        pa_volume -= 1;
+
+        // Underflow
+        if (pa_volume > 0x0F) {
+            pa_volume = 0x00;
+        }
+    }
+
+    pa_envelope_count -= 1;
+}
+
+
+/**
+ * @brief      Reads sweep related registers
+ * @param[in]  value  The value
+ */
+void Sound::set_NR10(uint8_t value)
+{
+    pa_sweep_time = (value & 0b01110000) >> 4;
+    pa_sweep_decrease = value & 0b00001000;
+    pa_sweep_shift = value & 0b00000111;
+
+    info("PA Sweep time: %zu\n", pa_sweep_time);
+    info("PA Sweep shift: %zu\n", pa_sweep_shift);
+
+    if (pa_sweep_decrease) {
+        info("PA Sweep decrease\n");
+    } else {
+        info("PA Sweep increase\n");
+    }
+}
+
+
+/**
+ * @brief      Wave duty and length
+ * @param[in]  value  The value
+ */
+void Sound::set_NR11(uint8_t value)
+{
+    pa_wave_duty = (value & 0b11000000) >> 6;
+    pa_length = value & 0b00011111;
+
+    info("PA Sweep time: %zu\n", pa_sweep_time);
+    info("PA Length: %zu\n", pa_length);
+}
+
+
+/**
+ * @brief      Volume
+ * @param[in]  value  The value
+ */
+void Sound::set_NR12(uint8_t value)
+{
+    pa_volume = (value & 0b11110000) >> 4;
+    pa_envelope_increase = value & 0b00001000;
+    pa_envelope_count = value & 0b00000111;
+
+    info("PA volume: %zu\n", pa_volume);
+    info("PA envelope count: %zu\n", pa_envelope_count);
+
+    if (pa_envelope_increase) {
+        info("PA Envelope increase\n");
+    } else {
+        info("PA Envelope decrease\n");
+    }
+}
+
+
+/**
+ * @brief      Frequency lo
+ * @param[in]  value  The value
+ */
+void Sound::set_NR13(uint8_t value)
+{
+    pa_frequency = (pa_frequency & 0x0700) + value;
+
+    debug("PA frequency raw: %u\n", pa_frequency);
+}
+
+
+/**
+ * @brief      Restart, stop on end of length and frequency hi
+ * @param[in]  value  The value
+ */
+void Sound::set_NR14(uint8_t value)
+{
+    pa_restart = value & 0b10000000;
+    pa_length_limited = value & 0b01000000;
+
+    uint16_t frequency_hi = (value & 0b00000111) << 8;
+    uint16_t frequency_lo = (pa_frequency & 0x00FF);
+    pa_frequency = frequency_hi + frequency_lo;
+
+    if (pa_restart) {
+        debug("PA restarts!\n");
+    }
+
+    if (pa_length_limited) {
+        debug("PA will fade out after given length\n");
+    } else {
+        debug("PA will not fade out\n");
+    }
+
+    debug("PA frequency raw: %u\n", pa_frequency);
+}
+
+
+/**
+ * @brief      Pulse A frequency
+ * @return     The PA frequency.in Hz
+ */
+size_t Sound::get_pulse_a_frequency()
+{
+    return (0x20000 / (0x0800 - pa_frequency)) * SOUND_CLOCK_STEP;
+}
+
+
+
+
+/*******************************************************************************
+ *
  * CHANNEL 3 - WAVE
  *
  ******************************************************************************/
@@ -295,7 +508,6 @@ void Sound::wave_update()
         }
 
         wave_output = wave_output >> wave_output_level; // Apply sound level
-        wave_output *= 256 / 16.0; // So we use the full 8bit range
 
         // Mute Wave
         if (!wave_playback) {
@@ -329,9 +541,7 @@ void Sound::set_NR30(uint8_t value)
  */
 void Sound::set_NR31(uint8_t value)
 {
-    const uint8_t length_mask = 0x7F;
-
-    wave_length = value & length_mask;
+    wave_length = value;
     debug("Wave length: %zu\n", wave_length);
 }
 
@@ -401,5 +611,5 @@ void Sound::set_NR34(uint8_t value)
  */
 size_t Sound::get_wave_frequency()
 {
-    return ((2048- wave_frequency) * 2) * SOUND_CLOCK_STEP;
+    return (0x010000 / (0x0800 - wave_frequency)) * SOUND_CLOCK_STEP;
 }

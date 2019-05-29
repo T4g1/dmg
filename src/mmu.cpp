@@ -363,6 +363,19 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
         sound->set_NR52(value);
     }
 
+    // Sound - Channel 1
+    else if (address == NR10) {
+        sound->set_NR10(value);
+    } else if (address == NR11) {
+        sound->set_NR11(value);
+    } else if (address == NR12) {
+        sound->set_NR12(value);
+    } else if (address == NR13) {
+        sound->set_NR13(value);
+    } else if (address == NR14) {
+        sound->set_NR14(value);
+    }
+
     // Sound - Channel 3
     else if (address == NR30) {
         sound->set_NR30(value);

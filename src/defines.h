@@ -27,12 +27,17 @@
 // Takes a sample every 87 CPU cycles: cpu freq / sound output frequency
 #define SOUND_CLOCK_DOWNSAMPLE  87
 
+#define SOUND_DOWNSAMPLE_BUFFER_SIZE    1024
+
 #define SOUND_STEPS             8           // Frame sequencer count of steps
+
+#define SOUND_PULSE_A_DUTY_SIZE     8       // Each duty is 8 steps
+#define SOUND_PULSE_A_DUTY_COUNT    4       // Four different duty wave
+
 #define SOUND_WAVE_REG_START    0xFF30
 #define SOUND_WAVE_REG_STOP     0xFF3F
 #define SOUND_WAVE_REG_COUNT    32
 #define SOUND_WAVE_REG_SIZE     4           // In bit
-#define SOUND_DOWNSAMPLE_BUFFER_SIZE    1024
 
 #define SOUND_NOISE_ON_FLAG     0b00001000
 #define SOUND_WAVE_ON_FLAG      0b00000100
