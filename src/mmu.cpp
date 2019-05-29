@@ -215,6 +215,7 @@ bool MMU::set(uint16_t address, uint8_t value)
     }
 
     // Sound Control
+    // TODO: Check power on, if off, does not write! (except length)
     else if (address == NR52) {
         value &= 0xF0;
     }

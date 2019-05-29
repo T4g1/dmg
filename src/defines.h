@@ -20,6 +20,25 @@
 #define FH               5  //<! Half Carry Flag
 #define FC               4  //<! Carry Flag
 
+// Sound
+#define SOUND_FREQUENCY         48000
+#define SOUND_CLOCK_STEP        10
+#define SOUND_CLOCK_FRAME_SEQ   8192      // Runs a 8192 CPU clock
+// Takes a sample every 87 CPU cycles: cpu freq / sound output frequency
+#define SOUND_CLOCK_DOWNSAMPLE  87
+
+#define SOUND_STEPS             8           // Frame sequencer count of steps
+#define SOUND_WAVE_REG_START    0xFF30
+#define SOUND_WAVE_REG_STOP     0xFF3F
+#define SOUND_WAVE_REG_COUNT    32
+#define SOUND_WAVE_REG_SIZE     4           // In bit
+#define SOUND_DOWNSAMPLE_BUFFER_SIZE    1024
+
+#define SOUND_NOISE_ON_FLAG     0b00001000
+#define SOUND_WAVE_ON_FLAG      0b00000100
+#define SOUND_PULSE_B_ON_FLAG   0b00000010
+#define SOUND_PULSE_A_ON_FLAG   0b00000001
+
 // Interrupts
 #define INT_V_BLANK_MASK     0b00000001
 #define INT_LCD_STAT_MASK    0b00000010

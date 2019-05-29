@@ -140,6 +140,10 @@ void DMG::process()
         timer->step();
     }
 
+    if (system_clock >= sound->clock) {
+        sound->step();
+    }
+
     update_system_clock();
 }
 
@@ -149,21 +153,28 @@ void DMG::process()
  */
 void DMG::update_system_clock()
 {
-    system_clock = timer->clock;
+    system_clock = sound->clock;
     if (ppu->clock < system_clock) {
         system_clock = ppu->clock;
     }
     if (cpu->clock < system_clock) {
         system_clock = cpu->clock;
     }
+    if (timer->clock < system_clock) {
+        system_clock = timer->clock;
+    }
 
-    // FIXME: THis may not be necessary given size limit of size_t
-    // TODO: Check i does not affect timing
+    // TODO: Use class methods to do this so internal clock are shifted too
+    // last_increment and last_div_increment for timer for example
+    //
+    /*
     if (system_clock > 0x100000000) {
         timer->clock -= 0x80000000;
         cpu->clock -= 0x80000000;
         ppu->clock -= 0x80000000;
+        sound->clock -= 0x80000000;
     }
+    */
 }
 
 

@@ -5,6 +5,14 @@
 
 Sound::Sound() : mmu(nullptr)
 {
+    clock = 0;
+    last_sequencer_increment = 0;
+    last_downsample = 0;
+
+    sample_count = 0;
+
+    current_step = 0;
+
     // Sound control
     activated = false;
     vin_so1 = false;
@@ -27,12 +35,17 @@ Sound::Sound() : mmu(nullptr)
     wave_frequency = 0;
     wave_restart = false;
     wave_length_limited = false;
+    wave_length_counter = 0;
+
+    wave_output = 0;
+    wave_frequency_timer = 0;
+    wave_position = 0;
 }
 
 
 Sound::~Sound()
 {
-
+    SDL_CloseAudioDevice(audio_device);
 }
 
 
@@ -40,6 +53,19 @@ bool Sound::init()
 {
     if (mmu == nullptr) {
         error("No MMU linked to Sound\n");
+        return false;
+    }
+
+    SDL_AudioSpec audio_spec;
+    SDL_zero(audio_spec);
+    audio_spec.freq = SOUND_FREQUENCY;
+    audio_spec.format = AUDIO_U8;
+    audio_spec.channels = 1;
+    audio_spec.samples = SOUND_WAVE_REG_COUNT / 2;  // 32 registers of 4 bit so 16 bytes
+
+     audio_device = SDL_OpenAudioDevice(NULL, 0, &audio_spec, NULL, 0);
+     if (audio_device <= 0) {
+        error("Erreur d'ouverture audio: %s\n", SDL_GetError());
         return false;
     }
 
@@ -53,9 +79,69 @@ void Sound::reset()
 }
 
 
+/**
+ * @brief      Called each SOUND_CLOCK_STEP clock ticks
+ */
+void Sound::step()
+{
+    clock += SOUND_CLOCK_STEP;
+
+    update();
+
+    if (clock >= last_downsample) {
+        downsample();
+    }
+
+    if (clock >= last_sequencer_increment) {
+        frame_sequencer();
+    }
+}
+
+
 void Sound::update()
 {
-    // TODO
+    wave_update();
+    // TODO: Other channel
+}
+
+
+/**
+ * @brief      Adds a sound sample in the buffer (nearest neighboor on the audio sampler)
+ */
+void Sound::downsample()
+{
+    last_downsample += SOUND_CLOCK_DOWNSAMPLE;
+
+    sample[sample_count++] = wave_output;
+
+    // Buffer full, send to audio
+    if (sample_count >= SOUND_DOWNSAMPLE_BUFFER_SIZE) {
+        SDL_QueueAudio(audio_device, sample, sample_count);
+        SDL_PauseAudioDevice(audio_device, 0);
+
+        sample_count = 0;
+    }
+}
+
+
+/**
+ * @brief      Update the frame sequencer
+ */
+void Sound::frame_sequencer()
+{
+    last_sequencer_increment += SOUND_CLOCK_FRAME_SEQ;
+
+    // Clock length of each channel
+    wave_length_counter += 1;
+    // TODO: Same for other channels
+
+    if (current_step == 7) {
+        // TODO: Clock the enveloppe
+    } else if (current_step == 2 || current_step == 6) {
+        // TODO: Clock sweep
+    }
+
+    current_step = (current_step + 1) % SOUND_STEPS;
 }
 
 
@@ -97,15 +183,15 @@ void Sound::set_NR50(uint8_t value)
     so2_level = value & 0b00000111;
 
     if (vin_so1) {
-        info("Vin to SO1\n");
+        debug("Vin to SO1\n");
     }
 
     if (vin_so2) {
-        info("Vin to SO2\n");
+        debug("Vin to SO2\n");
     }
 
-    info("SO1 level: %zu\n", so1_level);
-    info("SO2 level: %zu\n", so2_level);
+    debug("SO1 level: %zu\n", so1_level);
+    debug("SO2 level: %zu\n", so2_level);
 }
 
 
@@ -124,19 +210,33 @@ void Sound::set_NR51(uint8_t value)
     pulse_b_so1 = value & 0b00000010;
     pulse_a_so1 = value & 0b00000001;
 
-    info("Sound outputs sets\n");
+    debug("Sound outputs sets\n");
 }
 
 
 void Sound::set_NR52(uint8_t value)
 {
+    bool previous_state = activated;
+
     activated = value & 0b10000000;
 
-    if (activated) {
-        info("Sound activated\n");
-    } else {
-        info("Sound de-activated\n");
+    if (activated != previous_state) {
+        if (activated) {
+            debug("Sound activated\n");
+            current_step = 0;
+        } else {
+            debug("Sound de-activated\n");
+            for (uint16_t address=NR10; address<NR51; address++) {
+                mmu->set(address, 0x00);
+            }
+        }
     }
+}
+
+
+bool Sound::is_power_on()
+{
+    return activated;
 }
 
 
@@ -145,6 +245,59 @@ void Sound::set_NR52(uint8_t value)
  * CHANNEL 3 - WAVE
  *
  ******************************************************************************/
+
+
+/**
+ * @brief      Handle Wave
+ */
+void Sound::wave_update()
+{
+    // Length
+    if (wave_length_limited && wave_length_counter >= wave_length) {
+        wave_playback = false;
+        wave_length_counter = 0;
+    }
+
+    // Mute Wave
+    if (!wave_playback) {
+
+    }
+
+    if (wave_restart) {
+        wave_restart = false;
+
+        mmu->set_nocheck(NR52, mmu->get(NR52) | SOUND_WAVE_ON_FLAG);
+
+        wave_position = 0;
+    }
+
+    // Step the wave position
+    static size_t steps = 0;
+    steps += SOUND_CLOCK_STEP;
+    if (wave_frequency_timer >= steps) {
+        wave_frequency_timer -= steps;
+    } else {
+        steps -= wave_frequency_timer;
+        wave_frequency_timer = 0;
+    }
+
+    if (wave_frequency_timer <= 0) {
+        wave_frequency_timer = get_wave_frequency();
+
+        wave_position = (wave_position + 1) % SOUND_WAVE_REG_COUNT;
+
+        // Generate the output
+        uint16_t address = SOUND_WAVE_REG_START + (wave_position >> 1);
+        uint8_t value = mmu->get(address);
+        if (wave_position & 0x01) {
+            wave_output = value & 0x0F;
+        } else {
+            wave_output = value >> SOUND_WAVE_REG_SIZE;
+        }
+
+        //info("Wave out: 0x%02X\n", wave_output);
+    }
+}
 
 
 /**
@@ -158,9 +311,9 @@ void Sound::set_NR30(uint8_t value)
     wave_playback = value & activate_mask;
 
     if (wave_playback) {
-        info("Wave activated\n");
+        debug("Wave activated\n");
     } else {
-        info("Wave de-activated\n");
+        debug("Wave de-activated\n");
     }
 }
 
@@ -174,7 +327,7 @@ void Sound::set_NR31(uint8_t value)
     const uint8_t length_mask = 0x7F;
 
     wave_length = value & length_mask;
-    info("Wave length: %zu\n", wave_length);
+    debug("Wave length: %zu\n", wave_length);
 }
 
 
@@ -194,7 +347,7 @@ void Sound::set_NR32(uint8_t value)
         wave_output_level -= 1;
     }
 
-    info("Wave output level: %zu%%\n", 100 - (25 * wave_output_level));
+    debug("Wave output level: %zu%%\n", 100 - (25 * wave_output_level));
 }
 
 
@@ -206,7 +359,7 @@ void Sound::set_NR33(uint8_t value)
 {
     wave_frequency = (wave_frequency & 0x0700) + value;
 
-    info("Wave frequency raw: %u\n", wave_frequency);
+    debug("Wave frequency raw: %u\n", wave_frequency);
 }
 
 
@@ -224,16 +377,16 @@ void Sound::set_NR34(uint8_t value)
     wave_frequency = frequency_hi + frequency_lo;
 
     if (wave_restart) {
-        info("Wave restarts!\n");
+        debug("Wave restarts!\n");
     }
 
     if (wave_length_limited) {
-        info("Wave will fade out after given length\n");
+        debug("Wave will fade out after given length\n");
     } else {
-        info("Wave will not fade out\n");
+        debug("Wave will not fade out\n");
     }
 
-    info("Wave frequency raw: %u\n", wave_frequency);
+    debug("Wave frequency raw: %u\n", wave_frequency);
 }
 
 
@@ -243,5 +396,5 @@ void Sound::set_NR34(uint8_t value)
  */
 size_t Sound::get_wave_frequency()
 {
-    return 0x10000 / (0x0800 - wave_frequency);
+    return (2048- wave_frequency) * 2;
 }
