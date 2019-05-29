@@ -119,6 +119,10 @@ void Sound::downsample()
         SDL_QueueAudio(audio_device, sample, sample_count);
         SDL_PauseAudioDevice(audio_device, 0);
 
+        while (SDL_GetQueuedAudioSize(audio_device) > SOUND_DOWNSAMPLE_BUFFER_SIZE * 2) {
+            SDL_Delay(10);
+        }
+
         sample_count = 0;
     }
 }
