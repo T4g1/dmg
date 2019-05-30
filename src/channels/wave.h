@@ -1,0 +1,32 @@
+#ifndef WAVE_H
+#define WAVE_H
+
+#include "../channel.h"
+
+
+class Wave : public Channel {
+    size_t volume_shift;        // Shift to apply to the wave value
+
+    // Wave
+    size_t wave_position;       // Which wave register should be read
+    size_t wave_timer;          // Control when the wave need to be stepped
+    size_t wave_frequency;      // Frequency at which wave position should be incremented
+
+public:
+    Wave();
+    ~Wave();
+
+    bool init();
+    void process();
+    void trigger();
+
+    void set_NR30(uint8_t value);
+    void set_NR31(uint8_t value);
+    void set_NR32(uint8_t value);
+    void set_NR33(uint8_t value);
+    void set_NR34(uint8_t value);
+
+    size_t get_frequency();
+};
+
+#endif /* WAVE_H */

@@ -7,7 +7,7 @@
 #include "cpu.h"
 #include "input.h"
 #include "timer.h"
-#include "sound.h"
+#include "apu.h"
 #include "gui/debugger.h"
 
 
@@ -20,7 +20,7 @@ class DMG {
     PPU *ppu;
     Input *input;
     Timer *timer;
-    Sound *sound;
+    APU *apu;
 
     Debugger *debugger;
 

@@ -8,11 +8,11 @@
 #include "ppu.h"
 #include "timer.h"
 #include "input.h"
-#include "sound.h"
+#include "apu.h"
 #include "gui/debugger.h"
 
 
-MMU::MMU() : ppu(nullptr), timer(nullptr), input(nullptr), sound(nullptr), debugger(nullptr)
+MMU::MMU() : ppu(nullptr), timer(nullptr), input(nullptr), apu(nullptr), debugger(nullptr)
 {
     cart = new Cartridge();
 }
@@ -41,8 +41,8 @@ bool MMU::init(std::string boot_path, std::string rom_path)
         return false;
     }
 
-    if (sound == nullptr) {
-        error("No Sound linked with MMU\n");
+    if (apu == nullptr) {
+        error("No APU linked with MMU\n");
         return false;
     }
 
@@ -354,39 +354,63 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
         }
     }
 
-    // Sound Control
-    else if (address == NR50) {
-        sound->set_NR50(value);
-    } else if (address == NR51) {
-        sound->set_NR51(value);
-    } else if (address == NR52) {
-        sound->set_NR52(value);
-    }
-
     // Sound - Channel 1
     else if (address == NR10) {
-        sound->set_NR10(value);
+        apu->set_NR10(value);
     } else if (address == NR11) {
-        sound->set_NR11(value);
+        apu->set_NR11(value);
     } else if (address == NR12) {
-        sound->set_NR12(value);
+        apu->set_NR12(value);
     } else if (address == NR13) {
-        sound->set_NR13(value);
+        apu->set_NR13(value);
     } else if (address == NR14) {
-        sound->set_NR14(value);
+        apu->set_NR14(value);
+    }
+
+    // Sound - Channel 2
+    else if (address == NR21) {
+        apu->set_NR21(value);
+    } else if (address == NR22) {
+        apu->set_NR22(value);
+    } else if (address == NR23) {
+        apu->set_NR23(value);
+    } else if (address == NR24) {
+        apu->set_NR24(value);
     }
 
     // Sound - Channel 3
     else if (address == NR30) {
-        sound->set_NR30(value);
+        apu->set_NR30(value);
     } else if (address == NR31) {
-        sound->set_NR31(value);
+        apu->set_NR31(value);
     } else if (address == NR32) {
-        sound->set_NR32(value);
+        apu->set_NR32(value);
     } else if (address == NR33) {
-        sound->set_NR33(value);
+        apu->set_NR33(value);
     } else if (address == NR34) {
-        sound->set_NR34(value);
+        apu->set_NR34(value);
+    }
+
+    // Sound - Channel 4
+    else if (address == NR10) {
+        apu->set_NR10(value);
+    } else if (address == NR41) {
+        apu->set_NR41(value);
+    } else if (address == NR42) {
+        apu->set_NR42(value);
+    } else if (address == NR43) {
+        apu->set_NR43(value);
+    } else if (address == NR44) {
+        apu->set_NR44(value);
+    }
+
+    // Sound Control
+    else if (address == NR50) {
+        apu->set_NR50(value);
+    } else if (address == NR51) {
+        apu->set_NR51(value);
+    } else if (address == NR52) {
+        apu->set_NR52(value);
     }
 }
 
@@ -568,9 +592,9 @@ void MMU::set_input(Input *input)
 }
 
 
-void MMU::set_sound(Sound *sound)
+void MMU::set_apu(APU *apu)
 {
-    this->sound = sound;
+    this->apu = apu;
 }
 
 

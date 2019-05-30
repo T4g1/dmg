@@ -21,24 +21,30 @@
 #define FC               4  //<! Carry Flag
 
 // Sound
-#define SOUND_FREQUENCY         48000
-#define SOUND_CLOCK_STEP        10
-#define SOUND_CLOCK_FRAME_SEQ   8192      // Runs a 8192 CPU clock
-// Takes a sample every 87 CPU cycles: cpu freq / sound output frequency
-#define SOUND_CLOCK_DOWNSAMPLE  87
+#define SOUND_FREQUENCY             48000   // Output freqeuncy (for downsample period)
+#define SOUND_FRAME_SEQ_CLOCK_STEP  8192    // Runs a 8192 CPU clock
+#define SOUND_FRAME_SEQ_STEP_COUNT  8       // Frame sequencer count of steps
+#define SOUND_VOLUME_ENVELOPE_FREQ  64      // Volume Envelope triggers every 64 frame seq
+#define SOUND_FREQ_SWEEP_FREQ       128     // Frequency Sweep triggers every 128 frame seq
 
+// Downsampler
+#define SOUND_DOWNSAMPLE_CLOCK_STEP     87
 #define SOUND_DOWNSAMPLE_BUFFER_SIZE    1024
 
-#define SOUND_STEPS             8           // Frame sequencer count of steps
-
+// Duty
 #define SOUND_PULSE_A_DUTY_SIZE     8       // Each duty is 8 steps
 #define SOUND_PULSE_A_DUTY_COUNT    4       // Four different duty wave
 
+// Wave
 #define SOUND_WAVE_REG_START    0xFF30
 #define SOUND_WAVE_REG_STOP     0xFF3F
 #define SOUND_WAVE_REG_COUNT    32
 #define SOUND_WAVE_REG_SIZE     4           // In bit
 
+#define SOUND_CLOCK_STEP        10
+// Takes a sample every 87 CPU cycles: cpu freq / sound output frequency
+
+// Set channel status flags
 #define SOUND_NOISE_ON_FLAG     0b00001000
 #define SOUND_WAVE_ON_FLAG      0b00000100
 #define SOUND_PULSE_B_ON_FLAG   0b00000010

@@ -15,7 +15,7 @@
 DMG::~DMG()
 {
     delete debugger;
-    delete sound;
+    delete apu;
     delete input;
     delete timer;
     delete ppu;
@@ -23,7 +23,7 @@ DMG::~DMG()
     delete mmu;
 
     debugger = nullptr;
-    sound = nullptr;
+    apu = nullptr;
     input = nullptr;
     timer = nullptr;
     ppu = nullptr;
@@ -57,19 +57,19 @@ bool DMG::init(const char *bios_path, const char *rom_path)
     ppu = new PPU();
     timer = new Timer();
     input = new Input();
-    sound = new Sound();
+    apu = new APU();
     debugger = new Debugger();
 
     mmu->set_ppu(ppu);
     mmu->set_timer(timer);
     mmu->set_input(input);
-    mmu->set_sound(sound);
+    mmu->set_apu(apu);
     mmu->set_debugger(debugger);
     cpu->set_mmu(mmu);
     ppu->set_mmu(mmu);
     timer->set_mmu(mmu);
     input->set_mmu(mmu);
-    sound->set_mmu(mmu);
+    apu->set_mmu(mmu);
     debugger->set_cpu(cpu);
     debugger->set_mmu(mmu);
     debugger->set_ppu(ppu);
@@ -81,7 +81,7 @@ bool DMG::init(const char *bios_path, const char *rom_path)
     running &= ppu->init();
     running &= timer->init();
     running &= input->init();
-    running &= sound->init();
+    running &= apu->init();
     running &= debugger->init();
 
     set_palette(palette);
@@ -140,8 +140,8 @@ void DMG::process()
         timer->step();
     }
 
-    if (system_clock >= sound->clock) {
-        sound->step();
+    if (system_clock >= apu->clock) {
+        apu->step();
     }
 
     update_system_clock();
@@ -153,7 +153,7 @@ void DMG::process()
  */
 void DMG::update_system_clock()
 {
-    system_clock = sound->clock;
+    system_clock = apu->clock;
     if (ppu->clock < system_clock) {
         system_clock = ppu->clock;
     }
@@ -172,7 +172,7 @@ void DMG::update_system_clock()
         timer->clock -= 0x80000000;
         cpu->clock -= 0x80000000;
         ppu->clock -= 0x80000000;
-        sound->clock -= 0x80000000;
+        apu->clock -= 0x80000000;
     }
     */
 }
@@ -236,7 +236,7 @@ void DMG::reset()
     ppu->reset();
     timer->reset();
     input->reset();
-    sound->reset();
+    apu->reset();
 
     if (no_boot) {
         fake_boot();
@@ -332,7 +332,7 @@ void DMG::save_state()
     ppu->serialize(file);
     timer->serialize(file);
     input->serialize(file);
-    sound->serialize(file);
+    apu->serialize(file);
 
     file.close();
 }
@@ -360,7 +360,7 @@ void DMG::load_state()
         ppu->deserialize(file);
         timer->deserialize(file);
         input->deserialize(file);
-        sound->deserialize(file);
+        apu->deserialize(file);
     }
 
     file.close();

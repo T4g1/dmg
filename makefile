@@ -10,6 +10,7 @@ OBJDIR    = src
 SOURCES  := $(wildcard $(SRCDIR)/*.cpp) \
             $(wildcard $(SRCDIR)/mbc/*.cpp) \
             $(wildcard $(SRCDIR)/gui/*.cpp) \
+            $(wildcard $(SRCDIR)/channels/*.cpp) \
             $(wildcard lib/imgui/*.cpp) \
             lib/imgui/examples/imgui_impl_sdl.cpp \
             lib/imgui/examples/imgui_impl_opengl3.cpp
@@ -56,6 +57,7 @@ ifneq (,$(wildcard $(OBJDIR)/*.o))
 	@rm $(OBJDIR)/*.o
 	@rm $(OBJDIR)/gui/*.o
 	@rm $(OBJDIR)/mbc/*.o
+	@rm $(OBJDIR)/channels/*.o
 endif
 	@echo "Cleanup complete!"
 

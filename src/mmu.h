@@ -12,7 +12,7 @@
 class PPU;
 class Timer;
 class Input;
-class Sound;
+class APU;
 class Debugger;
 
 
@@ -24,7 +24,7 @@ class MMU {
     PPU *ppu;
     Timer *timer;
     Input *input;
-    Sound *sound;
+    APU *apu;
     Debugger *debugger;
 
     bool booted;
@@ -68,7 +68,7 @@ public:
     void set_ppu(PPU *ppu);
     void set_timer(Timer *timer);
     void set_input(Input *input);
-    void set_sound(Sound *sound);
+    void set_apu(APU *apu);
     void set_debugger(Debugger *debugger);
 
     void serialize(std::ofstream &file);
