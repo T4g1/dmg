@@ -102,8 +102,14 @@ bool DMG::init(const char *bios_path, const char *rom_path)
 int DMG::run()
 {
     while (running) {
+        static size_t dmg_clock = 0;
+        static Uint32 last_tick = 0;
+        Uint32 current_tick = SDL_GetTicks();
+        dmg_clock += 4195 * (current_tick - last_tick); //  4194304 / 1000
+        last_tick = current_tick;
+
         for (size_t i=0; i<debugger->get_speed(); i++) {
-            if (!debugger->update()) {
+            if (!debugger->update() && system_clock < dmg_clock) {
                 process();
             }
         }
@@ -111,6 +117,7 @@ int DMG::run()
         debugger->draw();
 
         handle_events();
+
     }
 
     return EXIT_SUCCESS;
@@ -143,8 +150,6 @@ void DMG::process()
     if (system_clock >= apu->clock) {
         apu->step();
     }
-
-    update_system_clock();
 }
 
 
