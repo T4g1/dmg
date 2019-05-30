@@ -57,12 +57,12 @@ bool APU::init()
     pulse_a.set_mmu(mmu);
     pulse_b.set_mmu(mmu);
     wave.set_mmu(mmu);
-    //noise.set_mmu(mmu);
+    noise.set_mmu(mmu);
 
     pulse_a.init();
     pulse_b.init();
     wave.init();
-    //noise.init();
+    noise.init();
 
     return true;
 }
@@ -88,18 +88,15 @@ void APU::step()
     if (clock >= pulse_a.sequencer_clock) {
         pulse_a.frame_sequencer();
     }
-
     if (clock >= pulse_b.sequencer_clock) {
         pulse_b.frame_sequencer();
     }
-
     if (clock >= wave.sequencer_clock) {
         wave.frame_sequencer();
     }
-
-    /*if (clock >= noise.sequencer_clock) {
+    if (clock >= noise.sequencer_clock) {
         noise.frame_sequencer();
-    }*/
+    }
 
     clock = pulse_a.duty_clock;
     if (pulse_b.duty_clock < clock) {
@@ -120,6 +117,9 @@ void APU::step()
     if (wave.sequencer_clock < clock) {
         clock = wave.sequencer_clock;
     }
+    if (noise.sequencer_clock < clock) {
+        clock = noise.sequencer_clock;
+    }
 }
 
 
@@ -128,16 +128,15 @@ void APU::update()
     if (clock >= pulse_a.duty_clock) {
         pulse_a.update();
     }
-
     if (clock >= pulse_b.duty_clock) {
         pulse_b.update();
     }
-
     if (clock >= wave.wave_clock) {
         wave.update();
     }
-
-    //noise.update();
+    if (clock >= noise.lfsr_clock) {
+        noise.update();
+    }
 }
 
 
@@ -165,10 +164,10 @@ void APU::mixer()
         SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
     }
 
-    /*if (noise_so1) {
+    if (noise_so1) {
         buffer = (noise.get_output() / 100);
         SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
-    }*/
+    }
 
     sample[buffer_count++] = result * 1000;
 
@@ -192,10 +191,10 @@ void APU::mixer()
         SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
     }
 
-    /*if (noise_so2) {
-        buffer = (noise.get_output() / 100);
+    if (noise_so2) {
+        buffer = noise.get_output();
         SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
-    }*/
+    }
     sample[buffer_count++] = result * 1000;
 }
 

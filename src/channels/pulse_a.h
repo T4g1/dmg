@@ -11,15 +11,13 @@ class PulseA : public Channel {
     size_t duty_frequency;          // Speed for duty steps
 
     // Frequency Sweep
-    // TODO
-    /*
-    size_t pa_sweep_time;           // How many step before applying sweep
-    bool pa_sweep_decrease;         // In case it is false, sweep increase
-    size_t pa_sweep_shift;          // How many time shift for new frequency
-    size_t pa_sweep_time_actual;    // How many sweep update left before applying sweep
-    size_t pa_shadow_frequency;
-    bool pa_internal_flag;
-*/
+    size_t sweep_time;              // How many step before applying sweep
+    bool sweep_decrease;            // In case it is false, sweep increase
+    size_t sweep_shift;             // How many time shift for new frequency
+    size_t sweep_time_actual;       // How many sweep update left before applying sweep
+    size_t shadow_frequency;
+    bool sweep_flag;
+
 public:
     // Wave duty
     size_t duty_clock;              // When do we step the duty

@@ -23,6 +23,14 @@ bool PulseA::init()
     duty_position = 0;
     duty_frequency = 0;
 
+    // Sweep Frequency
+    sweep_time = 0;
+    sweep_decrease = false;
+    sweep_shift = 0;
+    sweep_time_actual = 0;
+    shadow_frequency = 0;
+    sweep_flag = false;
+
     return true;
 }
 
@@ -61,6 +69,8 @@ void PulseA::trigger()
 
     length = 64;                    // Reload length
     set_NR12(mmu->get(NR12));       // Reload volume
+
+    // TODO: duty_clock = now?
 
     // TODO: Sweep timer reset
     // TODO: Reset sweep
@@ -116,11 +126,11 @@ void PulseA::frequency_sweep()
  * @brief      Reads sweep related registers
  * @param[in]  value  The value
  */
-void PulseA::set_NR10(uint8_t /*value*/)
-{/*
-    pa_sweep_time = (value & 0b01110000) >> 4;
-    pa_sweep_decrease = value & 0b00001000;
-    pa_sweep_shift = value & 0b00000111;*/
+void PulseA::set_NR10(uint8_t value)
+{
+    sweep_time = (value & 0b01110000) >> 4;
+    sweep_decrease = value & 0b00001000;
+    sweep_shift = value & 0b00000111;
 }
 
 

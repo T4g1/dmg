@@ -392,9 +392,7 @@ void MMU::handle_callbacks(uint16_t address, uint8_t value)
     }
 
     // Sound - Channel 4
-    else if (address == NR10) {
-        apu->set_NR10(value);
-    } else if (address == NR41) {
+    else if (address == NR41) {
         apu->set_NR41(value);
     } else if (address == NR42) {
         apu->set_NR42(value);

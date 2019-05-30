@@ -70,6 +70,8 @@ void Wave::trigger()
     set_NR32(mmu->get(NR32));       // Reload volume
 
     wave_position = 0;
+
+    // TODO: wave_clock = now?
 }
 
 

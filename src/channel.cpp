@@ -169,6 +169,10 @@ uint8_t Channel::get_volume()
 
 int16_t Channel::get_output()
 {
+    if (!enabled) {
+        return 0;
+    }
+
     return dac_output;
 }
 
