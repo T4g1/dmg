@@ -48,7 +48,6 @@ public:
     void volume_envelope();
 
     void frequency_sweep();
-    //void duty(); // TODO
 
     void dac();                     // Handles digital to analog converter
 

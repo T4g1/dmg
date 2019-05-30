@@ -312,10 +312,6 @@ uint8_t MMU::memory_masks(uint16_t address, uint8_t value)
  * @brief      Check function that should be called on RAM modification
  * @param[in]  address  The address
  * @param[in]  value    The value
- *
- * TODO: There are many errors here, no direct ram access should be allowed
- * except for debugger! Overload assignation and give a mutable object for CPU
- * instruction or something, many callback are'nt called as needed
  */
 void MMU::handle_callbacks(uint16_t address, uint8_t value)
 {
