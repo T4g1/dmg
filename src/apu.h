@@ -24,11 +24,12 @@ class APU {
 
     SDL_AudioSpec audio_spec;
     SDL_AudioDeviceID audio_device;
+    size_t sample_size;             // Size of one sample in byte
 
     // Downsampler
     size_t downsample_clock;        // Determines when to take a sample
-    size_t sample_count;            // How many samples we have right now
-    int16_t sample[SOUND_DOWNSAMPLE_BUFFER_SIZE];
+    size_t buffer_count;            // Size of occupied buffer (2 incrmeent = one sample)
+    int16_t sample[SOUND_DOWNSAMPLE_BUFFER_SIZE]; // 2 * int16_t per sample
 
     size_t current_step;            // Frame sequencer step
 

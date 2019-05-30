@@ -7,7 +7,7 @@ APU::APU() : mmu(nullptr)
 {
     clock = 0;
     downsample_clock = 0;
-    sample_count = 0;
+    buffer_count = 0;
 
     // Sound control
     activated = false;
@@ -44,7 +44,7 @@ bool APU::init()
     audio_spec.freq = SOUND_FREQUENCY;
     audio_spec.format = AUDIO_S16SYS;
     audio_spec.channels = 2;
-    audio_spec.samples = SOUND_DOWNSAMPLE_BUFFER_SIZE;
+    audio_spec.samples = SOUND_DOWNSAMPLE_SAMPLES;
 
      audio_device = SDL_OpenAudioDevice(NULL, 0, &audio_spec, NULL, 0);
      if (audio_device <= 0) {
@@ -79,8 +79,6 @@ void APU::reset()
  */
 void APU::step()
 {
-    clock += 1;
-
     update();
 
     if (clock >= downsample_clock) {
@@ -102,6 +100,26 @@ void APU::step()
     /*if (clock >= noise.sequencer_clock) {
         noise.frame_sequencer();
     }*/
+
+    clock = pulse_a.duty_clock;
+    if (pulse_b.duty_clock < clock) {
+        clock = pulse_b.duty_clock;
+    }
+    if (wave.wave_clock < clock) {
+        clock = wave.wave_clock;
+    }
+    if (downsample_clock < clock) {
+        clock = downsample_clock;
+    }
+    if (pulse_a.sequencer_clock < clock) {
+        clock = pulse_a.sequencer_clock;
+    }
+    if (pulse_b.sequencer_clock < clock) {
+        clock = pulse_b.sequencer_clock;
+    }
+    if (wave.sequencer_clock < clock) {
+        clock = wave.sequencer_clock;
+    }
 }
 
 
@@ -152,7 +170,7 @@ void APU::mixer()
         SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
     }*/
 
-    sample[sample_count++] = result * 1000;
+    sample[buffer_count++] = result * 1000;
 
     // Right
     volume = so2_level * (128 / 7.0);
@@ -178,7 +196,7 @@ void APU::mixer()
         buffer = (noise.get_output() / 100);
         SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
     }*/
-    sample[sample_count++] = result * 1000;
+    sample[buffer_count++] = result * 1000;
 }
 
 
@@ -192,15 +210,15 @@ void APU::downsample()
     mixer();
 
     // Buffer full, send to audio
-    if (sample_count >= SOUND_DOWNSAMPLE_BUFFER_SIZE) {
+    if (buffer_count >= SOUND_DOWNSAMPLE_BUFFER_SIZE) {
         // Let buffer be drained
-        while (SDL_GetQueuedAudioSize(audio_device) > SOUND_DOWNSAMPLE_BUFFER_SIZE * sizeof(int16_t)) {
+        while (SDL_GetQueuedAudioSize(audio_device) > SOUND_DOWNSAMPLE_BUFFER_SIZE) {
             SDL_Delay(1);
         }
 
-        SDL_QueueAudio(audio_device, sample, SOUND_DOWNSAMPLE_BUFFER_SIZE * sizeof(int16_t));
+        SDL_QueueAudio(audio_device, sample, SOUND_DOWNSAMPLE_BUFFER_SIZE);
 
-        sample_count = 0;
+        buffer_count = 0;
     }
 }
 

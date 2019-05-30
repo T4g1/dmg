@@ -22,6 +22,9 @@
 
 // Sound
 #define SOUND_FREQUENCY             48000   // Output freqeuncy (for downsample period)
+#define SOUND_CHANNEL_COUNT         2
+#define SOUND_SAMPLE_SIZE           SOUND_CHANNEL_COUNT * sizeof(int16_t)
+
 #define SOUND_FRAME_SEQ_CLOCK_STEP  8192    // Runs a 8192 CPU clock
 #define SOUND_FRAME_SEQ_STEP_COUNT  8       // Frame sequencer count of steps
 #define SOUND_VOLUME_ENVELOPE_FREQ  64      // Volume Envelope triggers every 64 frame seq
@@ -29,7 +32,8 @@
 
 // Downsampler
 #define SOUND_DOWNSAMPLE_CLOCK_STEP     87
-#define SOUND_DOWNSAMPLE_BUFFER_SIZE    1024
+#define SOUND_DOWNSAMPLE_SAMPLES        512
+#define SOUND_DOWNSAMPLE_BUFFER_SIZE    SOUND_DOWNSAMPLE_SAMPLES * SOUND_CHANNEL_COUNT
 
 // Duty
 #define SOUND_PULSE_A_DUTY_SIZE     8       // Each duty is 8 steps
