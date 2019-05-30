@@ -65,6 +65,7 @@ void Wave::trigger()
     mmu->set_nocheck(NR52, mmu->get(NR52) | SOUND_WAVE_ON_FLAG);
 
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
+    ve_enabled = true;
 
     length = 256;                   // Reload length
     set_NR32(mmu->get(NR32));       // Reload volume

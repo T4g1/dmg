@@ -2,6 +2,7 @@
 #define CHANNEL_H
 
 #include "mmu.h"
+#include "log.h"
 
 
 class Channel {
@@ -21,6 +22,7 @@ protected:
     size_t length;                  // Base length to count from
 
     // Volume Envelope
+    bool ve_enabled;                // Envelope can be disabled until restart
     size_t ve_period;               // How many volume adjustment we will do
     size_t ve_timer;                // Used to trigger at the right time
     bool ve_add;                    // Volume is incremented or decremented

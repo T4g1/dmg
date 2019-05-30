@@ -31,6 +31,7 @@ bool Channel::init()
     length = 0;
 
     // Volume Envelope
+    ve_enabled = true;
     ve_period = 0;
     ve_timer = 0;
     ve_add = false;
@@ -114,7 +115,7 @@ void Channel::volume_envelope()
 
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
 
-    if (ve_period == 0) {
+    if (!ve_enabled || ve_period == 0) {
         return;
     }
 
@@ -125,7 +126,7 @@ void Channel::volume_envelope()
             ve_period -= 1;
         } else {
             // Stop operations!
-            ve_period = 0;
+            ve_enabled = false;
         }
     }
     // Substraction
@@ -135,7 +136,7 @@ void Channel::volume_envelope()
             ve_period -= 1;
         } else {
             // Stop operations!
-            ve_period = 0;
+            ve_enabled = false;
         }
     }
 }
@@ -152,11 +153,11 @@ void Channel::frequency_sweep()
  */
 void Channel::dac()
 {
-    if (!dac_enabled) {
+    if (dac_enabled) {
+        dac_output = -1 + (2 / 15.0) * output;
+    } else {
         enabled = false;
         dac_output = 0;
-    } else {
-        dac_output = -1 + (2 / 15.0) * output;
     }
 }
 
@@ -169,11 +170,11 @@ uint8_t Channel::get_volume()
 
 int16_t Channel::get_output()
 {
-    if (!enabled) {
-        return 0;
+    if (enabled) {
+        return dac_output;
     }
 
-    return dac_output;
+    return 0;
 }
 
 

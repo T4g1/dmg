@@ -48,7 +48,11 @@ void Noise::process()
         lfsr_value |= xor_result << 6;
     }
 
-    output = (lfsr_value & 0x01) * volume;
+    if (lfsr_value & 0x01) {
+        output = 0;
+    } else {
+        output = volume;
+    }
 }
 
 
@@ -61,6 +65,7 @@ void Noise::trigger()
     mmu->set_nocheck(NR52, mmu->get(NR52) | SOUND_PULSE_A_ON_FLAG);
 
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
+    ve_enabled = true;
 
     length = 64;                    // Reload length
     set_NR42(mmu->get(NR42));       // Reload volume
@@ -77,7 +82,7 @@ void Noise::trigger()
  */
 void Noise::set_NR41(uint8_t value)
 {
-    length = value & 0b00011111;
+    length = value & 0b00111111;
 }
 
 

@@ -66,6 +66,7 @@ void PulseA::trigger()
     mmu->set_nocheck(NR52, mmu->get(NR52) | SOUND_PULSE_A_ON_FLAG);
 
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
+    ve_enabled = true;
 
     length = 64;                    // Reload length
     set_NR12(mmu->get(NR12));       // Reload volume
@@ -141,7 +142,7 @@ void PulseA::set_NR10(uint8_t value)
 void PulseA::set_NR11(uint8_t value)
 {
     duty = (value & 0b11000000) >> 6;
-    length = value & 0b00011111;
+    length = value & 0b00111111;
 }
 
 

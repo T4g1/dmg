@@ -31,8 +31,6 @@ class APU {
     size_t buffer_count;            // Size of occupied buffer (2 incrmeent = one sample)
     int16_t sample[SOUND_DOWNSAMPLE_BUFFER_SIZE]; // 2 * int16_t per sample
 
-    size_t current_step;            // Frame sequencer step
-
     // Sound control
     bool activated;
     bool vin_so1;

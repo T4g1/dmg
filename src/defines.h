@@ -129,8 +129,8 @@
 #define NR34                0xFF1E      // Channel 3 - Frequency hi
 #define NR41                0xFF20      // Channel 4 - Sound length
 #define NR42                0xFF21      // Channel 4 - Volume Envelope
-#define NR43                0xFF22      // Channel 4 - Frequency lo
-#define NR44                0xFF23      // Channel 4 - Frequency hi
+#define NR43                0xFF22      // Channel 4 - LFSR
+#define NR44                0xFF23      // Channel 4 - Control
 #define NR50                0xFF24      // Channel control
 #define NR51                0xFF25      // Selection of sound output
 #define NR52                0xFF26      // Sound on/off

@@ -283,10 +283,10 @@ void APU::set_NR52(uint8_t value)
 
     if (activated != previous_state) {
         if (activated) {
-            debug("Sound activated\n");
-            current_step = 0;
+            // TODO: Reset frame sequencers
+            // TODO: Reset duty
+            // TODO: Reset Wave
         } else {
-            debug("Sound de-activated\n");
             for (uint16_t address=NR10; address<NR51; address++) {
                 mmu->set(address, 0x00);
             }
