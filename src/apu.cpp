@@ -142,60 +142,62 @@ void APU::update()
 
 void APU::mixer()
 {
-    int16_t buffer, result;
+    int16_t *result_left = sample + buffer_count++;
+    int16_t *result_right = sample + buffer_count++;
+
+    *result_left = 0;
+    *result_right = 0;
+
+    int16_t data[] = {
+        pulse_a.get_output(),
+        pulse_b.get_output(),
+        wave.get_output(),
+        noise.get_output()
+    };
+
+    bool to_so1[] = {
+        pulse_a_so1,
+        pulse_b_so1,
+        wave_so1,
+        noise_so1
+    };
+
+    bool to_so2[] = {
+        pulse_a_so2,
+        pulse_b_so2,
+        wave_so2,
+        noise_so2
+    };
 
     // Left
-    int16_t volume = so1_level * (128 / 7.0);
-    result = 0;
-    buffer = 0;
-
-    if (pulse_a_so1) {
-        buffer = pulse_a.get_output();
-        SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
+    for (size_t i=0; i<4; i++) {
+        if (to_so1[i]) {
+            SDL_MixAudioFormat(
+                (Uint8*)result_left,
+                (Uint8*)&data[i],
+                AUDIO_S16SYS,
+                sizeof(int16_t),
+                so1_level * (128 / 7.0)
+            );
+        }
     }
-
-    if (pulse_b_so1) {
-        buffer = pulse_b.get_output();
-        SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
-    }
-
-    if (wave_so1) {
-        buffer = wave.get_output();
-        SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
-    }
-
-    if (noise_so1) {
-        buffer = (noise.get_output() / 100);
-        SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
-    }
-
-    sample[buffer_count++] = result * 1000;
 
     // Right
-    volume = so2_level * (128 / 7.0);
-    result = 0;
-    buffer = 0;
-
-    if (pulse_a_so2) {
-        buffer = pulse_a.get_output();
-        SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
+    for (size_t i=0; i<4; i++) {
+        if (to_so2[i]) {
+            SDL_MixAudioFormat(
+                (Uint8*)result_right,
+                (Uint8*)&data[i],
+                AUDIO_S16SYS,
+                sizeof(int16_t),
+                so2_level * (128 / 7.0)
+            );
+        }
     }
 
-    if (pulse_b_so2) {
-        buffer = pulse_b.get_output();
-        SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
-    }
-
-    if (wave_so2) {
-        buffer = wave.get_output();
-        SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
-    }
-
-    if (noise_so2) {
-        buffer = noise.get_output();
-        SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
-    }
-    sample[buffer_count++] = result * 1000;
+    // Amplify
+    *result_left *= 1000;
+    *result_right *= 1000;
 }
 
 
