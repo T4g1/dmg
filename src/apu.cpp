@@ -212,11 +212,11 @@ void APU::downsample()
     // Buffer full, send to audio
     if (buffer_count >= SOUND_DOWNSAMPLE_BUFFER_SIZE) {
         // Let buffer be drained
-        while (SDL_GetQueuedAudioSize(audio_device) > SOUND_DOWNSAMPLE_BUFFER_SIZE) {
+        while (SDL_GetQueuedAudioSize(audio_device) > SOUND_DOWNSAMPLE_BUFFER_SIZE * sizeof(int16_t)) {
             SDL_Delay(1);
         }
 
-        SDL_QueueAudio(audio_device, sample, SOUND_DOWNSAMPLE_BUFFER_SIZE);
+        SDL_QueueAudio(audio_device, sample, SOUND_DOWNSAMPLE_BUFFER_SIZE * sizeof(int16_t));
 
         buffer_count = 0;
     }

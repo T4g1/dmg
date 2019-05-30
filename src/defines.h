@@ -31,7 +31,7 @@
 #define SOUND_FREQ_SWEEP_FREQ       128     // Frequency Sweep triggers every 128 frame seq
 
 // Downsampler
-#define SOUND_DOWNSAMPLE_CLOCK_STEP     87
+#define SOUND_DOWNSAMPLE_CLOCK_STEP     256
 #define SOUND_DOWNSAMPLE_SAMPLES        512
 #define SOUND_DOWNSAMPLE_BUFFER_SIZE    SOUND_DOWNSAMPLE_SAMPLES * SOUND_CHANNEL_COUNT
 
