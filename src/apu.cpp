@@ -79,7 +79,7 @@ void APU::reset()
  */
 void APU::step()
 {
-    clock += SOUND_CLOCK_STEP;
+    clock += 1;
 
     update();
 
@@ -107,8 +107,8 @@ void APU::step()
 
 void APU::update()
 {
-    pulse_a.update();
-    pulse_b.update();
+    //pulse_a.update();
+    //pulse_b.update();
     wave.update();
     //noise.update();
 }
@@ -122,7 +122,7 @@ void APU::mixer()
     int16_t volume = so1_level * (128 / 7.0);
     result = 0;
     buffer = 0;
-
+/*
     if (pulse_a_so1) {
         buffer = pulse_a.get_output();
         SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
@@ -131,7 +131,7 @@ void APU::mixer()
     if (pulse_b_so1) {
         buffer = pulse_b.get_output();
         SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
-    }
+    }*/
 
     if (wave_so1) {
         buffer = wave.get_output();
@@ -143,13 +143,13 @@ void APU::mixer()
         SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
     }*/
 
-    sample[sample_count++] = result * 10;
+    sample[sample_count++] = result * 100;
 
     // Right
     volume = so2_level * (128 / 7.0);
     result = 0;
     buffer = 0;
-
+/*
     if (pulse_a_so2) {
         buffer = pulse_a.get_output();
         SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
@@ -158,7 +158,7 @@ void APU::mixer()
     if (pulse_b_so2) {
         buffer = pulse_b.get_output();
         SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
-    }
+    }*/
 
     if (wave_so2) {
         buffer = wave.get_output();
@@ -169,7 +169,7 @@ void APU::mixer()
         buffer = (noise.get_output() / 100);
         SDL_MixAudioFormat((Uint8*)&result, (Uint8*)&buffer, AUDIO_S16SYS, sizeof(int16_t), volume);
     }*/
-    sample[sample_count++] = result * 10;
+    sample[sample_count++] = result * 100;
 }
 
 

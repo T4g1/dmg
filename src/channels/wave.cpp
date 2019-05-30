@@ -34,14 +34,8 @@ bool Wave::init()
 void Wave::process()
 {
     // Step the wave position
-    // TODO: Simplify this
-    static size_t steps = 0;
-    steps += SOUND_CLOCK_STEP;
-    if (wave_timer >= steps) {
-        wave_timer -= steps;
-    } else {
-        steps -= wave_timer;
-        wave_timer = 0;
+    if (wave_timer > 0) {
+        wave_timer -= 1;
     }
 
     if (wave_timer > 0) {
@@ -80,7 +74,7 @@ void Wave::trigger()
 
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
 
-    set_NR31(mmu->get(NR31));       // Reload length
+    length = 256;                   // Reload length
     set_NR32(mmu->get(NR32));       // Reload volume
 
     wave_position = 0;
@@ -156,5 +150,5 @@ void Wave::set_NR34(uint8_t value)
  */
 size_t Wave::get_frequency()
 {
-    return (0x010000 / (0x0800 - wave_frequency));
+    return (2048 - wave_frequency) * 2;
 }

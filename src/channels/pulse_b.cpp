@@ -23,7 +23,7 @@ void PulseB::trigger()
 
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
 
-    set_NR21(mmu->get(NR21));       // Reload length
+    length = 64;                    // Reload length
     set_NR22(mmu->get(NR22));       // Reload volume
 }
 

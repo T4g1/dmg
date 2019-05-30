@@ -72,7 +72,7 @@ void PulseA::trigger()
 
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
 
-    set_NR11(mmu->get(NR11));       // Reload length
+    length = 64;                    // Reload length
     set_NR12(mmu->get(NR12));       // Reload volume
 
     // TODO: Sweep timer reset
