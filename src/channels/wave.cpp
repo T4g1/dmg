@@ -21,7 +21,7 @@ bool Wave::init()
 
     // Wave
     wave_position = 0;
-    wave_timer = 0;
+    wave_clock = 0;
     wave_frequency = 0;
 
     return true;
@@ -33,16 +33,7 @@ bool Wave::init()
  */
 void Wave::process()
 {
-    // Step the wave position
-    if (wave_timer > 0) {
-        wave_timer -= 1;
-    }
-
-    if (wave_timer > 0) {
-        return;
-    }
-
-    wave_timer = get_frequency();
+    wave_clock += get_frequency();
 
     // Mute Wave
     if (!enabled) {
@@ -60,6 +51,7 @@ void Wave::process()
         output = output >> volume_shift;
     }
 
+    // Step the wave position
     wave_position = (wave_position + 1) % SOUND_WAVE_REG_COUNT;
 }
 

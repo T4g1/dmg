@@ -7,7 +7,6 @@
 class PulseA : public Channel {
     // Wave duty
     size_t duty;                    // Wave duty type to use
-    size_t duty_timer;              // When do we step the duty
     size_t duty_position;           // Position in the duty wave
     size_t duty_frequency;          // Speed for duty steps
 
@@ -22,6 +21,9 @@ class PulseA : public Channel {
     bool pa_internal_flag;
 */
 public:
+    // Wave duty
+    size_t duty_clock;              // When do we step the duty
+
     PulseA();
     ~PulseA();
 

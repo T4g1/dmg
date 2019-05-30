@@ -19,7 +19,7 @@ bool PulseA::init()
 
     // Wave duty
     duty = 0;
-    duty_timer = 0;
+    duty_clock = 0;
     duty_position = 0;
     duty_frequency = 0;
 
@@ -40,24 +40,11 @@ void PulseA::process()
         {0, 1, 1, 1, 1, 1, 1, 0}
     };
 
-    // Step the duty position
-    static size_t steps = 0;
-    steps += SOUND_CLOCK_STEP;
-    if (duty_timer >= steps) {
-        duty_timer -= steps;
-    } else {
-        steps -= duty_timer;
-        duty_timer = 0;
-    }
-
-    if (duty_timer > 0) {
-        return;
-    }
-
-    duty_timer = get_frequency();
+    duty_clock += get_frequency();
 
     output = dutys[duty][duty_position] * volume;
 
+    // Step the duty position
     duty_position = (duty_position + 1) % SOUND_PULSE_A_DUTY_SIZE;
 }
 
@@ -193,7 +180,7 @@ void PulseA::set_NR14(uint8_t value)
  */
 size_t PulseA::get_frequency()
 {
-    return 0x20000 / (0x0800 - duty_frequency);
+    return (2048 - duty_frequency) * 4;
 }
 
 

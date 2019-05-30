@@ -9,10 +9,12 @@ class Wave : public Channel {
 
     // Wave
     size_t wave_position;       // Which wave register should be read
-    size_t wave_timer;          // Control when the wave need to be stepped
     size_t wave_frequency;      // Frequency at which wave position should be incremented
 
 public:
+    // Wave
+    size_t wave_clock;          // Control when the wave need to be stepped
+
     Wave();
     ~Wave();
 
