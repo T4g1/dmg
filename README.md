@@ -52,7 +52,22 @@ Test with `./test`
 |10|bit ops            |:heavy_check_mark:|
 |11|op a,(hl)          |:heavy_check_mark:|
 
+### Blarggs Sound Instruction
 
+|# |name                   |state             |
+|- |-                      |-                 |
+|01|registers              |:x:               |
+|02|len ctr                |:x:               |
+|03|trigger                |:x:               |
+|04|sweep                  |:x:               |
+|05|sweep details          |:x:               |
+|06|overflow on trigger    |:x:               |
+|07|len sweep period sync  |:x:               |
+|08|len ctr during power   |:x:               |
+|09|wave read while on     |:x:               |
+|10|wave trigger while on  |:x:               |
+|11|regs after power       |:x:               |
+|12|wave write while on    |:x:               |
 
 # TODO
 
@@ -66,7 +81,8 @@ Test with `./test`
 * [x] Implement MMU
 * [x] Implement PPU
 * [x] Implement inputs
-* [ ] Sound!
+* [x] Sound!
+* [ ] Fix all that shit
 
 # Screenshots
 

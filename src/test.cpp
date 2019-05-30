@@ -9,6 +9,7 @@ Cartridge *cart;
 MMU *mmu;
 PPU *ppu;
 CPU *cpu;
+APU *apu;
 Timer *timer;
 Input *input;
 
@@ -1564,21 +1565,34 @@ bool test_CARTRIDGE_CPU_instrs()
 bool test_blargg_cpu_instrs()
 {
     // Blargg cpu instrs
-    const size_t blargg_count = 2;
+    const size_t blargg_count = 12;
     const char *cpu_instrs[] = {
-        /*"tests/blargg/01-special.gb",
-        "tests/blargg/02-interrupts.gb",
-        "tests/blargg/03-op sp,hl.gb",
-        "tests/blargg/04-op r,imm.gb",
-        "tests/blargg/05-op rp.gb",
-        "tests/blargg/06-ld r,r.gb",
-        "tests/blargg/07-jr,jp,call,ret,rst.gb",
-        "tests/blargg/08-misc instrs.gb",
-        "tests/blargg/09-op r,r.gb",
-        "tests/blargg/10-bit ops.gb",
-        "tests/blargg/11-op a,(hl).gb",*/
-        "tests/blargg/cpu_instrs.gb",
-        "tests/blargg/instr_timing.gb",
+        /*"tests/blargg/cpu/01-special.gb",
+        "tests/blargg/cpu/02-interrupts.gb",
+        "tests/blargg/cpu/03-op sp,hl.gb",
+        "tests/blargg/cpu/04-op r,imm.gb",
+        "tests/blargg/cpu/05-op rp.gb",
+        "tests/blargg/cpu/06-ld r,r.gb",
+        "tests/blargg/cpu/07-jr,jp,call,ret,rst.gb",
+        "tests/blargg/cpu/08-misc instrs.gb",
+        "tests/blargg/cpu/09-op r,r.gb",
+        "tests/blargg/cpu/10-bit ops.gb",
+        "tests/blargg/cpu/11-op a,(hl).gb",
+        "tests/blargg/cpu/cpu_instrs.gb",*/
+        "tests/blargg/sound/01-registers.gb",
+        "tests/blargg/sound/02-len ctr.gb",
+        "tests/blargg/sound/03-trigger.gb",
+        "tests/blargg/sound/04-sweep.gb",
+        "tests/blargg/sound/05-sweep details.gb",
+        "tests/blargg/sound/06-overflow on trigger.gb",
+        "tests/blargg/sound/07-len sweep period sync.gb",
+        "tests/blargg/sound/08-len ctr during power.gb",
+        "tests/blargg/sound/09-wave read while on.gb",
+        "tests/blargg/sound/10-wave trigger while on.gb",
+        "tests/blargg/sound/11-regs after power.gb",
+        "tests/blargg/sound/12-wave write while on.gb",
+        //"tests/blargg/sound/cpu_instrs.gb",
+        //"tests/blargg/instr_timing.gb",
     };
 
     for (size_t test_id=0; test_id<blargg_count; test_id++) {
@@ -1604,21 +1618,25 @@ int main(void)
     cpu = new CPU();
     ppu = new PPU();
     timer = new Timer();
+    apu = new APU();
     input = new Input();
 
     mmu->set_ppu(ppu);
     mmu->set_timer(timer);
     mmu->set_input(input);
+    mmu->set_apu(apu);
     cpu->set_mmu(mmu);
     ppu->set_mmu(mmu);
     timer->set_mmu(mmu);
     input->set_mmu(mmu);
+    apu->set_mmu(mmu);
 
     mmu->init("", "");
     cpu->init();
     ppu->init();
     timer->init();
     input->init();
+    apu->init();
 
     fprintf(stdout, "DMG auto testing\n");
 
@@ -1670,6 +1688,7 @@ int main(void)
     delete ppu;
     delete timer;
     delete input;
+    delete apu;
 
     test_blargg_cpu_instrs();
 
