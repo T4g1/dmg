@@ -73,8 +73,8 @@ void PulseA::trigger()
 
     // TODO: duty_clock = now?
 
-    // TODO: Sweep timer reset
-    // TODO: Reset sweep
+    sweep_time_actual = sweep_time;
+    sweep_flag = false;
 }
 
 
@@ -83,43 +83,40 @@ void PulseA::trigger()
  */
 void PulseA::frequency_sweep()
 {
-    // TODO
-    /*
     size_t new_frequency;
 
-    pa_sweep_time_actual -= 1;
+    sweep_time_actual -= 1;
 
-    if (pa_sweep_time_actual > 0) {
+    if (sweep_time_actual > 0) {
         return;
     }
 
-    pa_shadow_frequency = pa_frequency;         // Copy frequency to shadow
-    pa_sweep_time_actual = pa_sweep_time;       // Reset sweep time
+    shadow_frequency = duty_frequency;    // Copy frequency to shadow
+    sweep_time_actual = sweep_time;       // Reset sweep time
 
-    if (pa_internal_flag && pa_sweep_time != 0) {
-        new_frequency = get_pa_new_frequency(pa_shadow_frequency, pa_sweep_shift, pa_sweep_decrease);
+    if (sweep_flag && sweep_time != 0) {
+        new_frequency = compute_frequency(shadow_frequency, sweep_shift, sweep_decrease);
         if (new_frequency >= 2048) {
-            pa_enabled = false;
-        } else if (pa_sweep_shift != 0) {
-            pa_shadow_frequency = new_frequency;
-            pa_frequency = new_frequency;
+            enabled = false;
+        } else if (sweep_shift != 0) {
+            shadow_frequency = new_frequency;
+            duty_frequency = new_frequency;
             // TODO: Update NR13, NR14
         }
     }
 
     // Set internal enabled flag
-    pa_internal_flag = pa_sweep_shift != 0 || pa_sweep_time != 0;
+    sweep_flag = sweep_shift != 0 || sweep_time != 0;
 
-    if (pa_sweep_shift == 0) {
+    if (sweep_shift == 0) {
         return;
     }
 
     // Compute new frequency
-    new_frequency = get_pa_new_frequency(pa_shadow_frequency, pa_sweep_shift, pa_sweep_decrease);
+    new_frequency = compute_frequency(shadow_frequency, sweep_shift, sweep_decrease);
     if (new_frequency >= 2048) {
-        pa_enabled = false;
+        enabled = false;
     }
-    */
 }
 
 

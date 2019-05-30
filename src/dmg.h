@@ -27,7 +27,10 @@ class DMG {
     bool running;
     bool no_boot;
 
-    size_t system_clock;
+    size_t system_clock;        // Emulator clock
+    // Clock based on real time elapsed, system clock should catch up with this
+    size_t dmg_clock;
+    Uint32 last_tick;       // Used to compute dmg_clock
 
     std::string bios_path;
     std::string rom_path;

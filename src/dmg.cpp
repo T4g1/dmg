@@ -90,6 +90,9 @@ bool DMG::init(const char *bios_path, const char *rom_path)
     reset();
 
     save_slot = 0;
+    dmg_clock = 0;
+    system_clock = 0;
+    last_tick = 0;
 
     return running;
 }
@@ -102,8 +105,6 @@ bool DMG::init(const char *bios_path, const char *rom_path)
 int DMG::run()
 {
     while (running) {
-        static size_t dmg_clock = 0;
-        static Uint32 last_tick = 0;
         Uint32 current_tick = SDL_GetTicks();
         dmg_clock += 4195 * (current_tick - last_tick); //  4194304 / 1000
         last_tick = current_tick;
@@ -117,7 +118,6 @@ int DMG::run()
         debugger->draw();
 
         handle_events();
-
     }
 
     return EXIT_SUCCESS;
