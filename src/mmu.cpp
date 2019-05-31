@@ -186,12 +186,13 @@ bool MMU::set(uint16_t address, uint8_t value)
     }
 
     // Sound Control
-    // TODO: Check power on, if off, does not write! (except length)
-    else if (address == NR52) {
+    else if (address >= NR10 && address <= NR51 && !apu->is_power_on()) {
+        return false;
+    } else if (address == NR52) {
         value &= 0xF0;
     }
 
-    value = memory_masks(address, value, false);
+    value = memory_masks(address, value);
 
     set_nocheck(address, value);
 
@@ -230,7 +231,22 @@ uint8_t MMU::get(uint16_t address)
 
     uint8_t value = get_nocheck(address);
 
-    return memory_masks(address, value, true);
+    // Sound
+    if (address >= NR10 && address <= NR52) {
+        const uint8_t sound_masks[] = {
+            0x80, 0x3F, 0x00, 0xFF, 0xBF,
+            0xFF, 0x3F, 0x00, 0xFF, 0xBF,
+            0x7F, 0xFF, 0x9F, 0xFF, 0xBF,
+            0xFF, 0xFF, 0x00, 0x00, 0xBF,
+            0x00, 0x00, 0x70
+        };
+
+        value |= sound_masks[address - NR10];
+    } else if (address >= FF_START && address <= FF_END) {
+        value = 0xFF;
+    }
+
+    return memory_masks(address, value);
 }
 
 
@@ -255,10 +271,9 @@ uint8_t MMU::get_nocheck(uint16_t address)
  *             always read/set to 1
  * @param[in]  address  The address
  * @param[in]  value    The value
- * @param[in]  read     True if reading
  * @return     value
  */
-uint8_t MMU::memory_masks(uint16_t address, uint8_t value, bool read)
+uint8_t MMU::memory_masks(uint16_t address, uint8_t value)
 {
 
     // LCD_STATUS
@@ -277,19 +292,6 @@ uint8_t MMU::memory_masks(uint16_t address, uint8_t value, bool read)
     else if (address == IF_ADDRESS) {
         // Last three bit always set
         value |= 0xE0;
-    }
-
-    // Sound
-    else if (address >= NR10 && address <= NR52 && read) {
-        const uint8_t sound_masks[] = {
-            0x80, 0x3F, 0x00, 0xFF, 0xBF,
-            0xFF, 0x3F, 0x00, 0xFF, 0xBF,
-            0x7F, 0xFF, 0x9F, 0xFF, 0xBF,
-            0xFF, 0xFF, 0x00, 0x00, 0xBF,
-            0x00, 0x00, 0x70
-        };
-
-        value |= sound_masks[address - NR10];
     }
 
     return value;

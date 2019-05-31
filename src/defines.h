@@ -97,6 +97,11 @@
 #define HRAM_START          0xFF80
 #define HRAM_END            0xFFFF
 
+#define WAVE_START          0xFF30
+#define WAVE_END            0xFF3F
+#define FF_START            0xFF27
+#define FF_END              0xFF2F
+
 #define TILE_ADDRESS_1      0x8000
 #define TILE_ADDRESS_2      0x8800
 #define MAP_ADDRESS_1       0x9800

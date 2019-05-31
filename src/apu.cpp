@@ -282,20 +282,22 @@ void APU::set_NR51(uint8_t value)
 void APU::set_NR52(uint8_t value)
 {
     bool previous_state = activated;
+    bool new_state = value & 0b10000000;
 
-    activated = value & 0b10000000;
-
-    if (activated != previous_state) {
-        if (activated) {
+    if (new_state != previous_state) {
+        if (new_state) {
             // TODO: Reset frame sequencers
             // TODO: Reset duty
             // TODO: Reset Wave
         } else {
-            for (uint16_t address=NR10; address<NR51; address++) {
+            for (uint16_t address=NR10; address<NR52; address++) {
                 mmu->set(address, 0x00);
             }
         }
     }
+
+    // Set activated now otherwise it would interfere with registers set to 0
+    activated = new_state;
 }
 
 

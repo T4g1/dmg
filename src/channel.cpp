@@ -43,6 +43,12 @@ bool Channel::init()
 }
 
 
+void reset()
+{
+    // TODO
+}
+
+
 /**
  * @brief      Generates output
  */

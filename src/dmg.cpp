@@ -87,12 +87,12 @@ bool DMG::init(const char *bios_path, const char *rom_path)
     set_palette(palette);
     set_speed(DEFAULT_SPEED);
 
-    reset();
-
     save_slot = 0;
     dmg_clock = 0;
     system_clock = 0;
     last_tick = 0;
+
+    reset();
 
     return running;
 }

@@ -56,7 +56,7 @@ Test with `./test`
 
 |# |name                   |state             |
 |- |-                      |-                 |
-|01|registers              |:x:               |
+|01|registers              |:heavy_check_mark:|
 |02|len ctr                |:x:               |
 |03|trigger                |:x:               |
 |04|sweep                  |:x:               |

@@ -38,6 +38,7 @@ public:
     Channel();
 
     bool init();
+    void reset();
     void update();
 
     virtual void process() = 0;     // Channel related output generation

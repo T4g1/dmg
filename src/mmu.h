@@ -33,7 +33,7 @@ class MMU {
 
     address_type get_address_identity(uint16_t address);
 
-    uint8_t memory_masks(uint16_t address, uint8_t value, bool read);
+    uint8_t memory_masks(uint16_t address, uint8_t value);
     void handle_callbacks(uint16_t address, uint8_t value);
 
 public:
