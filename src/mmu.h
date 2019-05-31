@@ -33,10 +33,12 @@ class MMU {
 
     address_type get_address_identity(uint16_t address);
 
-    uint8_t memory_masks(uint16_t address, uint8_t value);
+    uint8_t memory_masks(uint16_t address, uint8_t value, bool read);
     void handle_callbacks(uint16_t address, uint8_t value);
 
 public:
+    bool no_boot;           // No boot rom provided
+
     MMU();
     ~MMU();
 

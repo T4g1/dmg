@@ -149,11 +149,15 @@ void APU::mixer()
     *result_right = 0;
 
     int16_t data[] = {
-        pulse_a.get_output(),
-        pulse_b.get_output(),
-        wave.get_output(),
-        noise.get_output()
+        0, 0, 0, 0
     };
+
+    if (activated) {
+        data[0] = pulse_a.get_output();
+        data[1] = pulse_b.get_output();
+        data[2] = wave.get_output();
+        data[3] = noise.get_output();
+    }
 
     bool to_so1[] = {
         pulse_a_so1,

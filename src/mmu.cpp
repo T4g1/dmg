@@ -46,6 +46,9 @@ bool MMU::init(std::string boot_path, std::string rom_path)
         return false;
     }
 
+    no_boot = false;
+    booted = false;
+
     load_boot(boot_path);
     load_rom(rom_path);
 
@@ -55,41 +58,9 @@ bool MMU::init(std::string boot_path, std::string rom_path)
 
 void MMU::reset()
 {
-    booted = false;
+    booted = no_boot;
 
     set(0x0100, 0x00);     // Reset MBC
-
-    set(TIMA, 0x00);
-    set(TMA, 0x00);
-    set(TAC, 0x00);
-    set(0xFF10, 0x80);     //<! NR10
-    set(0xFF11, 0xBF);     //<! NR11
-    set(0xFF12, 0xF3);     //<! NR12
-    set(0xFF14, 0xBF);     //<! NR14
-    set(0xFF16, 0x3F);     //<! NR21
-    set(0xFF17, 0x00);     //<! NR22
-    set(0xFF19, 0xBF);     //<! NR24
-    set(0xFF1A, 0x7F);     //<! NR30
-    set(0xFF1B, 0xFF);     //<! NR31
-    set(0xFF1C, 0x9F);     //<! NR32
-    set(0xFF1E, 0xBF);     //<! NR33
-    set(0xFF20, 0xFF);     //<! NR41
-    set(0xFF21, 0x00);     //<! NR42
-    set(0xFF22, 0x00);     //<! NR43
-    set(0xFF23, 0xBF);     //<! NR44
-    set(0xFF24, 0x77);     //<! NR50
-    set(0xFF25, 0xF3);     //<! NR51
-    set(0xFF26, 0xF1);     //<! NR52
-    set(LCDC, 0x91);
-    set(SCY, 0x00);
-    set(SCX, 0x00);
-    set(LYC, 0x00);
-    set(BGP, 0xFC);
-    set(OBP0, 0xFF);
-    set(OBP1, 0xFF);
-    set(WY, 0x00);
-    set(WX, 0x00);
-    set(IE_ADDRESS, 0x00);
 
     update_ram();
 }
@@ -220,7 +191,7 @@ bool MMU::set(uint16_t address, uint8_t value)
         value &= 0xF0;
     }
 
-    value = memory_masks(address, value);
+    value = memory_masks(address, value, false);
 
     set_nocheck(address, value);
 
@@ -259,7 +230,7 @@ uint8_t MMU::get(uint16_t address)
 
     uint8_t value = get_nocheck(address);
 
-    return memory_masks(address, value);
+    return memory_masks(address, value, true);
 }
 
 
@@ -280,10 +251,14 @@ uint8_t MMU::get_nocheck(uint16_t address)
 
 
 /**
- * @brief      Apply mask on some values
- * Example: unused bits of IF should always read/set to 1
+ * @brief      Apply mask on some values Example: unused bits of IF should
+ *             always read/set to 1
+ * @param[in]  address  The address
+ * @param[in]  value    The value
+ * @param[in]  read     True if reading
+ * @return     value
  */
-uint8_t MMU::memory_masks(uint16_t address, uint8_t value)
+uint8_t MMU::memory_masks(uint16_t address, uint8_t value, bool read)
 {
 
     // LCD_STATUS
@@ -302,6 +277,19 @@ uint8_t MMU::memory_masks(uint16_t address, uint8_t value)
     else if (address == IF_ADDRESS) {
         // Last three bit always set
         value |= 0xE0;
+    }
+
+    // Sound
+    else if (address >= NR10 && address <= NR52 && read) {
+        const uint8_t sound_masks[] = {
+            0x80, 0x3F, 0x00, 0xFF, 0xBF,
+            0xFF, 0x3F, 0x00, 0xFF, 0xBF,
+            0x7F, 0xFF, 0x9F, 0xFF, 0xBF,
+            0xFF, 0xFF, 0x00, 0x00, 0xBF,
+            0x00, 0x00, 0x70
+        };
+
+        value |= sound_masks[address - NR10];
     }
 
     return value;
@@ -448,7 +436,8 @@ bool MMU::load_rom(std::string filepath)
  */
 bool MMU::load_boot(std::string filepath)
 {
-    booted = false;
+    booted = true;
+    no_boot = true;
 
     info("Loading boot ROM: %s\n", filepath.c_str());
 
@@ -477,6 +466,9 @@ bool MMU::load_boot(std::string filepath)
         error("Error while reading provided boot ROM file\n");
         return false;
     }
+
+    booted = false;
+    no_boot = false;
 
     update_ram();
 

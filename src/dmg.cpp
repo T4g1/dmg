@@ -243,20 +243,10 @@ void DMG::reset()
     input->reset();
     apu->reset();
 
-    if (no_boot) {
-        fake_boot();
+    // No boot rom, skip to game start
+    if (mmu->no_boot) {
+        cpu->PC = 0x0100;
     }
-}
-
-
-/**
- * @brief      Set the program to works without BOOT rom
- */
-void DMG::fake_boot()
-{
-    cpu->PC = 0x0100;
-
-    mmu->set_booted(true);
 }
 
 
