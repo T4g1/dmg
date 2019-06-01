@@ -82,6 +82,12 @@ void Noise::trigger()
 }
 
 
+void Noise::frequency_sweep()
+{
+    // Does nothing
+}
+
+
 /**
  * @brief      Length
  * @param[in]  value  The value

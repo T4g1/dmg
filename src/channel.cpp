@@ -144,12 +144,6 @@ void Channel::volume_envelope()
 }
 
 
-void Channel::frequency_sweep()
-{
-    // Only defined for Pulse A (overrided there)
-}
-
-
 /**
  * @brief      Digital to analog converter
  */

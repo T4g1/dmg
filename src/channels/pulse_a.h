@@ -37,7 +37,7 @@ public:
     void set_NR14(uint8_t value);
 
     size_t get_frequency();
-    size_t compute_frequency(size_t shadow, size_t shift, bool decrease);
+    size_t compute_frequency();
 };
 
 #endif /* PULSE_A_H */

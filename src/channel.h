@@ -51,7 +51,7 @@ public:
     void length_counter();
     void volume_envelope();
 
-    void frequency_sweep();
+    virtual void frequency_sweep() = 0;
 
     void dac();                     // Handles digital to analog converter
 

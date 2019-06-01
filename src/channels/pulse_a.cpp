@@ -78,8 +78,12 @@ void PulseA::trigger()
 
     // TODO: duty_clock = now?
 
-    sweep_time_actual = sweep_time;
-    sweep_flag = false;
+    shadow_frequency = frequency_raw;       // Copy frequency to shadow
+    sweep_time_actual = sweep_time;         // Reset sweep time
+    sweep_flag = sweep_shift != 0 || sweep_time != 0;
+    if (sweep_shift != 0 && compute_frequency() >= 2048) {
+        disable();
+    }
 }
 
 
@@ -88,39 +92,31 @@ void PulseA::trigger()
  */
 void PulseA::frequency_sweep()
 {
-    size_t new_frequency;
-
-    sweep_time_actual -= 1;
+    if (sweep_time_actual > 0) {
+        sweep_time_actual -= 1;
+    }
 
     if (sweep_time_actual > 0) {
         return;
     }
 
-    shadow_frequency = frequency_raw;    // Copy frequency to shadow
-    sweep_time_actual = sweep_time;       // Reset sweep time
+    sweep_time_actual = sweep_time;         // Reset sweep time
 
-    if (sweep_flag && sweep_time != 0) {
-        new_frequency = compute_frequency(shadow_frequency, sweep_shift, sweep_decrease);
-        if (new_frequency >= 2048) {
-            enabled = false;
-        } else if (sweep_shift != 0) {
-            shadow_frequency = new_frequency;
-            frequency_raw = new_frequency;
-            // TODO: Update NR13, NR14
-        }
-    }
-
-    // Set internal enabled flag
-    sweep_flag = sweep_shift != 0 || sweep_time != 0;
-
-    if (sweep_shift == 0) {
+    if (!sweep_flag || sweep_time == 0) {
         return;
     }
 
-    // Compute new frequency
-    new_frequency = compute_frequency(shadow_frequency, sweep_shift, sweep_decrease);
+    size_t new_frequency = compute_frequency();
     if (new_frequency >= 2048) {
-        enabled = false;
+        disable();
+    } else if (sweep_shift != 0) {
+        shadow_frequency = new_frequency;
+        frequency_raw = new_frequency;
+        // TODO: Update NR13, NR14
+
+        if (compute_frequency() >= 2048) {
+            disable();
+        }
     }
 }
 
@@ -197,17 +193,14 @@ size_t PulseA::get_frequency()
 
 /**
  * @brief      Compute sweep new frequency
- * @param[in]  shadow    The frequency value before
- * @param[in]  shift     The shift to operate
- * @param[in]  decrease  Decrease or increase frequency
  */
-size_t PulseA::compute_frequency(size_t shadow, size_t shift, bool decrease)
+size_t PulseA::compute_frequency()
 {
     int factor = 1;
-    if (decrease) {
+    if (sweep_decrease) {
         factor = -1;
     }
 
-    return shadow + (factor * (shadow >> shift));
+    return shadow_frequency + (factor * (shadow_frequency >> sweep_shift));
 }
 

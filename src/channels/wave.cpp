@@ -82,6 +82,12 @@ void Wave::trigger()
 }
 
 
+void Wave::frequency_sweep()
+{
+    // Does nothing
+}
+
+
 /**
  * @brief      Set channel 3 - wave on/off
  * @param[in]  value  The value

@@ -59,7 +59,7 @@ Test with `./test`
 |01|registers              |:heavy_check_mark:|
 |02|len ctr                |:heavy_check_mark:|
 |03|trigger                |:heavy_check_mark:|
-|04|sweep                  |:x:               |
+|04|sweep                  |:heavy_check_mark:|
 |05|sweep details          |:x:               |
 |06|overflow on trigger    |:x:               |
 |07|len sweep period sync  |:x:               |

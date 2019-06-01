@@ -22,6 +22,8 @@ public:
     void process();
     void trigger();
 
+    void frequency_sweep();
+
     void set_NR40(uint8_t value);
     void set_NR41(uint8_t value);
     void set_NR42(uint8_t value);
