@@ -110,12 +110,18 @@ void Channel::length_counter()
  */
 void Channel::volume_envelope()
 {
-    ve_timer -= 1;
-    if (ve_timer != 0) {
+    if (ve_timer > 0) {
+        ve_timer -= 1;
+    }
+
+    if (ve_timer > 0) {
         return;
     }
 
-    ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
+    ve_timer = ve_period;
+    if (ve_timer == 0) {
+        ve_timer = 8;
+    }
 
     if (!ve_enabled || ve_period == 0) {
         return;
@@ -125,21 +131,17 @@ void Channel::volume_envelope()
     if (ve_add) {
         if (volume < 0x0F) {
             volume += 1;
-            ve_period -= 1;
-        } else {
-            // Stop operations!
-            ve_enabled = false;
         }
     }
     // Substraction
     else {
         if (volume > 0x00) {
             volume -= 1;
-            ve_period -= 1;
-        } else {
-            // Stop operations!
-            ve_enabled = false;
         }
+    }
+
+    if (volume == 0x00 || volume == 0x0F) {
+        ve_enabled = false;
     }
 }
 

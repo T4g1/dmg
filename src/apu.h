@@ -50,6 +50,11 @@ class APU {
 public:
     size_t clock;
 
+    bool play_pulse_a;
+    bool play_pulse_b;
+    bool play_wave;
+    bool play_noise;
+
     APU();
     ~APU();
 

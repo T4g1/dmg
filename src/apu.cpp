@@ -23,6 +23,11 @@ APU::APU() : mmu(nullptr)
     noise_so2 = false;
     so1_level = 0;
     so2_level = 0;
+
+    play_pulse_a = true;
+    play_pulse_b = true;
+    play_wave = true;
+    play_noise = true;
 }
 
 
@@ -153,10 +158,10 @@ void APU::mixer()
     };
 
     if (activated) {
-        data[0] = pulse_a.get_output();
-        data[1] = pulse_b.get_output();
-        data[2] = wave.get_output();
-        data[3] = noise.get_output();
+        if (play_pulse_a) { data[0] = pulse_a.get_output(); }
+        if (play_pulse_b) { data[1] = pulse_b.get_output(); }
+        if (play_wave) { data[2] = wave.get_output(); }
+        if (play_noise) { data[3] = noise.get_output(); }
     }
 
     bool to_so1[] = {

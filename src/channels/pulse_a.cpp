@@ -65,7 +65,7 @@ void PulseA::trigger()
     enabled = true;
     mmu->set_nocheck(NR52, mmu->get(NR52) | enabled_flag);
 
-    ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
+    ve_timer = ve_period;
     ve_enabled = true;
 
     reload_length(64);
@@ -140,7 +140,7 @@ void PulseA::set_NR10(uint8_t value)
 
 /**
  * @brief      Wave duty and length
- * @param[in]  value  The value
+ * @param[in]  value  The valuve_periode
  */
 void PulseA::set_NR11(uint8_t value)
 {
@@ -158,6 +158,7 @@ void PulseA::set_NR12(uint8_t value)
     volume = (value & 0b11110000) >> 4;
     ve_add = value & 0b00001000;
     ve_period = value & 0b00000111;
+    ve_timer = ve_period;
 
     dac_enabled = value & 0b11111000;
     if (!dac_enabled) {

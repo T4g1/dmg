@@ -40,6 +40,7 @@ class CPU;
 class MMU;
 class DMG;
 class PPU;
+class APU;
 
 /**
  * @brief      Displays emulator informations/status
@@ -52,6 +53,7 @@ public:
     bool show_vram;
     bool show_ppu;
     bool show_cpu;
+    bool show_apu;
     bool show_breakpoints;
 
     bool show_demo; // DEBUG
@@ -87,6 +89,7 @@ public:
     void set_mmu(MMU *mmu);
     void set_dmg(DMG *dmg);
     void set_ppu(PPU *ppu);
+    void set_apu(APU *apu);
 
     void save();
     void load();
@@ -100,6 +103,7 @@ private:
     MMU *mmu;
     DMG *dmg;
     PPU *ppu;
+    APU *apu;
 
     SDL_Window *sdl_window;
     SDL_PixelFormat *pixel_format;
@@ -122,6 +126,7 @@ private:
     void display_VRAM_status();
     void display_breakpoints();
     void display_load_game();
+    void display_APU_status();
 };
 
 #endif /* DEBUGGER_H */

@@ -63,7 +63,7 @@ void Wave::trigger()
     enabled = true;
     mmu->set_nocheck(NR52, mmu->get(NR52) | enabled_flag);
 
-    ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
+    ve_timer = ve_period;
     ve_enabled = true;
 
     reload_length(256);

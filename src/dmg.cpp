@@ -73,6 +73,7 @@ bool DMG::init(const char *bios_path, const char *rom_path)
     debugger->set_cpu(cpu);
     debugger->set_mmu(mmu);
     debugger->set_ppu(ppu);
+    debugger->set_apu(apu);
     debugger->set_dmg(this);
 
     running  = true;

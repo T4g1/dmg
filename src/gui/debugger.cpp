@@ -36,6 +36,7 @@ Debugger::Debugger() : cpu(nullptr), mmu(nullptr), dmg(nullptr), ppu(nullptr)
     show_vram = false;
     show_ppu = false;
     show_cpu = false;
+    show_apu = false;
     show_breakpoints = false;
 
     breakpoint_activated = false;
@@ -68,6 +69,11 @@ bool Debugger::init()
 
     if (ppu == nullptr) {
         error("No PPU linked with Debugger\n");
+        return false;
+    }
+
+    if (apu == nullptr) {
+        error("No APU linked with Debugger\n");
         return false;
     }
 
@@ -166,8 +172,9 @@ void Debugger::draw()
         ToggleButton("Execution", &show_execution);
         ToggleButton("Breakpoints", &show_breakpoints);
         ToggleButton("PPU", &show_ppu);
+        ToggleButton("APU", &show_apu);
         ToggleButton("VRAM", &show_vram);
-        ToggleButton("Demo", &show_demo); // DEBUG
+        //ToggleButton("Demo", &show_demo); // DEBUG
 
         if (ImGui::Button("<")) {
             dmg->select_prev_save_slot();
@@ -185,6 +192,7 @@ void Debugger::draw()
     if (show_breakpoints) display_breakpoints();
     if (show_ppu) display_PPU_status();
     if (show_vram) display_VRAM_status();
+    if (show_apu) display_APU_status();
     if (show_demo) ImGui::ShowDemoWindow(&show_demo); // DEBUG
 
     display_load_game();
@@ -656,6 +664,24 @@ void Debugger::display_load_game()
 
 
 /**
+ * @brief      Displays audio processing unit status
+ */
+void Debugger::display_APU_status()
+{
+    const char *title = "APU";
+
+    if (ImGui::Begin(title, &show_apu)) {
+        ToggleButton("Toggle Pulse A", &apu->play_pulse_a);
+        ToggleButton("Toggle Pulse B", &apu->play_pulse_b);
+        ToggleButton("Toggle Wave", &apu->play_wave);
+        ToggleButton("Toggle Noise", &apu->play_noise);
+    }
+
+    ImGui::End();
+}
+
+
+/**
  * @brief      Translate current opcode into text
  * @param      buffer   The buffer
  * @param[in]  size     The size of buffer
@@ -1084,4 +1110,10 @@ void Debugger::set_dmg(DMG *dmg)
 void Debugger::set_ppu(PPU *ppu)
 {
     this->ppu = ppu;
+}
+
+
+void Debugger::set_apu(APU *apu)
+{
+    this->apu = apu;
 }
