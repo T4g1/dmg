@@ -66,13 +66,7 @@ void Wave::trigger()
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
     ve_enabled = true;
 
-    // Reload length
-    if (length == 0) {
-        length = 256;
-        if (sequencer_step & 0x01) {
-            length_counter();
-        }
-    }
+    reload_length(256);
     set_NR30(mmu->get(NR30));       // Reload DAC (disable channel if DAC disabled)
     set_NR32(mmu->get(NR32));       // Reload volume
 

@@ -60,7 +60,7 @@ Test with `./test`
 |02|len ctr                |:heavy_check_mark:|
 |03|trigger                |:heavy_check_mark:|
 |04|sweep                  |:heavy_check_mark:|
-|05|sweep details          |:x:               |
+|05|sweep details          |:heavy_check_mark:|
 |06|overflow on trigger    |:x:               |
 |07|len sweep period sync  |:x:               |
 |08|len ctr during power   |:x:               |

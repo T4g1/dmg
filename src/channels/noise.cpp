@@ -67,13 +67,7 @@ void Noise::trigger()
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
     ve_enabled = true;
 
-    // Reload length
-    if (length == 0) {
-        length = 64;
-        if (sequencer_step & 0x01) {
-            length_counter();
-        }
-    }
+    reload_length(64);
     set_NR42(mmu->get(NR42));       // Reload volume
 
     // TODO: lfsr_clock = now?

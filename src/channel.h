@@ -65,6 +65,8 @@ public:
 
     void disable();
     void disable_dac();
+
+    void reload_length(size_t max_value);
 };
 
 #endif /* CHANNEL_H */

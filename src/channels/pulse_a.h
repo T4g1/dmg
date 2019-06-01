@@ -15,6 +15,7 @@ class PulseA : public Channel {
     size_t sweep_shift;             // How many time shift for new frequency
     size_t sweep_time_actual;       // How many sweep update left before applying sweep
     size_t shadow_frequency;
+    size_t sweep_calculation_count; // Detect if sweep triggered since last change
     bool sweep_flag;
 
 public:
@@ -38,6 +39,7 @@ public:
 
     size_t get_frequency();
     size_t compute_frequency();
+    void reset_actual_sweep_time();
 };
 
 #endif /* PULSE_A_H */

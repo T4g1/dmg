@@ -232,3 +232,18 @@ void Channel::disable_dac()
     dac_enabled = false;
     disable();
 }
+
+
+/**
+ * @brief      Set length to its maximal value during a trigger
+ * @param[in]  max_value  The maximum value
+ */
+void Channel::reload_length(size_t max_value)
+{
+    if (length == 0) {
+        length = max_value;
+        if (sequencer_step & 0x01) {
+            length_counter();
+        }
+    }
+}

@@ -29,6 +29,7 @@ bool PulseA::init()
     sweep_time_actual = 0;
     shadow_frequency = 0;
     sweep_flag = false;
+    sweep_calculation_count = 0;
 
     return true;
 }
@@ -67,19 +68,13 @@ void PulseA::trigger()
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
     ve_enabled = true;
 
-    // Reload length
-    if (length == 0) {
-        length = 64;
-        if (sequencer_step & 0x01) {
-            length_counter();
-        }
-    }
-    set_NR12(mmu->get(NR12));       // Reload volume
+    reload_length(64);
+    set_NR12(mmu->get(NR12));               // Reload volume
 
     // TODO: duty_clock = now?
 
     shadow_frequency = frequency_raw;       // Copy frequency to shadow
-    sweep_time_actual = sweep_time;         // Reset sweep time
+    reset_actual_sweep_time();
     sweep_flag = sweep_shift != 0 || sweep_time != 0;
     if (sweep_shift != 0 && compute_frequency() >= 2048) {
         disable();
@@ -100,7 +95,7 @@ void PulseA::frequency_sweep()
         return;
     }
 
-    sweep_time_actual = sweep_time;         // Reset sweep time
+    reset_actual_sweep_time();
 
     if (!sweep_flag || sweep_time == 0) {
         return;
@@ -127,9 +122,19 @@ void PulseA::frequency_sweep()
  */
 void PulseA::set_NR10(uint8_t value)
 {
+    bool old_sweep_decrease = sweep_decrease;
+
     sweep_time = (value & 0b01110000) >> 4;
     sweep_decrease = value & 0b00001000;
     sweep_shift = value & 0b00000111;
+
+    if (old_sweep_decrease && sweep_decrease != old_sweep_decrease) {
+       if (sweep_calculation_count > 0) {
+            disable();
+       }
+    }
+
+    sweep_calculation_count = 0;
 }
 
 
@@ -196,11 +201,25 @@ size_t PulseA::get_frequency()
  */
 size_t PulseA::compute_frequency()
 {
+    sweep_calculation_count += 1;
+
     int factor = 1;
     if (sweep_decrease) {
         factor = -1;
     }
 
     return shadow_frequency + (factor * (shadow_frequency >> sweep_shift));
+}
+
+
+/**
+ * @brief      Sweep time of zero is treated as 8
+ */
+void PulseA::reset_actual_sweep_time()
+{
+    sweep_time_actual = sweep_time;         // Reset sweep time
+    if (sweep_time_actual == 0) {
+        sweep_time_actual = 8;
+    }
 }
 
