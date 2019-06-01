@@ -13,6 +13,7 @@ protected:
     bool restart;                   // Channel should be restarted
     uint8_t volume;                 // Volume of the channel
     uint8_t output;                 // Output of the channel
+    uint8_t enabled_flag;           // Which flag to set/unset on desactivation
 
     // Frame sequencer
     size_t sequencer_step;          // Current step of the frame seqeucner
@@ -56,6 +57,9 @@ public:
     int16_t get_output();
 
     void set_mmu(MMU *mmu);
+
+    void disable();
+    void disable_dac();
 };
 
 #endif /* CHANNEL_H */

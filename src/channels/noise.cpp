@@ -5,7 +5,7 @@
 
 Noise::Noise()
 {
-
+    enabled_flag = SOUND_NOISE_ON_FLAG;
 }
 
 
@@ -62,12 +62,15 @@ void Noise::process()
 void Noise::trigger()
 {
     enabled = true;
-    mmu->set_nocheck(NR52, mmu->get(NR52) | SOUND_PULSE_A_ON_FLAG);
+    mmu->set_nocheck(NR52, mmu->get(NR52) | enabled_flag);
 
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
     ve_enabled = true;
 
-    length = 64;                    // Reload length
+    // Reload length
+    if (length == 0) {
+        length = 64;
+    }
     set_NR42(mmu->get(NR42));       // Reload volume
 
     // TODO: lfsr_clock = now?
@@ -82,7 +85,7 @@ void Noise::trigger()
  */
 void Noise::set_NR41(uint8_t value)
 {
-    length = value & 0b00111111;
+    length = 64 - (value & 0b00111111);
 }
 
 
@@ -96,7 +99,10 @@ void Noise::set_NR42(uint8_t value)
     ve_add = value & 0b00001000;
     ve_period = value & 0b00000111;
 
-    dac_enabled = volume != 0;
+    dac_enabled = value & 0b11111000;
+    if (!dac_enabled) {
+        disable_dac();
+    }
 }
 
 
@@ -131,6 +137,11 @@ void Noise::set_NR44(uint8_t value)
 {
     restart = value & 0b10000000;
     length_limitation = value & 0b01000000;
+
+    if (restart) {
+        trigger();
+        restart = false;
+    }
 }
 
 

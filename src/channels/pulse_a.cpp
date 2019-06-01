@@ -3,7 +3,7 @@
 
 PulseA::PulseA()
 {
-
+    enabled_flag = SOUND_PULSE_A_ON_FLAG;
 }
 
 
@@ -63,12 +63,15 @@ void PulseA::process()
 void PulseA::trigger()
 {
     enabled = true;
-    mmu->set_nocheck(NR52, mmu->get(NR52) | SOUND_PULSE_A_ON_FLAG);
+    mmu->set_nocheck(NR52, mmu->get(NR52) | enabled_flag);
 
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
     ve_enabled = true;
 
-    length = 64;                    // Reload length
+    // Reload length
+    if (length == 0) {
+        length = 64;
+    }
     set_NR12(mmu->get(NR12));       // Reload volume
 
     // TODO: duty_clock = now?
@@ -139,7 +142,7 @@ void PulseA::set_NR10(uint8_t value)
 void PulseA::set_NR11(uint8_t value)
 {
     duty = (value & 0b11000000) >> 6;
-    length = value & 0b00111111;
+    length = 64 - (value & 0b00111111);
 }
 
 
@@ -153,7 +156,10 @@ void PulseA::set_NR12(uint8_t value)
     ve_add = value & 0b00001000;
     ve_period = value & 0b00000111;
 
-    dac_enabled = volume != 0;
+    dac_enabled = value & 0b11111000;
+    if (!dac_enabled) {
+        disable_dac();
+    }
 }
 
 
@@ -179,6 +185,11 @@ void PulseA::set_NR14(uint8_t value)
     uint16_t frequency_hi = (value & 0b00000111) << 8;
     uint16_t frequency_lo = (duty_frequency & 0x00FF);
     duty_frequency = frequency_hi + frequency_lo;
+
+    if (restart) {
+        trigger();
+        restart = false;
+    }
 }
 
 

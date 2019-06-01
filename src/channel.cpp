@@ -6,7 +6,7 @@
 
 Channel::Channel() : mmu(nullptr)
 {
-
+    enabled_flag = 0;   // No flag
 }
 
 
@@ -54,12 +54,6 @@ void reset()
  */
 void Channel::update()
 {
-    if (restart) {
-        trigger();
-
-        restart = false;
-    }
-
     process();
 
     dac();
@@ -101,10 +95,10 @@ void Channel::length_counter()
 
     if (length > 0) {
         length -= 1;
-    }
 
-    if (length <= 0) {
-        enabled = false;
+        if (length <= 0) {
+            disable();
+        }
     }
 }
 
@@ -187,4 +181,18 @@ int16_t Channel::get_output()
 void Channel::set_mmu(MMU *mmu)
 {
     this->mmu = mmu;
+}
+
+
+void Channel::disable()
+{
+    enabled = false;
+    mmu->set_nocheck(NR52, mmu->get(NR52) & ~enabled_flag);
+}
+
+
+void Channel::disable_dac()
+{
+    dac_enabled = false;
+    disable();
 }

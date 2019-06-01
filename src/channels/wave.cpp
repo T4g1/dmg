@@ -3,7 +3,7 @@
 
 Wave::Wave()
 {
-
+    enabled_flag = SOUND_WAVE_ON_FLAG;
 }
 
 
@@ -62,12 +62,16 @@ void Wave::process()
 void Wave::trigger()
 {
     enabled = true;
-    mmu->set_nocheck(NR52, mmu->get(NR52) | SOUND_WAVE_ON_FLAG);
+    mmu->set_nocheck(NR52, mmu->get(NR52) | enabled_flag);
 
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
     ve_enabled = true;
 
-    length = 256;                   // Reload length
+    // Reload length
+    if (length == 0) {
+        length = 256;
+    }
+    set_NR30(mmu->get(NR30));       // Reload DAC (disable channel if DAC disabled)
     set_NR32(mmu->get(NR32));       // Reload volume
 
     wave_position = 0;
@@ -82,7 +86,10 @@ void Wave::trigger()
  */
 void Wave::set_NR30(uint8_t value)
 {
-    enabled = value & 0x80;
+    dac_enabled = value & 0x80;
+    if (!dac_enabled) {
+        disable_dac();
+    }
 }
 
 
@@ -92,7 +99,7 @@ void Wave::set_NR30(uint8_t value)
  */
 void Wave::set_NR31(uint8_t value)
 {
-    length = value;
+    length = 256 - value;
 }
 
 
@@ -136,6 +143,11 @@ void Wave::set_NR34(uint8_t value)
     uint16_t frequency_hi = (value & 0b00000111) << 8;
     uint16_t frequency_lo = (wave_frequency & 0x00FF);
     wave_frequency = frequency_hi + frequency_lo;
+
+    if (restart) {
+        trigger();
+        restart = false;
+    }
 }
 
 

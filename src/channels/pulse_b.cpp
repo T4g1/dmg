@@ -3,7 +3,7 @@
 
 PulseB::PulseB()
 {
-
+    enabled_flag = SOUND_PULSE_B_ON_FLAG;
 }
 
 
@@ -19,11 +19,14 @@ PulseB::~PulseB()
 void PulseB::trigger()
 {
     enabled = true;
-    mmu->set_nocheck(NR52, mmu->get(NR52) | SOUND_PULSE_A_ON_FLAG);
+    mmu->set_nocheck(NR52, mmu->get(NR52) | enabled_flag);
 
     ve_timer = SOUND_VOLUME_ENVELOPE_FREQ;
 
-    length = 64;                    // Reload length
+    // Reload length
+    if (length == 0) {
+        length = 64;
+    }
     set_NR22(mmu->get(NR22));       // Reload volume
 }
 
