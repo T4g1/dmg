@@ -8,7 +8,6 @@ class PulseA : public Channel {
     // Wave duty
     size_t duty;                    // Wave duty type to use
     size_t duty_position;           // Position in the duty wave
-    size_t duty_frequency;          // Speed for duty steps
 
     // Frequency Sweep
     size_t sweep_time;              // How many step before applying sweep

@@ -22,7 +22,6 @@ bool Wave::init()
     // Wave
     wave_position = 0;
     wave_clock = 0;
-    wave_frequency = 0;
 
     return true;
 }
@@ -70,6 +69,9 @@ void Wave::trigger()
     // Reload length
     if (length == 0) {
         length = 256;
+        if (sequencer_step & 0x01) {
+            length_counter();
+        }
     }
     set_NR30(mmu->get(NR30));       // Reload DAC (disable channel if DAC disabled)
     set_NR32(mmu->get(NR32));       // Reload volume
@@ -127,7 +129,7 @@ void Wave::set_NR32(uint8_t value)
  */
 void Wave::set_NR33(uint8_t value)
 {
-    wave_frequency = (wave_frequency & 0x0700) + value;
+    set_NRX3(value);
 }
 
 
@@ -137,17 +139,7 @@ void Wave::set_NR33(uint8_t value)
  */
 void Wave::set_NR34(uint8_t value)
 {
-    restart = value & 0b10000000;
-    length_limitation = value & 0b01000000;
-
-    uint16_t frequency_hi = (value & 0b00000111) << 8;
-    uint16_t frequency_lo = (wave_frequency & 0x00FF);
-    wave_frequency = frequency_hi + frequency_lo;
-
-    if (restart) {
-        trigger();
-        restart = false;
-    }
+    set_NRX4(value);
 }
 
 
@@ -157,5 +149,5 @@ void Wave::set_NR34(uint8_t value)
  */
 size_t Wave::get_frequency()
 {
-    return (2048 - wave_frequency) * 2;
+    return (2048 - frequency_raw) * 2;
 }

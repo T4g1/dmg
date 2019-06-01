@@ -15,6 +15,8 @@ protected:
     uint8_t output;                 // Output of the channel
     uint8_t enabled_flag;           // Which flag to set/unset on desactivation
 
+    size_t frequency_raw;           // Used either for wave, lfsr or duty
+
     // Frame sequencer
     size_t sequencer_step;          // Current step of the frame seqeucner
 
@@ -57,6 +59,9 @@ public:
     int16_t get_output();
 
     void set_mmu(MMU *mmu);
+
+    void set_NRX3(uint8_t value);
+    void set_NRX4(uint8_t value);
 
     void disable();
     void disable_dac();

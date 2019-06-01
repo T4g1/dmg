@@ -26,6 +26,9 @@ void PulseB::trigger()
     // Reload length
     if (length == 0) {
         length = 64;
+        if (sequencer_step & 0x01) {
+            length_counter();
+        }
     }
     set_NR22(mmu->get(NR22));       // Reload volume
 }

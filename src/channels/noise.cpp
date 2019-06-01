@@ -70,6 +70,9 @@ void Noise::trigger()
     // Reload length
     if (length == 0) {
         length = 64;
+        if (sequencer_step & 0x01) {
+            length_counter();
+        }
     }
     set_NR42(mmu->get(NR42));       // Reload volume
 
@@ -135,13 +138,7 @@ void Noise::set_NR43(uint8_t value)
  */
 void Noise::set_NR44(uint8_t value)
 {
-    restart = value & 0b10000000;
-    length_limitation = value & 0b01000000;
-
-    if (restart) {
-        trigger();
-        restart = false;
-    }
+    set_NRX4(value);
 }
 
 

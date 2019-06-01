@@ -21,7 +21,6 @@ bool PulseA::init()
     duty = 0;
     duty_clock = 0;
     duty_position = 0;
-    duty_frequency = 0;
 
     // Sweep Frequency
     sweep_time = 0;
@@ -71,6 +70,9 @@ void PulseA::trigger()
     // Reload length
     if (length == 0) {
         length = 64;
+        if (sequencer_step & 0x01) {
+            length_counter();
+        }
     }
     set_NR12(mmu->get(NR12));       // Reload volume
 
@@ -94,7 +96,7 @@ void PulseA::frequency_sweep()
         return;
     }
 
-    shadow_frequency = duty_frequency;    // Copy frequency to shadow
+    shadow_frequency = frequency_raw;    // Copy frequency to shadow
     sweep_time_actual = sweep_time;       // Reset sweep time
 
     if (sweep_flag && sweep_time != 0) {
@@ -103,7 +105,7 @@ void PulseA::frequency_sweep()
             enabled = false;
         } else if (sweep_shift != 0) {
             shadow_frequency = new_frequency;
-            duty_frequency = new_frequency;
+            frequency_raw = new_frequency;
             // TODO: Update NR13, NR14
         }
     }
@@ -169,7 +171,7 @@ void PulseA::set_NR12(uint8_t value)
  */
 void PulseA::set_NR13(uint8_t value)
 {
-    duty_frequency = (duty_frequency & 0x0700) + value;
+    set_NRX3(value);
 }
 
 
@@ -179,17 +181,7 @@ void PulseA::set_NR13(uint8_t value)
  */
 void PulseA::set_NR14(uint8_t value)
 {
-    restart = value & 0b10000000;
-    length_limitation = value & 0b01000000;
-
-    uint16_t frequency_hi = (value & 0b00000111) << 8;
-    uint16_t frequency_lo = (duty_frequency & 0x00FF);
-    duty_frequency = frequency_hi + frequency_lo;
-
-    if (restart) {
-        trigger();
-        restart = false;
-    }
+    set_NRX4(value);
 }
 
 
@@ -199,7 +191,7 @@ void PulseA::set_NR14(uint8_t value)
  */
 size_t PulseA::get_frequency()
 {
-    return (2048 - duty_frequency) * 4;
+    return (2048 - frequency_raw) * 4;
 }
 
 

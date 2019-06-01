@@ -22,6 +22,8 @@ bool Channel::init()
     volume = 0;
     output = 0;
 
+    frequency_raw = 0;
+
     // Frame sequencer
     sequencer_clock = 0;
     sequencer_step = 0;
@@ -181,6 +183,46 @@ int16_t Channel::get_output()
 void Channel::set_mmu(MMU *mmu)
 {
     this->mmu = mmu;
+}
+
+
+/**
+ * @brief      Frequency lo
+ * @param[in]  value  The value
+ */
+void Channel::set_NRX3(uint8_t value)
+{
+    frequency_raw = (frequency_raw & 0x0700) + value;
+}
+
+
+/**
+ * @brief      Restart, stop on end of length and frequency hi
+ * @param[in]  value  The value
+ */
+void Channel::set_NRX4(uint8_t value)
+{
+    bool old_length_limitation = length_limitation;
+
+    restart = value & 0b10000000;
+    length_limitation = value & 0b01000000;
+
+    uint16_t frequency_hi = (value & 0b00000111) << 8;
+    uint16_t frequency_lo = (frequency_raw & 0x00FF);
+    frequency_raw = frequency_hi + frequency_lo;
+
+    // Extra lenght clocking when enabling length limitation and next
+    // frame sequencer step should clock length
+    if (old_length_limitation != length_limitation &&
+        length_limitation &&
+        sequencer_step & 0x01) {
+        length_counter();
+    }
+
+    if (restart) {
+        trigger();
+        restart = false;
+    }
 }
 
 
