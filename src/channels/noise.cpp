@@ -148,3 +148,27 @@ size_t Noise::get_frequency()
 }
 
 
+void Noise::serialize(std::ofstream &file)
+{
+    Channel::serialize(file);
+
+    file.write(reinterpret_cast<char*>(&lfsr_value), sizeof(uint16_t));
+    file.write(reinterpret_cast<char*>(&divisor), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&both_bit), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&clock_shift), sizeof(size_t));
+
+    file.write(reinterpret_cast<char*>(&lfsr_clock), sizeof(size_t));
+}
+
+
+void Noise::deserialize(std::ifstream &file)
+{
+    Channel::deserialize(file);
+
+    file.read(reinterpret_cast<char*>(&lfsr_value), sizeof(uint16_t));
+    file.read(reinterpret_cast<char*>(&divisor), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&both_bit), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&clock_shift), sizeof(size_t));
+
+    file.read(reinterpret_cast<char*>(&lfsr_clock), sizeof(size_t));
+}

@@ -233,24 +233,6 @@ void APU::downsample()
 }
 
 
-void APU::set_mmu(MMU *mmu)
-{
-    this->mmu = mmu;
-}
-
-
-void APU::serialize(std::ofstream &/*file*/)
-{
-    // TODO
-}
-
-
-void APU::deserialize(std::ifstream &/*file*/)
-{
-    // TODO
-}
-
-
 /**
  * @brief      Set level and Vin output
  * @param[in]  value  The value of those things
@@ -309,4 +291,82 @@ void APU::set_NR52(uint8_t value)
 bool APU::is_power_on()
 {
     return activated;
+}
+
+
+void APU::set_mmu(MMU *mmu)
+{
+    this->mmu = mmu;
+}
+
+
+void APU::serialize(std::ofstream &file)
+{
+    file.write(reinterpret_cast<char*>(&downsample_clock), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&buffer_count), sizeof(size_t));
+
+    file.write(reinterpret_cast<char*>(sample), sizeof(int16_t) * SOUND_DOWNSAMPLE_BUFFER_SIZE);
+
+    file.write(reinterpret_cast<char*>(&activated), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&vin_so1), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&vin_so2), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&pulse_a_so1), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&pulse_a_so2), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&pulse_b_so1), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&pulse_b_so2), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&wave_so1), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&wave_so2), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&noise_so1), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&noise_so2), sizeof(bool));
+
+    file.write(reinterpret_cast<char*>(&so1_level), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&so2_level), sizeof(size_t));
+
+    file.write(reinterpret_cast<char*>(&clock), sizeof(size_t));
+
+    file.write(reinterpret_cast<char*>(&play_pulse_a), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&play_pulse_b), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&play_wave), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&play_noise), sizeof(bool));
+
+    pulse_a.serialize(file);
+    pulse_b.serialize(file);
+    wave.serialize(file);
+    noise.serialize(file);
+}
+
+
+void APU::deserialize(std::ifstream &file)
+{
+    file.read(reinterpret_cast<char*>(&downsample_clock), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&buffer_count), sizeof(size_t));
+
+    file.read(reinterpret_cast<char*>(sample), sizeof(int16_t) * SOUND_DOWNSAMPLE_BUFFER_SIZE);
+
+    file.read(reinterpret_cast<char*>(&activated), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&vin_so1), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&vin_so2), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&pulse_a_so1), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&pulse_a_so2), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&pulse_b_so1), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&pulse_b_so2), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&wave_so1), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&wave_so2), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&noise_so1), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&noise_so2), sizeof(bool));
+
+    file.read(reinterpret_cast<char*>(&so1_level), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&so2_level), sizeof(size_t));
+
+    file.read(reinterpret_cast<char*>(&clock), sizeof(size_t));
+
+    file.read(reinterpret_cast<char*>(&play_pulse_a), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&play_pulse_b), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&play_wave), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&play_noise), sizeof(bool));
+
+    pulse_a.deserialize(file);
+    pulse_b.deserialize(file);
+    wave.deserialize(file);
+    noise.deserialize(file);
 }

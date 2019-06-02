@@ -31,6 +31,9 @@ public:
     void set_NR44(uint8_t value);
 
     size_t get_frequency();
+
+    void serialize(std::ofstream &file);
+    void deserialize(std::ifstream &file);
 };
 
 #endif /* NOISE_H */

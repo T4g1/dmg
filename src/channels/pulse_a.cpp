@@ -224,3 +224,40 @@ void PulseA::reset_actual_sweep_time()
     }
 }
 
+
+void PulseA::serialize(std::ofstream &file)
+{
+    Channel::serialize(file);
+
+    file.write(reinterpret_cast<char*>(&duty), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&duty_position), sizeof(size_t));
+
+    file.write(reinterpret_cast<char*>(&sweep_time), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&sweep_decrease), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&sweep_shift), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&sweep_time_actual), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&shadow_frequency), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&sweep_calculation_count), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&sweep_flag), sizeof(bool));
+
+    file.write(reinterpret_cast<char*>(&duty_clock), sizeof(size_t));
+}
+
+
+void PulseA::deserialize(std::ifstream &file)
+{
+    Channel::deserialize(file);
+
+    file.read(reinterpret_cast<char*>(&duty), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&duty_position), sizeof(size_t));
+
+    file.read(reinterpret_cast<char*>(&sweep_time), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&sweep_decrease), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&sweep_shift), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&sweep_time_actual), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&shadow_frequency), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&sweep_calculation_count), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&sweep_flag), sizeof(bool));
+
+    file.read(reinterpret_cast<char*>(&duty_clock), sizeof(size_t));
+}

@@ -40,6 +40,9 @@ public:
     size_t get_frequency();
     size_t compute_frequency();
     void reset_actual_sweep_time();
+
+    void serialize(std::ofstream &file);
+    void deserialize(std::ifstream &file);
 };
 
 #endif /* PULSE_A_H */

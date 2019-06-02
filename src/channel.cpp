@@ -249,3 +249,65 @@ void Channel::reload_length(size_t max_value)
         }
     }
 }
+
+
+void Channel::serialize(std::ofstream &file)
+{
+    file.write(reinterpret_cast<char*>(&enabled), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&restart), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&volume), sizeof(uint8_t));
+    file.write(reinterpret_cast<char*>(&output), sizeof(uint8_t));
+    file.write(reinterpret_cast<char*>(&enabled_flag), sizeof(uint8_t));
+
+    file.write(reinterpret_cast<char*>(&frequency_raw), sizeof(size_t));
+
+    // Frame sequencer
+    file.write(reinterpret_cast<char*>(&sequencer_step), sizeof(size_t));
+
+    // Length counter
+    file.write(reinterpret_cast<char*>(&length_limitation), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&length), sizeof(size_t));
+
+    // Volume Envelope
+    file.write(reinterpret_cast<char*>(&ve_enabled), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&ve_period), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&ve_timer), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&ve_add), sizeof(bool));
+
+    // DAC
+    file.write(reinterpret_cast<char*>(&dac_enabled), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&dac_output), sizeof(int16_t));
+
+    file.write(reinterpret_cast<char*>(&sequencer_clock), sizeof(size_t));
+}
+
+
+void Channel::deserialize(std::ifstream &file)
+{
+    file.read(reinterpret_cast<char*>(&enabled), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&restart), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&volume), sizeof(uint8_t));
+    file.read(reinterpret_cast<char*>(&output), sizeof(uint8_t));
+    file.read(reinterpret_cast<char*>(&enabled_flag), sizeof(uint8_t));
+
+    file.read(reinterpret_cast<char*>(&frequency_raw), sizeof(size_t));
+
+    // Frame sequencer
+    file.read(reinterpret_cast<char*>(&sequencer_step), sizeof(size_t));
+
+    // Length counter
+    file.read(reinterpret_cast<char*>(&length_limitation), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&length), sizeof(size_t));
+
+    // Volume Envelope
+    file.read(reinterpret_cast<char*>(&ve_enabled), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&ve_period), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&ve_timer), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&ve_add), sizeof(bool));
+
+    // DAC
+    file.read(reinterpret_cast<char*>(&dac_enabled), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&dac_output), sizeof(int16_t));
+
+    file.read(reinterpret_cast<char*>(&sequencer_clock), sizeof(size_t));
+}

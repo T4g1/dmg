@@ -24,7 +24,6 @@ class APU {
 
     SDL_AudioSpec audio_spec;
     SDL_AudioDeviceID audio_device;
-    size_t sample_size;             // Size of one sample in byte
 
     // Downsampler
     size_t downsample_clock;        // Determines when to take a sample
@@ -67,11 +66,6 @@ public:
     void downsample();
     void frame_sequencer();
 
-    void set_mmu(MMU *mmu);
-
-    void serialize(std::ofstream &file);
-    void deserialize(std::ifstream &file);
-
     void set_NR10(uint8_t value) { pulse_a.set_NR10(value); };
     void set_NR11(uint8_t value) { pulse_a.set_NR11(value); };
     void set_NR12(uint8_t value) { pulse_a.set_NR12(value); };
@@ -96,6 +90,11 @@ public:
     void set_NR52(uint8_t value);
 
     bool is_power_on();
+
+    void set_mmu(MMU *mmu);
+
+    void serialize(std::ofstream &file);
+    void deserialize(std::ifstream &file);
 };
 
 #endif /* APU_H */

@@ -30,6 +30,9 @@ public:
     void set_NR34(uint8_t value);
 
     size_t get_frequency();
+
+    void serialize(std::ofstream &file);
+    void deserialize(std::ifstream &file);
 };
 
 #endif /* WAVE_H */

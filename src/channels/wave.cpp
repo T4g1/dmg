@@ -151,3 +151,23 @@ size_t Wave::get_frequency()
 {
     return (2048 - frequency_raw) * 2;
 }
+
+
+void Wave::serialize(std::ofstream &file)
+{
+    Channel::serialize(file);
+
+    file.write(reinterpret_cast<char*>(&volume_shift), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&wave_position), sizeof(size_t));
+    file.write(reinterpret_cast<char*>(&wave_clock), sizeof(size_t));
+}
+
+
+void Wave::deserialize(std::ifstream &file)
+{
+    Channel::deserialize(file);
+
+    file.read(reinterpret_cast<char*>(&volume_shift), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&wave_position), sizeof(size_t));
+    file.read(reinterpret_cast<char*>(&wave_clock), sizeof(size_t));
+}

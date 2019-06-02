@@ -67,6 +67,9 @@ public:
     void disable_dac();
 
     void reload_length(size_t max_value);
+
+    void serialize(std::ofstream &file);
+    void deserialize(std::ifstream &file);
 };
 
 #endif /* CHANNEL_H */
