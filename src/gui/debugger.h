@@ -7,6 +7,8 @@
 #include "imgui.h"
 #include "imfilebrowser.h"
 
+#include "../defines.h"
+
 #define DEBUGGER_SAVE           ".breakpoints"
 
 #define DEBUGGER_WIDTH          800
@@ -17,6 +19,9 @@
 // Draw an array of tiles with those dimensions
 #define TILE_PER_ROW            8
 #define TILE_PER_COLUMN         16
+
+#define SPRITE_PER_ROW            5
+#define SPRITE_PER_COLUMN         8
 
 #define DISPLAY_TILE_WIDTH      TILE_WIDTH * 2
 #define DISPLAY_TILE_HEIGHT     TILE_HEIGHT * 2
@@ -112,10 +117,11 @@ private:
     Uint32 last_refresh;
 
     GLuint vram_tilemap[TOTAL_TILE_COUNT];
+    GLuint oam_tilemap[OAM_COUNT];
 
     uint16_t translate(char buffer[], size_t size, uint16_t address);
     void ColorBoolean(bool condition);
-    void ImageTimeHoverable(ImTextureID texture);
+    void ImageTileHoverable(ImTextureID texture);
     void ToggleButton(const char *text, bool *boolean);
     void BreakPointItem(Breakpoint *breakpoint);
 

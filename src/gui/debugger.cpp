@@ -551,6 +551,7 @@ void Debugger::display_VRAM_status()
         ),
         ImVec2(FLT_MAX, FLT_MAX)
     );
+
     if (ImGui::Begin(title, &show_vram, flags)) {
         ImGui::BeginChild("status");
 
@@ -569,7 +570,37 @@ void Debugger::display_VRAM_status()
                     ppu->draw_tile(pixels, tile_id);
                     vram_tilemap[tile_id] = create_texture(pixels, TILE_WIDTH, TILE_HEIGHT);
 
-                    ImageTimeHoverable((ImTextureID)(intptr_t)vram_tilemap[tile_id]);
+                    ImageTileHoverable((ImTextureID)(intptr_t)vram_tilemap[tile_id]);
+                    ImGui::NextColumn();
+                }
+
+                ImGui::Columns(1, "boolean", false);
+
+                ImGui::EndChild();
+                ImGui::EndTabItem();
+            }
+
+            if (ImGui::BeginTabItem("OAM"))
+            {
+                ImGui::BeginChild("oam_container");
+                ImGui::Columns(SPRITE_PER_COLUMN, "boolean", false);
+
+                glDeleteTextures(OAM_COUNT, oam_tilemap);
+
+                for (size_t oam_id=0; oam_id<OAM_COUNT; oam_id++) {
+                    uint16_t oam_address = OAM_START + (oam_id * OAM_ENTRY_SIZE);
+
+                    Sprite sprite;
+                    sprite.y = mmu->get_nocheck(oam_address);
+                    sprite.x = mmu->get_nocheck(oam_address + 1);
+                    sprite.tile = mmu->get_nocheck(oam_address + 2);
+                    sprite.attrs = mmu->get_nocheck(oam_address + 3);
+
+                    uint8_t pixels[RGB_TILE_SIZE];
+                    ppu->draw_tile(pixels, sprite.tile);
+                    oam_tilemap[oam_id] = create_texture(pixels, TILE_WIDTH, TILE_HEIGHT);
+
+                    ImageTileHoverable((ImTextureID)(intptr_t)oam_tilemap[oam_id]);
                     ImGui::NextColumn();
                 }
 
@@ -984,7 +1015,7 @@ void Debugger::ToggleButton(const char *text, bool *boolean)
 }
 
 
-void Debugger::ImageTimeHoverable(ImTextureID texture)
+void Debugger::ImageTileHoverable(ImTextureID texture)
 {
     ImGui::Image(texture, ImVec2(DISPLAY_TILE_WIDTH, DISPLAY_TILE_HEIGHT));
 
