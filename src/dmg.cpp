@@ -360,4 +360,8 @@ void DMG::load_state()
     }
 
     file.close();
+
+    // Set DMG clock
+    update_system_clock();
+    dmg_clock = system_clock;
 }

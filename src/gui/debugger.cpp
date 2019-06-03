@@ -468,8 +468,9 @@ void Debugger::display_PPU_status()
     if (ImGui::Begin(title, &show_ppu)) {
         ImGui::BeginChild("status");
 
-        ImGui::Columns(2, "boolean", false);
+        ImGui::Text("Clock: %zu", ppu->clock);
 
+        ImGui::Columns(2, "boolean", false);
         ImGui::Text("LY:");
         ImGui::NextColumn();
         ImGui::Text("0x%02X", ppu->get_current_ly());
@@ -671,6 +672,8 @@ void Debugger::display_APU_status()
     const char *title = "APU";
 
     if (ImGui::Begin(title, &show_apu)) {
+        ImGui::Text("Clock: %zu", apu->clock);
+
         ToggleButton("Toggle Pulse A", &apu->play_pulse_a);
         ToggleButton("Toggle Pulse B", &apu->play_pulse_b);
         ToggleButton("Toggle Wave", &apu->play_wave);
