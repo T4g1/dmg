@@ -105,7 +105,12 @@ void PulseA::frequency_sweep()
     } else if (sweep_shift != 0) {
         shadow_frequency = new_frequency;
         frequency_raw = new_frequency;
-        // TODO: Update NR13, NR14
+
+        uint8_t nr14_value = mmu->get_nocheck(NR14) & ~0b00000111;
+        nr14_value |= (frequency_raw >> 8);
+
+        mmu->set_nocheck(NR14, frequency_raw & 0x00FF);
+        mmu->set_nocheck(NR13, nr14_value);
 
         if (compute_frequency() >= 2048) {
             disable();
