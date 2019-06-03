@@ -33,7 +33,7 @@ Test with `./test`
 |05|instr_timing       |:heavy_check_mark:|
 |06|interrupt_time     |:x:               |
 |07|mem_timing-2       |:grey_question:   |
-|08|mem_timing         |:grey_question:   |
+|08|mem_timing         |:x:               |
 |09|oam_bug            |:grey_question:   |
 
 ### Blarggs Cpu Instruction

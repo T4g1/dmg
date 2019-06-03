@@ -85,7 +85,7 @@ void Input::handle(SDL_Event *event)
         case SDLK_UP:       should_interrupt(code); up_pressed = true;      break;
         case SDLK_DOWN:     should_interrupt(code); down_pressed = true;    break;
         case SDLK_a:        should_interrupt(code); a_pressed = true;       break;
-        case SDLK_b:        should_interrupt(code); b_pressed = true;       break;
+        case SDLK_z:        should_interrupt(code); b_pressed = true;       break;
         case SDLK_SPACE:    should_interrupt(code); start_pressed = true;   break;
         case SDLK_RETURN:   should_interrupt(code); select_pressed = true;  break;
         }
@@ -98,7 +98,7 @@ void Input::handle(SDL_Event *event)
         case SDLK_UP:       up_pressed = false;     break;
         case SDLK_DOWN:     down_pressed = false;   break;
         case SDLK_a:        a_pressed = false;      break;
-        case SDLK_b:        b_pressed = false;      break;
+        case SDLK_z:        b_pressed = false;      break;
         case SDLK_SPACE:    start_pressed = false;  break;
         case SDLK_RETURN:   select_pressed = false; break;
         }

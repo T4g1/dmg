@@ -131,7 +131,7 @@ size_t MBC1::get_selected_rom_bank()
         higher = ram_bank_select;
     }
 
-    return (higher << 5) + lower;
+    return ((higher << 5) + lower) % rom_mbc_count;
 }
 
 
