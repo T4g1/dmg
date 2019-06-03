@@ -159,6 +159,16 @@ void DMG::process()
  */
 void DMG::update_system_clock()
 {
+    if (system_clock > DMG_MAX_CLOCK_VALUE) {
+        info("adjust clocks\n");
+        timer->adjust_clocks(DMG_CLOCK_ADJUSTMENT);
+        ppu->adjust_clocks(DMG_CLOCK_ADJUSTMENT);
+        cpu->adjust_clocks(DMG_CLOCK_ADJUSTMENT);
+        apu->adjust_clocks(DMG_CLOCK_ADJUSTMENT);
+
+        dmg_clock -= DMG_CLOCK_ADJUSTMENT;
+    }
+
     system_clock = apu->clock;
     if (ppu->clock < system_clock) {
         system_clock = ppu->clock;
@@ -168,13 +178,6 @@ void DMG::update_system_clock()
     }
     if (timer->clock < system_clock) {
         system_clock = timer->clock;
-    }
-
-    if (system_clock > 0x100000000) {
-        timer->adjust_clocks(0x80000000);
-        ppu->adjust_clocks(0x80000000);
-        cpu->adjust_clocks(0x80000000);
-        apu->adjust_clocks(0x80000000);
     }
 }
 

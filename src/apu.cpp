@@ -297,6 +297,7 @@ bool APU::is_power_on()
 void APU::adjust_clocks(size_t adjustment)
 {
     clock -= adjustment;
+    downsample_clock -= adjustment;
 
     pulse_a.adjust_clocks(adjustment);
     pulse_b.adjust_clocks(adjustment);

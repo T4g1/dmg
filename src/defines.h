@@ -10,6 +10,9 @@
 #define DEFAULT_SPEED       10          // Speed of the emulator
 #define SAVE_SLOT_COUNT     5           // Amount of possible save states
 
+#define DMG_MAX_CLOCK_VALUE     100000000000   // Maximum value of clocks before adjusting
+#define DMG_CLOCK_ADJUSTMENT    80000000000    // What we substract to adjust clocks
+
 // CPU constants
 #define MAX_OPCODES         256
 #define REGISTER_COUNT      10  //<! 8x8-bit for standard registers + 2x8-bit for SP (16-bit)
