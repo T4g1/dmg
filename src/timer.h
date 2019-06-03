@@ -38,6 +38,8 @@ public:
     void set_TAC(uint8_t value);
     void set_TIMA(uint8_t value);
 
+    void adjust_clocks(size_t adjustment);
+
     void set_mmu(MMU *mmu);
 
     void serialize(std::ofstream &file);

@@ -695,6 +695,12 @@ void PPU::draw_tile(uint8_t buffer[], size_t tile_id)
 }
 
 
+void PPU::adjust_clocks(size_t adjustment)
+{
+    clock -= adjustment;
+}
+
+
 void PPU::serialize(std::ofstream &file)
 {
     file.write(reinterpret_cast<char*>(&lcd_enabled), sizeof(bool));

@@ -116,6 +116,8 @@ public:
 
     uint16_t reg16(size_t i);
 
+    void adjust_clocks(size_t adjustment);
+
     void set_mmu(MMU *mmu);
 
     void serialize(std::ofstream &file);

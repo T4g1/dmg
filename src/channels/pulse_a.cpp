@@ -225,6 +225,12 @@ void PulseA::reset_actual_sweep_time()
 }
 
 
+void PulseA::adjust_clocks(size_t adjustment)
+{
+    duty_clock -= adjustment;
+}
+
+
 void PulseA::serialize(std::ofstream &file)
 {
     Channel::serialize(file);

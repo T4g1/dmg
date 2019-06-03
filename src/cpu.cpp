@@ -1503,6 +1503,12 @@ bool CPU::handle_interrupts()
 }
 
 
+void CPU::adjust_clocks(size_t adjustment)
+{
+    clock -= adjustment;
+}
+
+
 void CPU::set_mmu(MMU *mmu)
 {
     this->mmu = mmu;

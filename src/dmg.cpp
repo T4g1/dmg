@@ -170,17 +170,12 @@ void DMG::update_system_clock()
         system_clock = timer->clock;
     }
 
-    // TODO: Use class methods to do this so internal clock are shifted too
-    // last_increment and last_div_increment for timer for example
-    //
-    /*
     if (system_clock > 0x100000000) {
-        timer->clock -= 0x80000000;
-        cpu->clock -= 0x80000000;
-        ppu->clock -= 0x80000000;
-        apu->clock -= 0x80000000;
+        timer->adjust_clocks(0x80000000);
+        ppu->adjust_clocks(0x80000000);
+        cpu->adjust_clocks(0x80000000);
+        apu->adjust_clocks(0x80000000);
     }
-    */
 }
 
 

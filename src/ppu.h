@@ -38,6 +38,8 @@ public:
 
     void draw_tile(uint8_t buffer[], size_t tile_id);
 
+    void adjust_clocks(size_t adjustment);
+
     void serialize(std::ofstream &file);
     void deserialize(std::ifstream &file);
 

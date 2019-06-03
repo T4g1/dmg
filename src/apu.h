@@ -91,6 +91,8 @@ public:
 
     bool is_power_on();
 
+    void adjust_clocks(size_t adjustment);
+
     void set_mmu(MMU *mmu);
 
     void serialize(std::ofstream &file);

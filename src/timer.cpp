@@ -53,9 +53,9 @@ void Timer::step()
         last_div_increment += DIV_FREQUENCY;
     }
 
-    if (clock - last_div_increment > frequencies[clock_select]) {
+    if (clock - last_increment > frequencies[clock_select]) {
         mmu->set(TIMA, mmu->get(TIMA) + 1);
-        last_div_increment += frequencies[clock_select];
+        last_increment += frequencies[clock_select];
     }
 }
 
@@ -101,6 +101,15 @@ void Timer::set_TIMA(uint8_t value)
         // Interrupt
         mmu->trigger_interrupt(INT_TIMER_MASK);
     }
+}
+
+
+void Timer::adjust_clocks(size_t adjustment)
+{
+    clock -= adjustment;
+
+    last_increment -= adjustment;
+    last_div_increment -= adjustment;
 }
 
 

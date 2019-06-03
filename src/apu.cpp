@@ -294,6 +294,17 @@ bool APU::is_power_on()
 }
 
 
+void APU::adjust_clocks(size_t adjustment)
+{
+    clock -= adjustment;
+
+    pulse_a.adjust_clocks(adjustment);
+    pulse_b.adjust_clocks(adjustment);
+    wave.adjust_clocks(adjustment);
+    noise.adjust_clocks(adjustment);
+}
+
+
 void APU::set_mmu(MMU *mmu)
 {
     this->mmu = mmu;

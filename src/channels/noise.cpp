@@ -148,6 +148,12 @@ size_t Noise::get_frequency()
 }
 
 
+void Noise::adjust_clocks(size_t adjustment)
+{
+    lfsr_clock -= adjustment;
+}
+
+
 void Noise::serialize(std::ofstream &file)
 {
     Channel::serialize(file);

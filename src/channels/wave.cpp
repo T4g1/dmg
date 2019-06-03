@@ -153,6 +153,12 @@ size_t Wave::get_frequency()
 }
 
 
+void Wave::adjust_clocks(size_t adjustment)
+{
+    wave_clock -= adjustment;
+}
+
+
 void Wave::serialize(std::ofstream &file)
 {
     Channel::serialize(file);

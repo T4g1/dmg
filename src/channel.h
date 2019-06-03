@@ -68,6 +68,8 @@ public:
 
     void reload_length(size_t max_value);
 
+    virtual void adjust_clocks(size_t adjustment) = 0;
+
     void serialize(std::ofstream &file);
     void deserialize(std::ifstream &file);
 };
