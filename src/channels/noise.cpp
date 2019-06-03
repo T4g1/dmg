@@ -15,9 +15,9 @@ Noise::~Noise()
 }
 
 
-bool Noise::init()
+void Noise::reset()
 {
-    Channel::init();
+    Channel::reset();
 
     // LFSR (Linear Feedback Shift Register)
     lfsr_value = 0;
@@ -25,8 +25,6 @@ bool Noise::init()
     divisor = 0;
     both_bit = false;
     clock_shift = 0;
-
-    return true;
 }
 
 

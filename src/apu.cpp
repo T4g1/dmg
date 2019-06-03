@@ -5,29 +5,7 @@
 
 APU::APU() : mmu(nullptr)
 {
-    clock = 0;
-    downsample_clock = 0;
-    buffer_count = 0;
 
-    // Sound control
-    activated = false;
-    vin_so1 = false;
-    vin_so2 = false;
-    pulse_a_so1 = false;
-    pulse_a_so2 = false;
-    pulse_b_so1 = false;
-    pulse_b_so2 = false;
-    wave_so1 = false;
-    wave_so2 = false;
-    noise_so1 = false;
-    noise_so2 = false;
-    so1_level = 0;
-    so2_level = 0;
-
-    play_pulse_a = true;
-    play_pulse_b = true;
-    play_wave = true;
-    play_noise = true;
 }
 
 
@@ -43,6 +21,11 @@ bool APU::init()
         error("No MMU linked to APU\n");
         return false;
     }
+
+    play_pulse_a = true;
+    play_pulse_b = true;
+    play_wave = true;
+    play_noise = true;
 
     SDL_AudioSpec audio_spec;
     SDL_zero(audio_spec);
@@ -75,7 +58,29 @@ bool APU::init()
 
 void APU::reset()
 {
-    // TODO
+    clock = 0;
+    downsample_clock = 0;
+    buffer_count = 0;
+
+    // Sound control
+    activated = false;
+    vin_so1 = false;
+    vin_so2 = false;
+    pulse_a_so1 = false;
+    pulse_a_so2 = false;
+    pulse_b_so1 = false;
+    pulse_b_so2 = false;
+    wave_so1 = false;
+    wave_so2 = false;
+    noise_so1 = false;
+    noise_so2 = false;
+    so1_level = 0;
+    so2_level = 0;
+
+    pulse_a.reset();
+    pulse_b.reset();
+    wave.reset();
+    noise.reset();
 }
 
 

@@ -25,7 +25,7 @@ public:
     PulseA();
     ~PulseA();
 
-    bool init();
+    void reset();
     void process();
     void trigger();
 

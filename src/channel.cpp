@@ -17,6 +17,12 @@ bool Channel::init()
         return false;
     }
 
+    return true;
+}
+
+
+void Channel::reset()
+{
     enabled = false;
     restart = false;
     volume = 0;
@@ -40,14 +46,6 @@ bool Channel::init()
 
     // DAC
     dac_enabled = false;
-
-    return true;
-}
-
-
-void reset()
-{
-    // TODO
 }
 
 

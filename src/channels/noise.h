@@ -18,7 +18,7 @@ public:
     Noise();
     ~Noise();
 
-    bool init();
+    void reset();
     void process();
     void trigger();
 

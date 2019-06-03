@@ -17,7 +17,7 @@ public:
     Wave();
     ~Wave();
 
-    bool init();
+    void reset();
     void process();
     void trigger();
 

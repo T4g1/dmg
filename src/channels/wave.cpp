@@ -13,17 +13,15 @@ Wave::~Wave()
 }
 
 
-bool Wave::init()
+void Wave::reset()
 {
-    Channel::init();
+    Channel::reset();
 
     volume_shift = 0;
 
     // Wave
     wave_position = 0;
     wave_clock = 0;
-
-    return true;
 }
 
 

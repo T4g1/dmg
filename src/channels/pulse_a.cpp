@@ -13,9 +13,9 @@ PulseA::~PulseA()
 }
 
 
-bool PulseA::init()
+void PulseA::reset()
 {
-    Channel::init();
+    Channel::reset();
 
     // Wave duty
     duty = 0;
@@ -30,8 +30,6 @@ bool PulseA::init()
     shadow_frequency = 0;
     sweep_flag = false;
     sweep_calculation_count = 0;
-
-    return true;
 }
 
 
