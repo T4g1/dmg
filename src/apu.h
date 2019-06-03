@@ -31,7 +31,6 @@ class APU {
     int16_t sample[SOUND_DOWNSAMPLE_BUFFER_SIZE]; // 2 * int16_t per sample
 
     // Sound control
-    bool activated;
     bool vin_so1;
     bool vin_so2;
     bool pulse_a_so1;
@@ -53,6 +52,9 @@ public:
     bool play_pulse_b;
     bool play_wave;
     bool play_noise;
+
+    // Sound control
+    bool activated;
 
     APU();
     ~APU();

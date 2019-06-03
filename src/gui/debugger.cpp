@@ -705,6 +705,15 @@ void Debugger::display_APU_status()
     if (ImGui::Begin(title, &show_apu)) {
         ImGui::Text("Clock: %zu", apu->clock);
 
+        ImGui::Columns(2, "boolean", false);
+
+        ImGui::Text("Power:");
+        ImGui::NextColumn();
+        ColorBoolean(apu->activated);
+        ImGui::NextColumn();
+
+        ImGui::Columns(1, "boolean", false);
+
         ToggleButton("Toggle Pulse A", &apu->play_pulse_a);
         ToggleButton("Toggle Pulse B", &apu->play_pulse_b);
         ToggleButton("Toggle Wave", &apu->play_wave);
