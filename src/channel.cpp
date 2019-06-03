@@ -251,6 +251,15 @@ void Channel::reload_length(size_t max_value)
 }
 
 
+/**
+ * @brief      Action to do when powered off, set frame sequencer step to 0
+ */
+void Channel::power_off()
+{
+    sequencer_step = 0;
+}
+
+
 void Channel::serialize(std::ofstream &file)
 {
     file.write(reinterpret_cast<char*>(&enabled), sizeof(bool));

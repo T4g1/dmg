@@ -76,7 +76,7 @@ Test with `./test`
 |04|sweep                  |:heavy_check_mark:|
 |05|sweep details          |:heavy_check_mark:|
 |06|overflow on trigger    |:heavy_check_mark:|
-|07|len sweep period sync  |:x:               |
+|07|len sweep period sync  |:heavy_check_mark:|
 |08|len ctr during power   |:x:               |
 |09|wave read while on     |:x:               |
 |10|wave trigger while on  |:x:               |

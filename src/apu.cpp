@@ -273,9 +273,10 @@ void APU::set_NR52(uint8_t value)
 
     if (new_state != previous_state) {
         if (new_state) {
-            // TODO: Reset frame sequencers
-            // TODO: Reset duty
-            // TODO: Reset Wave
+            pulse_a.power_off();
+            pulse_b.power_off();
+            wave.power_off();
+            noise.power_off();
         } else {
             for (uint16_t address=NR10; address<NR52; address++) {
                 mmu->set(address, 0x00);

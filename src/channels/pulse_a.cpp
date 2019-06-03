@@ -231,6 +231,17 @@ void PulseA::adjust_clocks(size_t adjustment)
 }
 
 
+/**
+ * @brief      Action to do when powered off, reset duty
+ */
+void PulseA::power_off()
+{
+    Channel::power_off();
+
+    duty_position = 0;
+}
+
+
 void PulseA::serialize(std::ofstream &file)
 {
     Channel::serialize(file);

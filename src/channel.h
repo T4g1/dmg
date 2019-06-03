@@ -67,6 +67,7 @@ public:
     void disable_dac();
 
     void reload_length(size_t max_value);
+    void power_off();
 
     virtual void adjust_clocks(size_t adjustment) = 0;
 

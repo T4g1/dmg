@@ -31,6 +31,8 @@ public:
 
     size_t get_frequency();
 
+    void power_off();
+
     void adjust_clocks(size_t adjustment);
 
     void serialize(std::ofstream &file);

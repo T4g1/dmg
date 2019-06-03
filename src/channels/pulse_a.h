@@ -41,6 +41,8 @@ public:
     size_t compute_frequency();
     void reset_actual_sweep_time();
 
+    void power_off();
+
     void adjust_clocks(size_t adjustment);
 
     void serialize(std::ofstream &file);

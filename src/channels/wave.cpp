@@ -159,6 +159,17 @@ void Wave::adjust_clocks(size_t adjustment)
 }
 
 
+/**
+ * @brief      Action to do when powered off, reset wave
+ */
+void Wave::power_off()
+{
+    Channel::power_off();
+
+    wave_position = 0;
+}
+
+
 void Wave::serialize(std::ofstream &file)
 {
     Channel::serialize(file);
