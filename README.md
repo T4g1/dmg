@@ -2,6 +2,20 @@
 
 Personal attempt at creating a simple DMG GameBoy emulator from scratch.
 
+# Features
+
+* Support MBC1 or no MBC games
+* Use A/Z for A/B, arrows keys to move, space for start and return for select
+* Sound
+* Display
+* Rich debugging features
+* Save states: F3 to save, F5 to load, F4 to change slots (5 slots available)
+* F1 to show debugger
+* F2 to activate breakpoints
+* F9 to toggle execution/suspended mode
+* F10 to load another game
+
+
 # Documentation
 
 * [The Ultimate Game Boy talk](https://www.youtube.com/watch?v=HyzD8pNlpwI) at 33c3
@@ -82,7 +96,11 @@ Test with `./test`
 * [x] Implement PPU
 * [x] Implement inputs
 * [x] Sound!
-* [ ] Fix all that shit
+* [ ] Pass all sound tests
+* [ ] OAM debug
+* [ ] Support all MBC
+    * [x] MBC1
+    * [ ] Others
 
 # Screenshots
 
