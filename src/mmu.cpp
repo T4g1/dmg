@@ -187,9 +187,20 @@ bool MMU::set(uint16_t address, uint8_t value)
     }
 
     // Sound Control
-    else if (address >= NR10 && address <= NR51 && !apu->is_power_on()) {
-        return false;
-    } else if (address == NR52) {
+    if (address >= NR10 && address <= NR51 && !apu->is_power_on()) {
+        // Cannot write while off except for length
+        if (address == NR31) {
+            // Don't block those write
+        } else if (address == NR11 || address == NR21 || address == NR41) {
+            // Except for two upper bytes
+            value &= 0b00111111;
+            value |= get_nocheck(address) & 0b11000000;
+        } else {
+            return false;
+        }
+    }
+
+    if (address == NR52) {
         value &= 0xF0;
     }
 
