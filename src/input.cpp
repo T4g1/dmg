@@ -92,7 +92,7 @@ void Input::handle(SDL_Event *event)
         break;
 
     case SDL_KEYUP:
-        switch(event->key.keysym.sym){
+        switch(event->key.keysym.sym) {
         case SDLK_LEFT:     left_pressed = false;   break;
         case SDLK_RIGHT:    right_pressed = false;  break;
         case SDLK_UP:       up_pressed = false;     break;

@@ -62,7 +62,10 @@ void MMU::reset()
 
     set(0x0100, 0x00);     // Reset MBC
 
-    update_ram();
+    // Put BOOT in RAM
+    if (!booted) {
+        memcpy(ram, boot, BOOT_SIZE);
+    }
 }
 
 
@@ -159,14 +162,12 @@ bool MMU::set(uint16_t address, uint8_t value)
     // Write to ROM are passed to cartridge
     else if (identity == ROM0 || identity == ROM1) {
         cart->set(address, value);
-        update_ram();
         return true;
     }
 
     // Write to External RAM are passed to cartridge
     else if (identity == SRAM && cart->has_ram()) {
         cart->set(address, value);
-        update_ram();
     }
 
     // Writting to CRASH is ignored on DMG
@@ -222,6 +223,8 @@ void MMU::set_nocheck(uint16_t address, uint8_t value)
 
 uint8_t MMU::get(uint16_t address)
 {
+    uint8_t value;
+
     address_type identity = get_address_identity(address);
 
     // ECHO memory
@@ -229,7 +232,13 @@ uint8_t MMU::get(uint16_t address)
         address -= 0x2000;
     }
 
-    uint8_t value = get_nocheck(address);
+    if (identity == ROM0 ||
+        identity == ROM1 ||
+        identity == SRAM) {
+        value = cart->get(address);
+    } else {
+        value = get_nocheck(address);
+    }
 
     // Sound
     if (address >= NR10 && address <= NR52) {
@@ -425,8 +434,6 @@ bool MMU::load_rom(std::string filepath)
         return false;
     }
 
-    update_ram();
-
     return true;
 }
 
@@ -472,8 +479,6 @@ bool MMU::load_boot(std::string filepath)
     booted = false;
     no_boot = false;
 
-    update_ram();
-
     return true;
 }
 
@@ -514,31 +519,6 @@ void MMU::set_boot_rom_enable(uint8_t value)
 
 
 /**
- * @brief      Set RAM content based on cartridge presence and BOOT status
- */
-void MMU::update_ram()
-{
-    // Set ROM 0
-    memcpy(ram, cart->mbc->memory, MBC_SIZE);
-
-    // Set ROM N
-    for (uint16_t i=MBC_SIZE; i<MBC_SIZE * 2; i++) {
-        ram[i] = cart->get(i);
-    }
-
-    // Set SRAM
-    for (uint16_t i=0; i<RAM_MBC_SIZE; i++) {
-        ram[SRAM_START + i] = cart->get(SRAM_START + i);
-    }
-
-    // Put BOOT in RAM
-    if (!booted) {
-        memcpy(ram, boot, BOOT_SIZE);
-    }
-}
-
-
-/**
  * @brief      Helper to set interrupts
  * @param[in]  interrupt_mask  The interrupt mask
  */
@@ -551,8 +531,6 @@ void MMU::trigger_interrupt(uint8_t interrupt_mask)
 void MMU::set_booted(bool value)
 {
     booted = value;
-
-    update_ram();
 }
 
 

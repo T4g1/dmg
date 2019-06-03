@@ -62,7 +62,6 @@ public:
     void set_booted(bool value);
     bool is_booted();
 
-    void update_ram();
     void trigger_interrupt(uint8_t interrupt_mask);
 
     const char *display_address_identity(uint16_t address);
