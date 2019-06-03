@@ -133,6 +133,8 @@ bool Debugger::init()
     running = true;
     last_refresh = 0;
 
+    memoryViewer.mmu = mmu;
+
     load();
 
     return true;
@@ -284,7 +286,7 @@ void Debugger::display_memory()
 
     ImGui::Begin(title, &show_memory);
 
-    memoryViewer.DrawContents(mmu, mmu->ram, 0x10000);
+    memoryViewer.DrawContents(mmu->ram, 0x10000);
 
     ImGui::End();
 }

@@ -100,6 +100,7 @@ struct MemoryEditor
     u8              (*ReadFn)(const u8* data, size_t off);  // = NULL   // optional handler to read bytes.
     void            (*WriteFn)(u8* data, size_t off, u8 d); // = NULL   // optional handler to write bytes.
     bool            (*HighlightFn)(const u8* data, size_t off);//NULL   // optional handler to return Highlight property (to support non-contiguous highlighting).
+    MMU *mmu;
 
     // [Internal State]
     bool            ContentsWidthChanged;
@@ -190,7 +191,7 @@ struct MemoryEditor
     }
 
     // Memory Editor contents only
-    void DrawContents(MMU *mmu, void* mem_data_void_ptr, size_t mem_size, size_t base_display_addr = 0x0000)
+    void DrawContents(void* mem_data_void_ptr, size_t mem_size, size_t base_display_addr = 0x0000)
     {
         u8* mem_data = (u8*)mem_data_void_ptr;
         Sizes s;
@@ -299,7 +300,7 @@ struct MemoryEditor
                         ImGui::SetKeyboardFocusHere();
                         ImGui::CaptureKeyboardFromApp(true);
                         sprintf(AddrInputBuf, format_data, s.AddrDigitsCount, base_display_addr + addr);
-                        sprintf(DataInputBuf, format_byte, ReadFn ? ReadFn(mem_data, addr) : mem_data[addr]);
+                        sprintf(DataInputBuf, format_byte, mmu->_get_nocheck(addr, false));
                     }
                     ImGui::PushItemWidth(s.GlyphWidth * 2);
                     struct UserData
@@ -325,7 +326,7 @@ struct MemoryEditor
                     };
                     UserData user_data;
                     user_data.CursorPos = -1;
-                    sprintf(user_data.CurrentBufOverwrite, format_byte, ReadFn ? ReadFn(mem_data, addr) : mem_data[addr]);
+                    sprintf(user_data.CurrentBufOverwrite, format_byte, mmu->_get_nocheck(addr, false));
                     ImGuiInputTextFlags flags = ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_NoHorizontalScroll | ImGuiInputTextFlags_AlwaysInsertMode | ImGuiInputTextFlags_CallbackAlways;
                     if (ImGui::InputText("##data", DataInputBuf, 32, flags, UserData::Callback, &user_data))
                         data_write = data_next = true;
@@ -340,17 +341,14 @@ struct MemoryEditor
                     unsigned int data_input_value = 0;
                     if (data_write && sscanf(DataInputBuf, "%X", &data_input_value) == 1)
                     {
-                        if (WriteFn)
-                            WriteFn(mem_data, addr, (u8)data_input_value);
-                        else
-                            mem_data[addr] = (u8)data_input_value;
+                        mmu->set(addr, data_input_value);
                     }
                     ImGui::PopID();
                 }
                 else
                 {
                     // NB: The trailing space is not visible but ensure there's no gap that the mouse cannot click on.
-                    u8 b = ReadFn ? ReadFn(mem_data, addr) : mem_data[addr];
+                    u8 b = mmu->_get_nocheck(addr, false);
 
                     if (OptShowHexII)
                     {
@@ -398,7 +396,7 @@ struct MemoryEditor
                         draw_list->AddRectFilled(pos, ImVec2(pos.x + s.GlyphWidth, pos.y + s.LineHeight), ImGui::GetColorU32(ImGuiCol_FrameBg));
                         draw_list->AddRectFilled(pos, ImVec2(pos.x + s.GlyphWidth, pos.y + s.LineHeight), ImGui::GetColorU32(ImGuiCol_TextSelectedBg));
                     }
-                    unsigned char c = ReadFn ? ReadFn(mem_data, addr) : mem_data[addr];
+                    unsigned char c = mmu->_get_nocheck(addr, false);
                     char display_c = (c < 32 || c >= 128) ? '.' : c;
                     draw_list->AddText(pos, (display_c == '.') ? color_disabled : color_text, &display_c, &display_c + 1);
                     pos.x += s.GlyphWidth;
@@ -598,16 +596,13 @@ struct MemoryEditor
         return out_buf;
     }
 
-    void DisplayPreviewData(size_t addr, const u8* mem_data, size_t mem_size, DataType data_type, DataFormat data_format, char* out_buf, size_t out_buf_size) const
+    void DisplayPreviewData(size_t addr, const u8* /*mem_data*/, size_t mem_size, DataType data_type, DataFormat data_format, char* out_buf, size_t out_buf_size) const
     {
         uint8_t buf[8];
         size_t elem_size = DataTypeGetSize(data_type);
         size_t size = addr + elem_size > mem_size ? mem_size - addr : elem_size;
-        if (ReadFn)
-            for (int i = 0, n = (int)size; i < n; ++i)
-                buf[i] = ReadFn(mem_data, addr + i);
-        else
-            memcpy(buf, mem_data + addr, size);
+        for (int i = 0, n = (int)size; i < n; ++i)
+            buf[i] = mmu->_get_nocheck(addr + i, false);
 
         if (data_format == DataFormat_Bin)
         {

@@ -234,22 +234,7 @@ void MMU::set_nocheck(uint16_t address, uint8_t value)
 
 uint8_t MMU::get(uint16_t address)
 {
-    uint8_t value;
-
-    address_type identity = get_address_identity(address);
-
-    // ECHO memory
-    if (identity == ECHO) {
-        address -= 0x2000;
-    }
-
-    if (identity == ROM0 ||
-        identity == ROM1 ||
-        identity == SRAM) {
-        value = cart->get(address);
-    } else {
-        value = get_nocheck(address);
-    }
+    uint8_t value = _get_nocheck(address, true);
 
     // Sound
     if (address >= NR10 && address <= NR52) {
@@ -276,13 +261,44 @@ uint8_t MMU::get(uint16_t address)
  * @param[in]  address  The address
  * @return     Value at that address
  */
-uint8_t MMU::get_nocheck(uint16_t address)
+uint8_t MMU::get_nocheck(uint16_t address) {
+    return _get_nocheck(address, true);
+}
+
+
+/**
+ * @brief      internal usage, allows to disable debugger break trigger
+ * @param[in]  address    The address
+ * @param[in]  feed_read  Should debugger know about this read?
+ * @return     The value read
+ */
+uint8_t MMU::_get_nocheck(uint16_t address, bool feed_read)
 {
-    if (debugger != nullptr && debugger->breakpoint_activated) {
-        debugger->feed_memory_read(address);
+    uint8_t value;
+
+    if (feed_read) {
+        if (debugger != nullptr && debugger->breakpoint_activated) {
+            debugger->feed_memory_read(address);
+        }
     }
 
-    return ram[address];
+    address_type identity = get_address_identity(address);
+
+    // ECHO memory
+    if (identity == ECHO) {
+        address -= 0x2000;
+    }
+
+    if (identity == ROM0 ||
+        identity == ROM1 ||
+        identity == SRAM) {
+
+        value = cart->get(address);
+    } else {
+        value = ram[address];
+    }
+
+    return value;
 }
 
 
