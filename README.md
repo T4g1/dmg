@@ -55,7 +55,7 @@ Test with `./test`
 |# |name               |state             |
 |- |-                  |-                 |
 |01|special            |:heavy_check_mark:|
-|02|interrupts         |:heavy_check_mark:|
+|02|interrupts         |:x:               |
 |03|op sp,hl           |:heavy_check_mark:|
 |04|op r,imm           |:heavy_check_mark:|
 |05|op rp              |:heavy_check_mark:|
@@ -80,7 +80,7 @@ Test with `./test`
 |08|len ctr during power   |:heavy_check_mark:|
 |09|wave read while on     |:x:               |
 |10|wave trigger while on  |:x:               |
-|11|regs after power       |:x:               |
+|11|regs after power       |:heavy_check_mark:|
 |12|wave write while on    |:x:               |
 
 # TODO
