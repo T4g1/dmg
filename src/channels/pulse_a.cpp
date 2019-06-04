@@ -1,5 +1,7 @@
 #include "pulse_a.h"
 
+#include "../dmg.h"
+
 
 PulseA::PulseA()
 {
@@ -69,7 +71,7 @@ void PulseA::trigger()
     reload_length(64);
     set_NR12(mmu->get(NR12));               // Reload volume
 
-    // TODO: duty_clock = now?
+    duty_clock = dmg->get_current_clock();
 
     shadow_frequency = frequency_raw;       // Copy frequency to shadow
     reset_actual_sweep_time();

@@ -45,8 +45,12 @@ bool APU::init()
     pulse_a.set_mmu(mmu);
     pulse_b.set_mmu(mmu);
     wave.set_mmu(mmu);
-    wave.set_dmg(dmg);
     noise.set_mmu(mmu);
+
+    pulse_a.set_dmg(dmg);
+    pulse_b.set_dmg(dmg);
+    wave.set_dmg(dmg);
+    noise.set_dmg(dmg);
 
     pulse_a.init();
     pulse_b.init();

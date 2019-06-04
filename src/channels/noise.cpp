@@ -1,6 +1,7 @@
 #include "noise.h"
 
 #include "../utils.h"
+#include "../dmg.h"
 
 
 Noise::Noise()
@@ -68,9 +69,8 @@ void Noise::trigger()
     reload_length(64);
     set_NR42(mmu->get(NR42));       // Reload volume
 
-    // TODO: lfsr_clock = now?
-
     lfsr_value = 0xFFFF;
+    lfsr_clock = dmg->get_current_clock();
 }
 
 

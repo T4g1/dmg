@@ -5,8 +5,12 @@
 #include "log.h"
 
 
+class DMG;
+
+
 class Channel {
 protected:
+    DMG *dmg;
     MMU *mmu;
 
     bool enabled;                   // Channel should produce output
@@ -59,6 +63,7 @@ public:
     int16_t get_output();
 
     void set_mmu(MMU *mmu);
+    void set_dmg(DMG *dmg);
 
     void set_NRX3(uint8_t value);
     void set_NRX4(uint8_t value);

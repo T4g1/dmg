@@ -180,6 +180,12 @@ void Channel::set_mmu(MMU *mmu)
 }
 
 
+void Channel::set_dmg(DMG *dmg)
+{
+    this->dmg = dmg;
+}
+
+
 /**
  * @brief      Frequency lo
  * @param[in]  value  The value

@@ -4,12 +4,7 @@
 #include "../channel.h"
 
 
-class DMG;
-
-
 class Wave : public Channel {
-    DMG *dmg;
-
     size_t volume_shift;        // Shift to apply to the wave value
 
     // Wave
@@ -46,8 +41,6 @@ public:
 
     void serialize(std::ofstream &file);
     void deserialize(std::ifstream &file);
-
-    void set_dmg(DMG *dmg);
 };
 
 #endif /* WAVE_H */

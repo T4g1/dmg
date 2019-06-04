@@ -113,7 +113,7 @@ void Wave::set_NR32(uint8_t value)
 {
     volume_shift = (value & 0x60) >> 5;
     if (volume_shift == 0) {
-        //dac_enabled = false;
+        dac_enabled = false;
         volume_shift = 4;
     } else {
         dac_enabled = true;
@@ -186,10 +186,4 @@ void Wave::deserialize(std::ifstream &file)
     file.read(reinterpret_cast<char*>(&volume_shift), sizeof(size_t));
     file.read(reinterpret_cast<char*>(&wave_position), sizeof(size_t));
     file.read(reinterpret_cast<char*>(&wave_clock), sizeof(size_t));
-}
-
-
-void Wave::set_dmg(DMG *dmg)
-{
-    this->dmg = dmg;
 }
