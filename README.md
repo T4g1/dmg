@@ -92,8 +92,6 @@ Test with `./test`
 * [x] Implement PPU
 * [x] Implement inputs
 * [x] Sound!
-* [ ] Pass all sound tests
-* [ ] OAM debug
 * [ ] Support all MBC
     * [x] MBC1
     * [ ] Others
