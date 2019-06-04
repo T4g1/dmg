@@ -168,6 +168,7 @@ bool MMU::set(uint16_t address, uint8_t value)
     // Write to External RAM are passed to cartridge
     else if (identity == SRAM && cart->has_ram()) {
         cart->set(address, value);
+        return true;
     }
 
     // Writting to CRASH is ignored on DMG
@@ -291,7 +292,7 @@ uint8_t MMU::_get_nocheck(uint16_t address, bool feed_read)
 
     if (identity == ROM0 ||
         identity == ROM1 ||
-        identity == SRAM) {
+        (identity == SRAM && cart->has_ram())) {
 
         value = cart->get(address);
     } else {
