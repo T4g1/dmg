@@ -53,7 +53,7 @@ void Timer::step()
         last_div_increment += DIV_FREQUENCY;
     }
 
-    if (clock - last_increment > frequencies[clock_select]) {
+    if (clock - last_increment > frequencies[clock_select] && enabled) {
         mmu->set(TIMA, mmu->get(TIMA) + 1);
         last_increment += frequencies[clock_select];
     }
