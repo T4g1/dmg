@@ -27,9 +27,10 @@ class DMG {
     bool running;
     bool no_boot;
 
-    size_t system_clock;        // Emulator clock
+    size_t system_clock;        // Emulator clock: Smallest clock amongst sub-systems
     // Clock based on real time elapsed, system clock should catch up with this
     size_t dmg_clock;
+    size_t current_clock;   // Clock of the system last processed
     Uint32 last_tick;       // Used to compute dmg_clock
 
     std::string bios_path;
@@ -49,6 +50,7 @@ public:
     void reset();
 
     void update_system_clock();
+    size_t get_current_clock();
 
     void fake_boot();
     void set_palette(size_t palette_index);

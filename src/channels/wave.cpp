@@ -1,5 +1,7 @@
 #include "wave.h"
 
+#include "../dmg.h"
+
 
 Wave::Wave()
 {
@@ -69,8 +71,7 @@ void Wave::trigger()
     set_NR32(mmu->get(NR32));       // Reload volume
 
     wave_position = 0;
-
-    // TODO: wave_clock = now?
+    wave_clock = dmg->get_current_clock();
 }
 
 
@@ -112,7 +113,7 @@ void Wave::set_NR32(uint8_t value)
 {
     volume_shift = (value & 0x60) >> 5;
     if (volume_shift == 0) {
-        dac_enabled = false;
+        //dac_enabled = false;
         volume_shift = 4;
     } else {
         dac_enabled = true;
@@ -151,12 +152,6 @@ size_t Wave::get_frequency()
 }
 
 
-void Wave::adjust_clocks(size_t adjustment)
-{
-    wave_clock -= adjustment;
-}
-
-
 /**
  * @brief      Action to do when powered off, reset wave
  */
@@ -165,6 +160,12 @@ void Wave::power_off()
     Channel::power_off();
 
     wave_position = 0;
+}
+
+
+void Wave::adjust_clocks(size_t adjustment)
+{
+    wave_clock -= adjustment;
 }
 
 
@@ -185,4 +186,10 @@ void Wave::deserialize(std::ifstream &file)
     file.read(reinterpret_cast<char*>(&volume_shift), sizeof(size_t));
     file.read(reinterpret_cast<char*>(&wave_position), sizeof(size_t));
     file.read(reinterpret_cast<char*>(&wave_clock), sizeof(size_t));
+}
+
+
+void Wave::set_dmg(DMG *dmg)
+{
+    this->dmg = dmg;
 }

@@ -48,6 +48,7 @@ public:
     bool set(uint16_t address, uint8_t value);
     void set_nocheck(uint16_t address, uint8_t value);
     uint8_t get(uint16_t address);
+    uint8_t _get(uint16_t address, bool feed_read);
     uint8_t get_nocheck(uint16_t address);
     uint8_t _get_nocheck(uint16_t address, bool feed_read);
     uint16_t get16(uint16_t address);

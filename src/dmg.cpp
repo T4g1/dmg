@@ -70,6 +70,7 @@ bool DMG::init(const char *bios_path, const char *rom_path)
     timer->set_mmu(mmu);
     input->set_mmu(mmu);
     apu->set_mmu(mmu);
+    apu->set_dmg(this);
     debugger->set_cpu(cpu);
     debugger->set_mmu(mmu);
     debugger->set_ppu(ppu);
@@ -92,6 +93,7 @@ bool DMG::init(const char *bios_path, const char *rom_path)
     dmg_clock = 0;
     system_clock = 0;
     last_tick = 0;
+    current_clock = 0;
 
     reset();
 
@@ -135,21 +137,29 @@ void DMG::process()
     input->update();
 
     if (system_clock >= cpu->clock) {
+        current_clock = cpu->clock;
         if (cpu->step()) {
             debugger->step_dmg = false;
         }
+        current_clock = cpu->clock;
     }
 
     if (system_clock >= ppu->clock) {
+        current_clock = ppu->clock;
         ppu->step();
+        current_clock = ppu->clock;
     }
 
     if (system_clock >= timer->clock) {
+        current_clock = timer->clock;
         timer->step();
+        current_clock = timer->clock;
     }
 
     if (system_clock >= apu->clock) {
+        current_clock = apu->clock;
         apu->step();
+        current_clock = apu->clock;
     }
 }
 
@@ -179,6 +189,12 @@ void DMG::update_system_clock()
     if (timer->clock < system_clock) {
         system_clock = timer->clock;
     }
+}
+
+
+size_t DMG::get_current_clock()
+{
+    return current_clock;
 }
 
 

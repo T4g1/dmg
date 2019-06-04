@@ -45,6 +45,7 @@ bool APU::init()
     pulse_a.set_mmu(mmu);
     pulse_b.set_mmu(mmu);
     wave.set_mmu(mmu);
+    wave.set_dmg(dmg);
     noise.set_mmu(mmu);
 
     pulse_a.init();
@@ -387,4 +388,10 @@ void APU::deserialize(std::ifstream &file)
     pulse_b.deserialize(file);
     wave.deserialize(file);
     noise.deserialize(file);
+}
+
+
+void APU::set_dmg(DMG *dmg)
+{
+    this->dmg = dmg;
 }

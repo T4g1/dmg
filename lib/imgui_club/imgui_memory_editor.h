@@ -300,7 +300,7 @@ struct MemoryEditor
                         ImGui::SetKeyboardFocusHere();
                         ImGui::CaptureKeyboardFromApp(true);
                         sprintf(AddrInputBuf, format_data, s.AddrDigitsCount, base_display_addr + addr);
-                        sprintf(DataInputBuf, format_byte, mmu->_get_nocheck(addr, false));
+                        sprintf(DataInputBuf, format_byte, mmu->_get(addr, false));
                     }
                     ImGui::PushItemWidth(s.GlyphWidth * 2);
                     struct UserData
@@ -326,7 +326,7 @@ struct MemoryEditor
                     };
                     UserData user_data;
                     user_data.CursorPos = -1;
-                    sprintf(user_data.CurrentBufOverwrite, format_byte, mmu->_get_nocheck(addr, false));
+                    sprintf(user_data.CurrentBufOverwrite, format_byte, mmu->_get(addr, false));
                     ImGuiInputTextFlags flags = ImGuiInputTextFlags_CharsHexadecimal | ImGuiInputTextFlags_EnterReturnsTrue | ImGuiInputTextFlags_AutoSelectAll | ImGuiInputTextFlags_NoHorizontalScroll | ImGuiInputTextFlags_AlwaysInsertMode | ImGuiInputTextFlags_CallbackAlways;
                     if (ImGui::InputText("##data", DataInputBuf, 32, flags, UserData::Callback, &user_data))
                         data_write = data_next = true;
@@ -348,7 +348,7 @@ struct MemoryEditor
                 else
                 {
                     // NB: The trailing space is not visible but ensure there's no gap that the mouse cannot click on.
-                    u8 b = mmu->_get_nocheck(addr, false);
+                    u8 b = mmu->_get(addr, false);
 
                     if (OptShowHexII)
                     {
@@ -396,7 +396,7 @@ struct MemoryEditor
                         draw_list->AddRectFilled(pos, ImVec2(pos.x + s.GlyphWidth, pos.y + s.LineHeight), ImGui::GetColorU32(ImGuiCol_FrameBg));
                         draw_list->AddRectFilled(pos, ImVec2(pos.x + s.GlyphWidth, pos.y + s.LineHeight), ImGui::GetColorU32(ImGuiCol_TextSelectedBg));
                     }
-                    unsigned char c = mmu->_get_nocheck(addr, false);
+                    unsigned char c = mmu->_get(addr, false);
                     char display_c = (c < 32 || c >= 128) ? '.' : c;
                     draw_list->AddText(pos, (display_c == '.') ? color_disabled : color_text, &display_c, &display_c + 1);
                     pos.x += s.GlyphWidth;
@@ -602,7 +602,7 @@ struct MemoryEditor
         size_t elem_size = DataTypeGetSize(data_type);
         size_t size = addr + elem_size > mem_size ? mem_size - addr : elem_size;
         for (int i = 0, n = (int)size; i < n; ++i)
-            buf[i] = mmu->_get_nocheck(addr + i, false);
+            buf[i] = mmu->_get(addr + i, false);
 
         if (data_format == DataFormat_Bin)
         {

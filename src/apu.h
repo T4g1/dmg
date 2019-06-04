@@ -11,10 +11,14 @@
 #include "channels/noise.h"
 
 
+class DMG;
+
+
 /**
  * @brief      Hanldes sounds (audio processing unit)
  */
 class APU {
+    DMG *dmg;
     MMU *mmu;
 
     PulseA pulse_a;
@@ -96,6 +100,7 @@ public:
     void adjust_clocks(size_t adjustment);
 
     void set_mmu(MMU *mmu);
+    void set_dmg(DMG *dmg);
 
     void serialize(std::ofstream &file);
     void deserialize(std::ifstream &file);

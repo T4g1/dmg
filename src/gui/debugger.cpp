@@ -424,20 +424,20 @@ void Debugger::display_execution()
             if (increment == 2) {
                 ImGui::Text(
                     "%02X %02X",
-                    *(mmu->ram + address),
-                    *(mmu->ram + address + 1)
+                    mmu->_get(address, false),
+                    mmu->_get(address + 1, false)
                 );
             } else if (increment == 3) {
                 ImGui::Text(
                     "%02X %02X %02X",
-                    *(mmu->ram + address),
-                    *(mmu->ram + address + 1),
-                    *(mmu->ram + address + 2)
+                    mmu->_get(address, false),
+                    mmu->_get(address + 1, false),
+                    mmu->_get(address + 2, false)
                 );
             } else {
                 ImGui::Text(
                     "%02X",
-                    *(mmu->ram + address)
+                    mmu->_get(address, false)
                 );
             }
 
@@ -735,10 +735,10 @@ void Debugger::display_APU_status()
  */
 uint16_t Debugger::translate(char buffer[], size_t size, uint16_t address)
 {
-    uint8_t d0 = *(mmu->ram + address + 1);
-    uint8_t d1 = *(mmu->ram + address + 2);
+    uint8_t d0 = mmu->_get(address + 1, false);
+    uint8_t d1 = mmu->_get(address + 2, false);
 
-    switch(*(mmu->ram + address)) {
+    switch(mmu->_get(address, false)) {
     case 0x00: TRANSLATION(1, "NOP");
     case 0x01: TRANSLATION(3, "LD BC,0x%02X%02X", d1, d0);
     case 0x02: TRANSLATION(1, "LD (BC),A");

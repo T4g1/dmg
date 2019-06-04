@@ -235,7 +235,13 @@ void MMU::set_nocheck(uint16_t address, uint8_t value)
 
 uint8_t MMU::get(uint16_t address)
 {
-    uint8_t value = _get_nocheck(address, true);
+    return _get(address, true);
+}
+
+
+uint8_t MMU::_get(uint16_t address, bool feed_read)
+{
+    uint8_t value = _get_nocheck(address, feed_read);
 
     // Sound
     if (address >= NR10 && address <= NR52) {
