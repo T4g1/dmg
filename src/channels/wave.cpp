@@ -65,6 +65,7 @@ void Wave::trigger()
 
     ve_timer = ve_period;
     ve_enabled = true;
+    volume = ve_volume;
 
     reload_length(256);
     set_NR30(mmu->get(NR30));       // Reload DAC (disable channel if DAC disabled)

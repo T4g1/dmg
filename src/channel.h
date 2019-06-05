@@ -33,6 +33,7 @@ protected:
     size_t ve_period;               // How many volume adjustment we will do
     size_t ve_timer;                // Used to trigger at the right time
     bool ve_add;                    // Volume is incremented or decremented
+    uint8_t ve_volume;              // Volume at load
 
     // DAC
     bool dac_enabled;               // Controlled by upper 5 bit of NRX2

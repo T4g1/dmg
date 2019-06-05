@@ -121,20 +121,18 @@ void Channel::volume_envelope()
         ve_timer = 8;
     }
 
-    if (!ve_enabled || ve_period == 0) {
-        return;
-    }
-
-    // Addition
-    if (ve_add) {
-        if (volume < 0x0F) {
-            volume += 1;
+    if (ve_enabled && ve_period > 0) {
+        // Addition
+        if (ve_add) {
+            if (volume < 0x0F) {
+                volume += 1;
+            }
         }
-    }
-    // Substraction
-    else {
-        if (volume > 0x00) {
-            volume -= 1;
+        // Substraction
+        else {
+            if (volume > 0x00) {
+                volume -= 1;
+            }
         }
     }
 
@@ -286,6 +284,7 @@ void Channel::serialize(std::ofstream &file)
     file.write(reinterpret_cast<char*>(&ve_period), sizeof(size_t));
     file.write(reinterpret_cast<char*>(&ve_timer), sizeof(size_t));
     file.write(reinterpret_cast<char*>(&ve_add), sizeof(bool));
+    file.write(reinterpret_cast<char*>(&ve_volume), sizeof(uint8_t));
 
     // DAC
     file.write(reinterpret_cast<char*>(&dac_enabled), sizeof(bool));
@@ -317,6 +316,7 @@ void Channel::deserialize(std::ifstream &file)
     file.read(reinterpret_cast<char*>(&ve_period), sizeof(size_t));
     file.read(reinterpret_cast<char*>(&ve_timer), sizeof(size_t));
     file.read(reinterpret_cast<char*>(&ve_add), sizeof(bool));
+    file.read(reinterpret_cast<char*>(&ve_volume), sizeof(uint8_t));
 
     // DAC
     file.read(reinterpret_cast<char*>(&dac_enabled), sizeof(bool));

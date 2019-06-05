@@ -65,9 +65,9 @@ void Noise::trigger()
 
     ve_timer = ve_period;
     ve_enabled = true;
+    volume = ve_volume;
 
     reload_length(64);
-    set_NR42(mmu->get(NR42));       // Reload volume
 
     lfsr_value = 0xFFFF;
     lfsr_clock = dmg->get_current_clock();
@@ -96,7 +96,7 @@ void Noise::set_NR41(uint8_t value)
  */
 void Noise::set_NR42(uint8_t value)
 {
-    volume = (value & 0b11110000) >> 4;
+    ve_volume = (value & 0b11110000) >> 4;
     ve_add = value & 0b00001000;
     ve_period = value & 0b00000111;
 

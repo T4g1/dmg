@@ -5,6 +5,7 @@
 
 
 class PulseA : public Channel {
+protected:
     // Wave duty
     size_t duty;                    // Wave duty type to use
     size_t duty_position;           // Position in the duty wave
