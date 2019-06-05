@@ -29,6 +29,10 @@ Personal attempt at creating a simple DMG GameBoy emulator from scratch.
 
 # Compilation
 
+Tested on Linux. Does not seem to compile as it is for Windows. Not tested at all for other OS. Should only require SDL2.
+
+Contains submodules so clone with something like `--recurse-submodules`
+
 ```
 make clean; make
 ```
